@@ -7,7 +7,6 @@ import xarray as xr
 import shutil
 import numpy as np
 import json
-import zarr
 import logging
 from matplotlib import pyplot as plt
 import dask.array as dsk
@@ -18,6 +17,7 @@ from xclim import atmos
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
 from xclim.sdba import properties, measures
 from xclim.core.formatting import update_xclim_history
+import xclim as xc
 
 # add link to xscen
 import yaml
@@ -32,8 +32,11 @@ from xscen.extraction import search_data_catalogs, extract_dataset
 from xscen.io import save_to_zarr, rechunk
 from xscen.config import CONFIG, load_config
 from xscen.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
-from xscen.regridding import prepare_destination_grid, regrid
-from xscen.xclim_modules.conversions import dtr, tasmin_from_dtr
+from xscen.regridding import regrid
+#from xscen.xclim_modules.conversions import dtr, tasmin_from_dtr
+from xscen.indicators import load_xclim_module
+#TODO: this is not the best way to do this, find better way when install with pip
+xclim_ind =load_xclim_module(out['paths']['conversions'])
 from xscen.biasadjust import train, adjust
 from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout
 
@@ -48,11 +51,13 @@ mode = 'o'
 
 def compute_properties(sim, ref, ref_period, fut_period):
     # get right calendar
+    """
     simcal = get_calendar(sim)
     mincal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
     if simcal != mincal:
         sim = convert_calendar(sim, mincal)
         ref = convert_calendar(ref, mincal)
+    """
     ds_hist = sim.sel(time=ref_period)
 
     # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
@@ -226,385 +231,398 @@ if __name__ == '__main__':
 
     for sim_id in CONFIG['ids']:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
-            fmtkws = {'region_name': region_name,
-                      'sim_id': sim_id}
-            print(fmtkws)
-            # ---REGRID---
-            if (
-                    "regrid" in CONFIG["tasks"]
-                    and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
-            ):
-                with (
-                        Client(n_workers=5, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                        performance_report(dask_perf_file.with_name(f'perf_report_regrid_{sim_id}_{region_name}.html')),
-                        measure_time(name='regrid', logger=logger)
-                ):
+            if not pcat.exists_in_cat(domain=region_name, processing_level='final', id=sim_id):
 
-                    # search the data that we need
-                    cat_sim = search_data_catalogs(**CONFIG['extraction']['simulations']['search_data_catalogs'])
-
-                    # extract
-                    dc = cat_sim[sim_id]
-                    ds_sim = extract_dataset(catalog=dc,
-                                             **CONFIG['extraction']['simulations']['extract_dataset'],
-                                             )
-                    # clean_up_ds
-                    name = ds_sim.member_id.item()
-                    for attrname, attrval in ds_sim.attrs.items():
-                        if isinstance(attrval, str):
-                            try:
-                                val = json.loads(attrval)
-                            except json.JSONDecodeError:
-                                pass
-                            else:
-                                if isinstance(val, dict) and name in val:
-                                    ds_sim.attrs[attrname] = val[name]
-
-                    ds_sim['time'] = ds_sim.time.dt.floor('D')
-
-                    variables = list(ds_sim.data_vars)
-                    ds_sim = ds_sim.drop_vars(
-                        (
-                                set(ds_sim.data_vars.keys()).union(
-                                    name for name, crd in ds_sim.coords.items() if name not in crd.dims)
-                                - set(variables) - {'lon', 'lat'}
-                        )
-                    )
-
-                    ds_sim = fix_cordex_na(ds_sim)
-
-                    # get reference
-                    ds_refnl = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr",
-                                            decode_timedelta=False)
-
-                    # regrid
-                    ds_sim_regrid = regrid(
-                        ds=ds_sim,
-                        ds_grid=ds_refnl,
-                        **CONFIG['regrid']
-                    )
-
-                    # chunk time dim
-                    ds_sim_regrid = ds_sim_regrid.chunk(translate_time_chunk({'time': '4year'},
-                                                                             get_calendar(ds_sim_regrid),
-                                                                             ds_sim_regrid.time.size
-                                                                             )
-                                                        )
-
-                    # save to zarr
-                    path_rg = f"{workdir}/{sim_id}_regridded.zarr"
-                    save_to_zarr(ds=ds_sim_regrid,
-                                 filename=path_rg,
-                                 auto_rechunk=False,
-                                 encoding=CONFIG['custom']['encoding'],
-                                 compute=True,
-                                 mode=mode
-                                 )
-                    pcat.update_from_ds(ds=ds_sim_regrid, path=path_rg)
-
-            #  ---RECHUNK---
-            if (
-                    "rechunk" in CONFIG["tasks"]
-                    and not pcat.exists_in_cat(domain=region_name, processing_level='regridded and rechunked',
-                                               id=sim_id)
-            ):
-                with (
-                        Client(n_workers=2, threads_per_worker=5, memory_limit="18GB", **daskkws),
-                        performance_report(
-                            dask_perf_file.with_name(f'perf_report_rechunk_{sim_id}_{region_name}.html')),
-                        measure_time(name=f'rechunk', logger=logger)
-                ):
-                    path_rc = f"{workdir}/{sim_id}_regchunked.zarr"
-                    rechunk(path_in=f"{workdir}/{sim_id}_regridded.zarr",
-                            path_out=path_rc,
-                            chunks_over_dim=CONFIG['custom']['chunks'],
-                            **CONFIG['rechunk'],
-                            overwrite=True)
-
-                    ds_sim_rechunked = xr.open_zarr(path_rc, decode_timedelta=False)
-
-                    pcat.update_from_ds(ds=ds_sim_rechunked,
-                                        path=path_rc,
-                                        info_dict={'processing_level': 'regridded and rechunked'})
-
-            # --- SIM PROPERTIES ---
-            if ("simproperties" in CONFIG["tasks"]
-                    and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_simprops")
-            ):
-                with (
-                        Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                        performance_report(
-                            dask_perf_file.with_name(f'perf_report_simprops_{sim_id}_{region_name}.html')),
-                        measure_time(name=f'simproperties', logger=logger),
-                        timeout(3600, task='simproperties')
-                ):
-                    ds_sim = xr.open_zarr(workdir / f'{sim_id}_regchunked.zarr')
-                    simcal = get_calendar(ds_sim)
-                    ds_ref = xr.open_zarr(refdir / f"ref_{region_name}_{simcal}.zarr")
-
-                    out = compute_properties(ds_sim, ds_ref, ref_period, fut_period)
-
-                    out_path = Path(CONFIG['paths']['checkups'].format(
-                        region_name=region_name, sim_id=sim_id, step='sim'
-                    ))
-                    out_path.parent.mkdir(exist_ok=True, parents=True)
-                    save_to_zarr(ds=out,
-                                 filename=out_path,
-                                 auto_rechunk=False,
-                                 mode=mode,
-                                 itervar=True
-                                 )
-
-                    logger.info('Sim properties computed, painting nan count and sending plot.')
-                    dsim_props = unstack_fill_nan(xr.open_zarr(out_path), coords=refdir / f'coords_{region_name}.nc')
-                    nan_count = dsim_props.nan_count.load()
-
-                    fig, ax = plt.subplots(figsize=(12, 8))
-                    cmap = plt.cm.winter.copy()
-                    cmap.set_under('white')
-                    nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
-                    ax.set_title(
-                        f'Raw simulation {sim_id} {region_name} - NaN count \nmax {nan_count.max().item()} out of {ds_sim.time.size}')
-                    send_mail(
-                        subject=f'Properties of {sim_id} {region_name} - Success',
-                        msg=f"Action 'simproperties' succeeded.",
-                        attachments=[fig]
-                    )
-                    plt.close('all')
-
-                    pcat.update_from_ds(ds=out, info_dict={'id': f"{sim_id}_simprops", 'domain': region_name},
-                                        path=out_path)
-
-            # ---BIAS ADJUST---
-            for var, conf in CONFIG['biasadjust']['variables'].items():
-
-                # ---TRAIN ---
+                fmtkws = {'region_name': region_name,
+                          'sim_id': sim_id}
+                print(fmtkws)
+                # ---REGRID---
                 if (
-                        "train" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_{var}")
+                        "regrid" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
+                ):
+                    with (
+                            Client(n_workers=5, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                            performance_report(dask_perf_file.with_name(f'perf_report_regrid_{sim_id}_{region_name}.html')),
+                            measure_time(name='regrid', logger=logger)
+                    ):
+
+                        # search the data that we need
+                        cat_sim = search_data_catalogs(**CONFIG['extraction']['simulations']['search_data_catalogs'])
+
+                        # extract
+                        dc = cat_sim[sim_id]
+                        ds_sim = extract_dataset(catalog=dc,
+                                                 **CONFIG['extraction']['simulations']['extract_dataset'],
+                                                 )
+                        # clean_up_ds
+                        name = ds_sim.member_id.item()
+                        for attrname, attrval in ds_sim.attrs.items():
+                            if isinstance(attrval, str):
+                                try:
+                                    val = json.loads(attrval)
+                                except json.JSONDecodeError:
+                                    pass
+                                else:
+                                    if isinstance(val, dict) and name in val:
+                                        ds_sim.attrs[attrname] = val[name]
+
+                        ds_sim['time'] = ds_sim.time.dt.floor('D')
+
+                        variables = list(ds_sim.data_vars)
+                        ds_sim = ds_sim.drop_vars(
+                            (
+                                    set(ds_sim.data_vars.keys()).union(
+                                        name for name, crd in ds_sim.coords.items() if name not in crd.dims)
+                                    - set(variables) - {'lon', 'lat'}
+                            )
+                        )
+
+                        ds_sim = fix_cordex_na(ds_sim)
+
+                        # get reference
+                        ds_refnl = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr",
+                                                decode_timedelta=False)
+
+                        # regrid
+                        ds_sim_regrid = regrid(
+                            ds=ds_sim,
+                            ds_grid=ds_refnl,
+                            **CONFIG['regrid']
+                        )
+
+                        # chunk time dim
+                        ds_sim_regrid = ds_sim_regrid.chunk(translate_time_chunk({'time': '4year'},
+                                                                                 get_calendar(ds_sim_regrid),
+                                                                                 ds_sim_regrid.time.size
+                                                                                 )
+                                                            )
+
+                        # save to zarr
+                        ds_sim_regrid.attrs['cat/_data_format_']= 'zarr'
+                        path_rg = f"{workdir}/{sim_id}_regridded.zarr"
+                        save_to_zarr(ds=ds_sim_regrid,
+                                     filename=path_rg,
+                                     auto_rechunk=False,
+                                     encoding=CONFIG['custom']['encoding'],
+                                     compute=True,
+                                     mode=mode
+                                     )
+                        pcat.update_from_ds(ds=ds_sim_regrid, path=path_rg)
+
+                #  ---RECHUNK---
+                if (
+                        "rechunk" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded and rechunked',
+                                                   id=sim_id)
+                ):
+                    with (
+                            Client(n_workers=2, threads_per_worker=5, memory_limit="18GB", **daskkws),
+                            performance_report(
+                                dask_perf_file.with_name(f'perf_report_rechunk_{sim_id}_{region_name}.html')),
+                            measure_time(name=f'rechunk', logger=logger)
+                    ):
+                        path_rc = f"{workdir}/{sim_id}_regchunked.zarr"
+                        rechunk(path_in=f"{workdir}/{sim_id}_regridded.zarr",
+                                path_out=path_rc,
+                                chunks_over_dim=CONFIG['custom']['chunks'],
+                                **CONFIG['rechunk'],
+                                overwrite=True)
+
+                        ds_sim_rechunked = xr.open_zarr(path_rc, decode_timedelta=False)
+
+                        pcat.update_from_ds(ds=ds_sim_rechunked,
+                                            path=path_rc,
+                                            info_dict={'processing_level': 'regridded and rechunked'})
+
+                # --- SIM PROPERTIES ---
+                if ("simproperties" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_simprops")
                 ):
                     with (
                             Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                            measure_time(name=f'train {var}')
+                            performance_report(
+                                dask_perf_file.with_name(f'perf_report_simprops_{sim_id}_{region_name}.html')),
+                            measure_time(name=f'simproperties', logger=logger),
+                            timeout(3600, task='simproperties')
                     ):
-                        # load hist ds (simulation)
-                        path_pa = '/tank/jlavoie/ESPO-test/ESPO-R_pa'
-                        ds_hist = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
+                        ds_sim = xr.open_zarr(workdir / f'{sim_id}_regchunked.zarr')
+                        simcal = get_calendar(ds_sim)
+                        ds_ref = xr.open_zarr(refdir / f"ref_{region_name}_{simcal}.zarr")
 
-                        # load ref ds
-                        # choose right calendar
-                        simcal = get_calendar(ds_hist)
-                        refcal = minimum_calendar(simcal,
-                                                  CONFIG['custom']['maximal_calendar'])
-                        ds_ref = (xr.open_zarr(f"{refdir}/ref_{region_name}_{refcal}.zarr"))
+                        out = compute_properties(ds_sim, ds_ref, ref_period, fut_period)
 
-                        np.random.seed(24)
-                        dsk.random.seed(24)
+                        out_path = Path(CONFIG['paths']['checkups'].format(
+                            region_name=region_name, sim_id=sim_id, step='sim'
+                        ))
+                        out_path.parent.mkdir(exist_ok=True, parents=True)
+                        save_to_zarr(ds=out,
+                                     filename=out_path,
+                                     auto_rechunk=False,
+                                     mode=mode,
+                                     itervar=True
+                                     )
 
-                        # training
-                        with measure_time(name=f'train {var}') as mt:
-                            ds_tr = train(dref=ds_ref,
-                                          dhist=ds_hist,
-                                          var=[var],
-                                          **conf['training_args'])
+                        logger.info('Sim properties computed, painting nan count and sending plot.')
+                        dsim_props = unstack_fill_nan(xr.open_zarr(out_path), coords=refdir / f'coords_{region_name}.nc')
+                        nan_count = dsim_props.nan_count.load()
 
-                            path_tr = f"{workdir}/{sim_id}_{var}_training.zarr"
+                        fig, ax = plt.subplots(figsize=(12, 8))
+                        cmap = plt.cm.winter.copy()
+                        cmap.set_under('white')
+                        nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
+                        ax.set_title(
+                            f'Raw simulation {sim_id} {region_name} - NaN count \nmax {nan_count.max().item()} out of {ds_sim.time.size}')
+                        send_mail(
+                            subject=f'Properties of {sim_id} {region_name} - Success',
+                            msg=f"Action 'simproperties' succeeded.",
+                            attachments=[fig]
+                        )
+                        plt.close('all')
 
-                            save_to_zarr(ds=ds_tr,
-                                         filename=path_tr,
+                        pcat.update_from_ds(ds=out, info_dict={'id': f"{sim_id}_simprops", 'domain': region_name},
+                                            path=out_path)
+
+                # ---BIAS ADJUST---
+                for var, conf in CONFIG['biasadjust']['variables'].items():
+
+                    # ---TRAIN ---
+                    if (
+                            "train" in CONFIG["tasks"]
+                            and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_{var}")
+                    ):
+                        with (
+                                Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
+                                measure_time(name=f'train {var}', logger=logger)
+                        ):
+                            # load hist ds (simulation)
+                            path_pa = '/tank/jlavoie/ESPO-test/ESPO-R_pa'
+                            ds_hist = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
+
+                            # load ref ds
+                            # choose right calendar
+                            simcal = get_calendar(ds_hist)
+                            refcal = minimum_calendar(simcal,
+                                                      CONFIG['custom']['maximal_calendar'])
+                            ds_ref = (xr.open_zarr(f"{refdir}/ref_{region_name}_{refcal}.zarr"))
+
+                            #np.random.seed(24)
+                            #dsk.random.seed(24)
+
+                            # training
+                            with measure_time(name=f'train {var}') as mt:
+                                ds_tr = train(dref=ds_ref,
+                                              dhist=ds_hist,
+                                              var=[var],
+                                              **conf['training_args'])
+
+                                path_tr = f"{workdir}/{sim_id}_{var}_training.zarr"
+
+                                save_to_zarr(ds=ds_tr,
+                                             filename=path_tr,
+                                             auto_rechunk=False,
+                                             mode='o')
+                                pcat.update_from_ds(ds=ds_tr,
+                                                    info_dict={'id': f"{sim_id}_training_{var}",
+                                                               'domain': region_name},
+                                                    path=path_tr)
+
+                    # ---ADJUST---
+                    if (
+                            "adjust" in CONFIG["tasks"]
+                            and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='biasadjusted',
+                                                       variable=var)
+                    ):
+                        with (
+                                Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                                measure_time(name=f'adjust {var}', logger=logger)
+                        ):
+                            # load sim ds
+                            ds_sim = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
+                            ds_tr = xr.open_zarr(f"{workdir}/{sim_id}_{var}_training.zarr")
+
+                            ds_scen = adjust(dsim=ds_sim,
+                                             dtrain=ds_tr,
+                                             **conf['adjusting_args'])
+
+                            path_adj = f"{workdir}/{sim_id}_{var}_adjusted.zarr"
+
+                            save_to_zarr(ds=ds_scen,
+                                         filename=path_adj,
                                          auto_rechunk=False,
                                          mode='o')
-                            pcat.update_from_ds(ds=ds_tr,
-                                                info_dict={'id': f"{sim_id}_training_{var}",
-                                                           'domain': region_name},
-                                                path=path_tr)
+                            pcat.update_from_ds(ds=ds_scen, path=path_adj)
 
-                # ---ADJUST---
+                # ---CLEAN UP ---
                 if (
-                        "adjust" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='biasadjusted',
-                                                   variable=var)
+                        "clean_up" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='cleaned_up')
                 ):
                     with (
-                            Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                            measure_time(name=f'adjust {var}')
+                            Client(n_workers=4, threads_per_worker=3, memory_limit="15GB", **daskkws),
+                            performance_report(
+                                dask_perf_file.with_name(f'perf_report_cleanup_{sim_id}_{region_name}.html')),
+                            measure_time(name=f'cleanup', logger=logger)
                     ):
-                        print('adjust')
-                        # load sim ds
-                        ds_sim = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
-                        ds_tr = xr.open_zarr(f"{workdir}/{sim_id}_{var}_training.zarr")
+                        # get attrs
+                        simattrs = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr").attrs
+                        #only keep catalog attrs
+                        catattrs = { key: simattrs[key] for key in simattrs if key[:4]=='cat/' }
+                        #ds_ref = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr")
+                        #refattrs = ds_ref.attrs
 
-                        ds_scen = adjust(dsim=ds_sim,
-                                         dadj=ds_tr,
-                                         var=[var],
-                                         training_args=conf['training_args'],
-                                         **conf['adjusting_args'])
+                        # create new dataset with the right variables
+                        outs = {v: xr.open_zarr(f"{workdir}/{sim_id}_{v}_adjusted.zarr")[v] for v in
+                                CONFIG['biasadjust']['variables'].keys()}
 
-                        path_adj = f"{workdir}/{sim_id}_{var}_adjusted.zarr"
+                        # TODO: test loading tasmin with search cat
 
-                        save_to_zarr(ds=ds_scen,
-                                     filename=path_adj,
+                        if 'dtr' in outs and 'tasmax' in outs:
+                            #hist_attrs = outs['dtr'].attrs['history']
+                            outs['tasmin'] = xclim_ind.tasmin_from_dtr(dtr=outs.pop('dtr'), tasmax=outs['tasmax'])
+                            #outs['tasmin'].attrs['history'] =  hist_attrs
+                        ds = xr.Dataset(data_vars=outs, attrs=catattrs)
+
+                        # unstack nans
+                        if CONFIG['custom']['stack_drop_nans']:
+                            ds = unstack_fill_nan(ds, coords=f"{refdir}/coords_{region_name}.nc")
+                            ds = ds.chunk({d: CONFIG['custom']['chunks'][d] for d in ds.dims})
+
+                        # add final attrs
+                        for var, attrs in CONFIG['clean_up']['attrs'].items():
+                            obj = ds if var == 'global' else ds[var]
+                            for attrname, attrtmpl in attrs.items():
+                                # TODO: check if removing refattrs made a difference
+                                #obj.attrs[attrname] = attrtmpl.format(refattrs=refattrs, **fmtkws)
+                                obj.attrs[attrname] = attrtmpl.format( **fmtkws)
+                        ds.attrs['variables'] = tuple(v for v in ds.data_vars if len(ds[v].dims) > 0)
+
+                        # only keep specific var attrs
+                        for var in ds.data_vars.values():
+                            for attr in list(var.attrs.keys()):
+                                if attr not in CONFIG['clean_up']['final_attrs_names']:
+                                    del var.attrs[attr]
+
+                        ds.attrs['cat/processing_level'] = 'cleaned_up'
+                        path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
+                        save_to_zarr(ds=ds,
+                                     filename=path_cu,
                                      auto_rechunk=False,
                                      mode='o')
-                        pcat.update_from_ds(ds=ds_scen, path=path_adj)
+                        pcat.update_from_ds(ds=ds, path=path_cu)
 
-            # ---CLEAN UP ---
-            if (
-                    "clean_up" in CONFIG["tasks"]
-                    and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='cleaned_up')
-            ):
-                with (
-                        Client(n_workers=4, threads_per_worker=3, memory_limit="15GB", **daskkws),
-                        performance_report(
-                            dask_perf_file.with_name(f'perf_report_cleanup_{sim_id}_{region_name}.html')),
-                        measure_time(name=f'cleanup', logger=logger)
+                # ---FINAL ZARR ---
+                if (
+                        "final_zarr" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='final',
+                                                   format='zarr')
                 ):
-                    # get attrs
-                    simattrs = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr").attrs
-                    simattrs['cat/processing_level'] = 'cleaned up'
-                    ds_ref = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr")
-                    refattrs = ds_ref.attrs
+                    with (
+                            Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
+                            performance_report(
+                                dask_perf_file.with_name(f'perf_report_final_zarr_{sim_id}_{region_name}.html')),
+                            measure_time(name=f'final zarr rechunk', logger=logger)
+                    ):
+                        fi_path = Path(f"{CONFIG['paths']['output']}".format(**fmtkws))
+                        fi_path.parent.mkdir(exist_ok=True, parents=True)
 
-                    # create new dataset with the right variables
-                    outs = {v: xr.open_zarr(f"{workdir}/{sim_id}_{v}_adjusted.zarr")[v] for v in
-                            CONFIG['biasadjust']['variables'].keys()}
+                        rechunk(path_in=f"{workdir}/{sim_id}_cleaned_up.zarr",
+                                path_out=fi_path,
+                                chunks_over_dim=CONFIG['custom']['out_chunks'],
+                                **CONFIG['rechunk'],
+                                overwrite=True)
+                        ds = xr.open_zarr(fi_path)
+                        pcat.update_from_ds(ds=ds, path=fi_path, info_dict= {'cat/processing_level': 'final'})
 
-                    if 'dtr' in outs and 'tasmax' in outs:
-                        outs['tasmin'] = tasmin_from_dtr(dtr=outs.pop('dtr'), tasmax=outs['tasmax'])
-                    ds = xr.Dataset(data_vars=outs, attrs=simattrs)
-
-                    # unstack nans
-                    if CONFIG['custom']['stack_drop_nans']:
-                        ds = unstack_fill_nan(ds, coords=f"{refdir}/coords_{region_name}.nc")
-                        ds = ds.chunk({d: CONFIG['custom']['chunks'][d] for d in ds.dims})
-
-                    # add final attrs
-                    for var, attrs in CONFIG['clean_up']['attrs'].items():
-                        obj = ds if var == 'global' else ds[var]
-                        for attrname, attrtmpl in attrs.items():
-                            obj.attrs[attrname] = attrtmpl.format(refattrs=refattrs, **fmtkws)
-
-                    ds.attrs['cat/processing_level'] = 'cleaned_up'
-                    path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
-                    save_to_zarr(ds=ds,
-                                 filename=path_cu,
-                                 auto_rechunk=False,
-                                 mode='o')
-                    pcat.update_from_ds(ds=ds, path=path_cu)
-
-            # ---FINAL ZARR ---
-            if (
-                    "final_zarr" in CONFIG["tasks"]
-                    and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='final',
-                                               format='zarr')
-            ):
-                with (
-                        Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
-                        performance_report(
-                            dask_perf_file.with_name(f'perf_report_final_zarr_{sim_id}_{region_name}.html')),
-                        measure_time(name=f'final zarr rechunk', logger=logger)
+                # --- SCEN PROPS ---
+                if (
+                        "scenproperties" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_scenprops")
                 ):
-                    fi_path = Path(f"{CONFIG['paths']['output']}".format(**fmtkws))
-                    fi_path.parent.mkdir(exist_ok=True, parents=True)
+                    with (
+                            Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
+                            performance_report(
+                                dask_perf_file.with_name(f'perf_report_scenprops_{sim_id}_{region_name}.html')),
+                            measure_time(name=f'scenprops', logger=logger),
+                            timeout(5400, task='scenproperties')
+                    ):
+                        ds_scen = xr.open_zarr(f"{CONFIG['paths']['output']}".format(**fmtkws))
+                        scen_cal = get_calendar(ds_scen)
+                        ds_ref = maybe_unstack(
+                            xr.open_zarr(refdir / f"ref_{region_name}_{scen_cal}.zarr"),
+                            stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
+                            coords=refdir / f'coords_{region_name}.nc',
+                            rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
+                        )
 
-                    rechunk(path_in=f"{workdir}/{sim_id}_cleaned_up.zarr",
-                            path_out=fi_path,
-                            chunks_over_dim=CONFIG['custom']['out_chunks'],
-                            **CONFIG['rechunk'],
-                            overwrite=True)
-                    ds = xr.open_zarr(fi_path)
-                    ds.attrs['cat/processing_level'] = 'final'
-                    pcat.update_from_ds(ds=ds, path=fi_path)
+                        out = compute_properties(ds_scen, ds_ref, ref_period, fut_period)
 
-            # --- SCEN PROPS ---
-            if (
-                    "scenproperties" in CONFIG["tasks"]
-                    and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_scenprops")
-            ):
-                with (
-                        Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                        performance_report(
-                            dask_perf_file.with_name(f'perf_report_scenprops_{sim_id}_{region_name}.html')),
-                        measure_time(name=f'scenprops', logger=logger),
-                        timeout(5400, task='scenproperties')
-                ):
-                    ds_scen = xr.open_zarr(f"{CONFIG['paths']['output']}".format(**fmtkws))
-                    scen_cal = get_calendar(ds_scen)
-                    ds_ref = maybe_unstack(
-                        xr.open_zarr(refdir / f"ref_{region_name}_{scen_cal}.zarr"),
-                        stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
-                        coords=refdir / f'coords_{region_name}.nc',
-                        rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
-                    )
+                        out_path = CONFIG['paths']['checkups'].format(
+                            region_name=region_name, sim_id=sim_id, step='scen'
+                        )
 
-                    out = compute_properties(ds_scen, ds_ref, ref_period, fut_period)
+                        save_to_zarr(ds=out,
+                                     filename=out_path,
+                                     auto_rechunk=False,
+                                     mode=mode,
+                                     itervar=True
+                                     )
 
-                    out_path = CONFIG['paths']['checkups'].format(
-                        region_name=region_name, sim_id=sim_id, step='scen'
-                    )
+                        pcat.update_from_ds(ds=out, info_dict={'id': f"{sim_id}_scenprops", 'domain': region_name},
+                                            path=out_path)
 
-                    save_to_zarr(ds=out,
-                                 filename=out_path,
-                                 auto_rechunk=False,
-                                 mode=mode,
-                                 itervar=True
-                                 )
+                # --- CHECK UP ---
+                if "check_up" in CONFIG["tasks"]:
+                    with (
+                            Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                            performance_report(
+                                dask_perf_file.with_name(f'perf_report_checkup_{sim_id}_{region_name}.html')),
+                            measure_time(name=f'checkup', logger=logger)
+                    ):
 
-                    pcat.update_from_ds(ds=out, info_dict={'id': f"{sim_id}_scenprops", 'domain': region_name},
-                                        path=out_path)
+                        ref = xr.open_zarr(refdir / f"ref_{region_name}_properties.zarr").load()
+                        sim = maybe_unstack(
+                            xr.open_zarr(Path(CONFIG['paths']['checkups'].format(step='sim', **fmtkws))),
+                            coords=refdir / f'coords_{region_name}.nc',
+                            stack_drop_nans=CONFIG['custom']['stack_drop_nans']
+                        ).load()
+                        scen = xr.open_zarr(CONFIG['paths']['checkups'].format(step='scen', **fmtkws)).load()
 
-            # --- CHECK UP ---
-            if "check_up" in CONFIG["tasks"]:
-                with (
-                        Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                        performance_report(
-                            dask_perf_file.with_name(f'perf_report_checkup_{sim_id}_{region_name}.html')),
-                        measure_time(name=f'checkup', logger=logger)
-                ):
+                        fig_dir = Path(CONFIG['paths']['checkfigs'].format(**fmtkws))
+                        fig_dir.mkdir(exist_ok=True, parents=True)
+                        paths = []
 
-                    ref = xr.open_zarr(refdir / f"ref_{region_name}_properties.zarr").load()
-                    sim = maybe_unstack(
-                        xr.open_zarr(Path(CONFIG['paths']['checkups'].format(step='sim', **fmtkws))),
-                        coords=refdir / f'coords_{region_name}.nc',
-                        stack_drop_nans=CONFIG['custom']['stack_drop_nans']
-                    ).load()
-                    scen = xr.open_zarr(CONFIG['paths']['checkups'].format(step='scen', **fmtkws)).load()
+                        # NaN count
+                        fig_compare_and_diff(
+                            sim.nan_count.rename('sim'),
+                            scen.nan_count.rename('scen'),
+                            title='Comparing NaN counts.'
+                        ).savefig(fig_dir / 'Nan_count.png')
+                        paths.append(fig_dir / 'Nan_count.png')
 
-                    fig_dir = Path(CONFIG['paths']['checkfigs'].format(**fmtkws))
-                    fig_dir.mkdir(exist_ok=True, parents=True)
-                    paths = []
+                        # Extremes - between fut and hist
+                        fig_compare_and_diff(
+                            scen.pr_wet_freq_q99_hist.rename('historical'),
+                            scen.pr_wet_freq_q99_fut.rename('future'),
+                            title='Comparing frequency of extremes future vs present.'
+                        ).savefig(fig_dir / 'Extremes_pr_scen_hist-fut.png')
+                        paths.append(fig_dir / 'Extremes_pr_scen_hist-fut.png')
 
-                    # NaN count
-                    fig_compare_and_diff(
-                        sim.nan_count.rename('sim'),
-                        scen.nan_count.rename('scen'),
-                        title='Comparing NaN counts.'
-                    ).savefig(fig_dir / 'Nan_count.png')
-                    paths.append(fig_dir / 'Nan_count.png')
+                        for var in ['pr_wet_freq_q99_hist', 'tx_mean_rmse', 'tn_mean_rmse', 'prcptot_rmse']:
+                            fig_bias_compare_and_diff(
+                                ref[var], sim[var], scen[var],
+                            ).savefig(fig_dir / f'{var}_bias_compare.png')
+                            paths.append(fig_dir / f'{var}_bias_compare.png')
 
-                    # Extremes - between fut and hist
-                    fig_compare_and_diff(
-                        scen.pr_wet_freq_q99_hist.rename('historical'),
-                        scen.pr_wet_freq_q99_fut.rename('future'),
-                        title='Comparing frequency of extremes future vs present.'
-                    ).savefig(fig_dir / 'Extremes_pr_scen_hist-fut.png')
-                    paths.append(fig_dir / 'Extremes_pr_scen_hist-fut.png')
-
-                    for var in ['pr_wet_freq_q99_hist', 'tx_mean_rmse', 'tn_mean_rmse', 'prcptot_rmse']:
-                        fig_bias_compare_and_diff(
-                            ref[var], sim[var], scen[var],
-                        ).savefig(fig_dir / f'{var}_bias_compare.png')
-                        paths.append(fig_dir / f'{var}_bias_compare.png')
-
-                    send_mail(
-                        subject=f"{sim_id}/{region_name} - Succès",
-                        msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
-                        attachments=paths
-                    )
-                    plt.close('all')
-                    # when region is done erase workdir
-                    shutil.rmtree(workdir)
-                    os.mkdir(workdir)
+                        send_mail(
+                            subject=f"{sim_id}/{region_name} - Succès",
+                            msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
+                            attachments=paths
+                        )
+                        plt.close('all')
+                        # when region is done erase workdir
+                        shutil.rmtree(workdir)
+                        os.mkdir(workdir)
 
         if (
                 "concat" in CONFIG["tasks"]
@@ -625,9 +643,12 @@ if __name__ == '__main__':
                 list_dsR.append(dsR)
 
             dsC = xr.concat(list_dsR, 'lat')
-            dsC.attrs['title'] = dsC.attrs['title'][-15:]
+            dsC.attrs['title'] = f"ESPO-R5 v1.0.0 - {sim_id}"
+            dsC.attrs['cat/processing_level'] = f"final"
+            dsC.attrs['cat/_data_format_'] = f"zarr"
             dsC_path = CONFIG['paths']['concat_output'].format(sim_id=sim_id)
-            dsC = dsC.chunk({'time': 1460, 'lat': 2, 'lon': 2})
+            # TODO: verify that we don't want the path to be public
+            #dsC.attrs['cat/path'] = dsC_path
             dsC.to_zarr(dsC_path)
             pcat.update_from_ds(ds=dsC, info_dict={'domain': 'concat_regions'},
                                 path=dsC_path)

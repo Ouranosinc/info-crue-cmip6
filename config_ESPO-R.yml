@@ -5,21 +5,24 @@ project:
     id: rer
 
 tasks:
-  #- initialize_pcat
-#  - makeref
-#  - regrid
-#  - rechunk
-#  - simproperties
-#  - train
-#  - adjust
-#  - clean_up
-#  - final_zarr
-#  - scenproperties
-#  - check_up
-#  - concat
+#  - initialize_pcat
+  - makeref
+  - regrid
+  - rechunk
+  - simproperties
+  - train
+  - adjust
+  - clean_up
+  - final_zarr
+  - scenproperties
+  - check_up
+  - concat
 
 ids:
-    - CanESM2_CanRCM4_rcp45_NAM-22i
+    #- CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i
+    #- HadGEM2-ES_WRF_rcp85_NAM-44i
+    #- MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i
+    - GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i
     #- ['CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i', 'CanESM2_CRCM5-OUR_rcp45_NAM-22i', 'CanESM2_CRCM5-OUR_rcp85_NAM-22i', 'CanESM2_CRCM5-UQAM_rcp45_NAM-44i', 'CanESM2_CRCM5-UQAM_rcp85_NAM-22i', 'CanESM2_CRCM5-UQAM_rcp85_NAM-44i', 'CanESM2_CanRCM4_rcp45_NAM-22i', 'CanESM2_CanRCM4_rcp45_NAM-44i', 'CanESM2_CanRCM4_rcp85_NAM-22i', 'CanESM2_CanRCM4_rcp85_NAM-44i', 'CanESM2_RCA4_rcp45_NAM-44i', 'CanESM2_RCA4_rcp85_NAM-44i', 'EC-EARTH_HIRHAM5_rcp45_NAM-44i', 'EC-EARTH_HIRHAM5_rcp85_NAM-44i', 'EC-EARTH_RCA4_rcp45_NAM-44i', 'EC-EARTH_RCA4_rcp85_NAM-44i', 'GEMatm-Can_CRCM5-UQAM_rcp85_NAM-22i', 'GEMatm-Can_CRCM5-UQAM_rcp85_NAM-44i', 'GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i', 'GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-44i', 'GFDL-ESM2M_CRCM5-OUR_rcp45_NAM-22i', 'GFDL-ESM2M_CRCM5-OUR_rcp85_NAM-22i', 'GFDL-ESM2M_RegCM4_rcp85_NAM-22i', 'GFDL-ESM2M_RegCM4_rcp85_NAM-44i', 'GFDL-ESM2M_WRF_rcp85_NAM-22i', 'GFDL-ESM2M_WRF_rcp85_NAM-44i', 'HadGEM2-ES_RegCM4_rcp85_NAM-22i', 'HadGEM2-ES_RegCM4_rcp85_NAM-44i', 'HadGEM2-ES_WRF_rcp85_NAM-22i', 'HadGEM2-ES_WRF_rcp85_NAM-44i', 'MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i', 'MPI-ESM-LR_CRCM5-UQAM_rcp45_NAM-44i', 'MPI-ESM-LR_CRCM5-UQAM_rcp85_NAM-22i', 'MPI-ESM-LR_CRCM5-UQAM_rcp85_NAM-44i', 'MPI-ESM-LR_RegCM4_rcp85_NAM-22i', 'MPI-ESM-LR_RegCM4_rcp85_NAM-44i', 'MPI-ESM-LR_WRF_rcp85_NAM-22i', 'MPI-ESM-LR_WRF_rcp85_NAM-44i', 'MPI-ESM-MR_CRCM5-UQAM_rcp85_NAM-22i', 'MPI-ESM-MR_CRCM5-UQAM_rcp85_NAM-44i'])
 
 
@@ -62,55 +65,52 @@ custom:
         pr:
             dtype: float32
     regions:
-        test3:
-            name: test3
+#        test3:
+#            name: test3
+#            method: bbox
+#            bbox:
+#                lon_bnds: [ -80, -79 ]
+#                lat_bnds: [ 44.7, 45 ]
+#        test2:
+#            name: test2
+#            method: bbox
+#            bbox:
+#                lon_bnds: [ -80, -79 ]
+#                lat_bnds: [ 44.2, 44.6 ]
+#        test1:
+#            name: test1
+#            method: bbox
+#            bbox:
+#                lon_bnds: [ -80, -79 ]
+#                lat_bnds: [ 44, 44.2 ]
+        north:
+            name: north
             method: bbox
             bbox:
-                lon_bnds: [ -80, -79 ]
-                lat_bnds: [ 44.7, 45 ]
-        test2:
-            name: test2
+                lon_bnds: [-147.55, -52.65]
+                lat_bnds: [74.25, 59.25]
+        middle:
+            name: middle
             method: bbox
             bbox:
-                lon_bnds: [ -80, -79 ]
-                lat_bnds: [ 44.2, 44.6 ]
-        test1:
-            name: test1
+                lon_bnds: [-147.55, -52.65]
+                lat_bnds: [59.25, 44.25]
+        south:
+            name: south
             method: bbox
             bbox:
-                lon_bnds: [ -80, -79 ]
-                lat_bnds: [ 44, 44.2 ]
-#        north:
-#            name: north
-#            method: bbox
-#            #buffer: 1.5  # multiplier to apply on model resolution (not the subset_shape argument)
-#            bbox:
-#                lon_bnds: [-147.5, -52.60]
-#                lat_bnds: [74.20, 59.30]
-#        middle:
-#            name: middle
-#            method: bbox
-#            #buffer: 1.5  # multiplier to apply on model resolution (not the subset_shape argument)
-#            bbox:
-#                lon_bnds: [-147.5, -52.60]
-#                lat_bnds: [59.20, 44.30]
-#        south:
-#            name: south
-#            method: bbox
-#            #buffer: 1.5  # multiplier to apply on model resolution (not the subset_shape argument)
-#            bbox:
-#                lon_bnds: [-147.5, -52.60]
-#                lat_bnds: [44.20, 19.30]
+                lon_bnds: [-147.55, -52.65]
+                lat_bnds: [44.25, 19.25]
     stack_drop_nans: &stack
-        True #True just for testing now...
+        True
     chunks:
-        lat: 2 #20
-        lon: 2 #20
-        loc: 10 #600 # for 120 Mo chunks (~35 chunks in qc)
+        lat: 20 #2
+        lon: 20 #2
+        loc: 600 #10 # for 120 Mo chunks (~35 chunks in qc)
         time: -1
     out_chunks:
-        lat: 2 #50
-        lon: 2 #50
+        lat: 50 #2
+        lon: 50 #2
         time: 4year
     future_period:
         - '2071'
@@ -187,7 +187,6 @@ biasadjust:
                     nquantiles: 50
             adjusting_args:
                 simulation_period: *sim_period
-                maximal_calendar: *mcal
                 xclim_adjust_args:
                     detrend:
                         LoessDetrend:
@@ -210,7 +209,6 @@ biasadjust:
                     nquantiles: 50
             adjusting_args:
                 simulation_period: *sim_period
-                maximal_calendar: *mcal
                 xclim_adjust_args:
                     detrend:
                         LoessDetrend:
@@ -236,7 +234,6 @@ biasadjust:
                     kind: "*"
                     nquantiles: 50
             adjusting_args:
-                maximal_calendar: *mcal
                 simulation_period: *sim_period
                 xclim_adjust_args:
                     detrend:
@@ -249,12 +246,20 @@ biasadjust:
                     extrapolation: constant
 
 clean_up:
+    final_attrs_names:
+        - bias_adjustment
+        - cell_methods
+        - coordinates
+        - history
+        - long_name
+        - standard_name
+        - units
     attrs:
         global:
             Conventions: CF-1.9
             title: ESPO-R v1.0.0 - {sim_id} - Region {region_name}
             institution: Ouranos
-            Notes: |
+            source: |
                 Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
                 quantile mapping on a day-of-year basis with a window of 31 days, LOESS
                 detrending and 50 quantiles. The reference was ERA5-Land over the
@@ -262,6 +267,7 @@ clean_up:
                 from tasmax and dtr after the adjustment.
             redistribution: Redistribution prohibited. For internal use only.
             version: "1.0.0"
+            cat/_data_format_: zarr
         tasmax:
             standard_name: air_temperature
             long_name: Maximal daily temperature
