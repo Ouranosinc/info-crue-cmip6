@@ -33,10 +33,6 @@ from xscen.io import save_to_zarr, rechunk
 from xscen.config import CONFIG, load_config
 from xscen.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
 from xscen.regridding import regrid
-#from xscen.xclim_modules.conversions import dtr, tasmin_from_dtr
-from xscen.indicators import load_xclim_module
-#TODO: this is not the best way to do this, find better way when install with pip
-xclim_ind =load_xclim_module(out['paths']['conversions'])
 from xscen.biasadjust import train, adjust
 from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout
 
@@ -50,14 +46,6 @@ mode = 'o'
 
 
 def compute_properties(sim, ref, ref_period, fut_period):
-    # get right calendar
-    """
-    simcal = get_calendar(sim)
-    mincal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-    if simcal != mincal:
-        sim = convert_calendar(sim, mincal)
-        ref = convert_calendar(ref, mincal)
-    """
     ds_hist = sim.sel(time=ref_period)
 
     # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
@@ -195,9 +183,9 @@ if __name__ == '__main__':
 
                 # convert calendars
                 ds_refnl = convert_calendar(ds_ref, "noleap")
-                ds_refnl.attrs['cat/id'] = f"{ds_refnl.attrs['cat/id']}_noleap"
+                #ds_refnl.attrs['cat/id'] = f"{ds_refnl.attrs['cat/id']}_noleap"
                 ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
-                ds_ref360.attrs['cat/id'] = f"{ds_ref360.attrs['cat/id']}_360day"
+                #ds_ref360.attrs['cat/id'] = f"{ds_ref360.attrs['cat/id']}_360day"
 
                 save_to_zarr(ds_ref, f"{refdir}/ref_{region_name}_default.zarr", auto_rechunk=False,
                              compute=True, encoding=CONFIG['custom']['encoding'], mode=mode)
@@ -210,6 +198,7 @@ if __name__ == '__main__':
 
                 logger.info('Reference generated, painting nan count and sending plot.')
                 dref_props = xr.open_zarr(f"{refdir}/ref_{region_name}_properties.zarr").load()
+                dref_props.attrs.update(ds_ref.attrs)
 
                 fig, ax = plt.subplots(figsize=(10, 10))
                 cmap = plt.cm.winter.copy()
@@ -220,8 +209,12 @@ if __name__ == '__main__':
                 plt.close('all')
 
                 # update cat
-                for ds, name in zip([ds_ref, ds_refnl, ds_ref360], ['default', 'noleap', '360day']):
-                    pcat.update_from_ds(ds=ds, path=f"{refdir}/ref_{region_name}_{name}.zarr")
+                for ds, name in zip([ds_ref, ds_refnl, ds_ref360,dref_props], ['default', 'noleap', '360day', 'properties']):
+
+                    pcat.update_from_ds(ds=ds, path=f"{refdir}/ref_{region_name}_{name}.zarr",
+                                        info_dict= {'id': f"{ds_ref.attrs['cat/id']}_{name}",
+                                                    #'domain': region_name
+                                                    })
 
                 send_mail(
                     subject=f'Reference for region {region_name} - Success',
@@ -281,8 +274,8 @@ if __name__ == '__main__':
                         ds_sim = fix_cordex_na(ds_sim)
 
                         # get reference
-                        ds_refnl = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr",
-                                                decode_timedelta=False)
+                        #ds_refnl = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr",decode_timedelta=False)
+                        ds_refnl = pcat.search(id=f'ECMWF_ERA5-Land_NAM_noleap',domain=region_name).to_dataset_dict().popitem()[1]
 
                         # regrid
                         ds_sim_regrid = regrid(
@@ -299,7 +292,6 @@ if __name__ == '__main__':
                                                             )
 
                         # save to zarr
-                        ds_sim_regrid.attrs['cat/_data_format_']= 'zarr'
                         path_rg = f"{workdir}/{sim_id}_regridded.zarr"
                         save_to_zarr(ds=ds_sim_regrid,
                                      filename=path_rg,
@@ -313,8 +305,7 @@ if __name__ == '__main__':
                 #  ---RECHUNK---
                 if (
                         "rechunk" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded and rechunked',
-                                                   id=sim_id)
+                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded_and_rechunked',id=sim_id)
                 ):
                     with (
                             Client(n_workers=2, threads_per_worker=5, memory_limit="18GB", **daskkws),
@@ -333,7 +324,7 @@ if __name__ == '__main__':
 
                         pcat.update_from_ds(ds=ds_sim_rechunked,
                                             path=path_rc,
-                                            info_dict={'processing_level': 'regridded and rechunked'})
+                                            info_dict={'processing_level': 'regridded_and_rechunked'})
 
                 # --- SIM PROPERTIES ---
                 if ("simproperties" in CONFIG["tasks"]
@@ -346,11 +337,17 @@ if __name__ == '__main__':
                             measure_time(name=f'simproperties', logger=logger),
                             timeout(3600, task='simproperties')
                     ):
-                        ds_sim = xr.open_zarr(workdir / f'{sim_id}_regchunked.zarr')
+                        #ds_sim = xr.open_zarr(workdir / f'{sim_id}_regchunked.zarr')
+                        ds_sim = pcat.search(id=sim_id,
+                                            processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
+
                         simcal = get_calendar(ds_sim)
-                        ds_ref = xr.open_zarr(refdir / f"ref_{region_name}_{simcal}.zarr")
+                        #ds_ref = xr.open_zarr(refdir / f"ref_{region_name}_{simcal}.zarr")
+                        ds_ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_{simcal}',
+                                             domain=region_name).to_dataset_dict().popitem()[1]
 
                         out = compute_properties(ds_sim, ds_ref, ref_period, fut_period)
+                        out.attrs.update(ds_sim.attrs)
 
                         out_path = Path(CONFIG['paths']['checkups'].format(
                             region_name=region_name, sim_id=sim_id, step='sim'
@@ -380,7 +377,12 @@ if __name__ == '__main__':
                         )
                         plt.close('all')
 
-                        pcat.update_from_ds(ds=out, info_dict={'id': f"{sim_id}_simprops", 'domain': region_name},
+                        pcat.update_from_ds(ds=out,
+                                            info_dict={'id': f"{sim_id}_simprops",
+                                                       #'domain': region_name,
+                                                       #'processing_level': "properties",
+                                                       #'frequency': ds_sim.attrs['cat/frequency']
+                                                       },
                                             path=out_path)
 
                 # ---BIAS ADJUST---
@@ -396,18 +398,18 @@ if __name__ == '__main__':
                                 measure_time(name=f'train {var}', logger=logger)
                         ):
                             # load hist ds (simulation)
-                            path_pa = '/tank/jlavoie/ESPO-test/ESPO-R_pa'
-                            ds_hist = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
+                            #ds_hist = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
+                            ds_hist = pcat.search(id=sim_id,processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
 
                             # load ref ds
                             # choose right calendar
                             simcal = get_calendar(ds_hist)
                             refcal = minimum_calendar(simcal,
                                                       CONFIG['custom']['maximal_calendar'])
-                            ds_ref = (xr.open_zarr(f"{refdir}/ref_{region_name}_{refcal}.zarr"))
+                            #ds_ref = (xr.open_zarr(f"{refdir}/ref_{region_name}_{refcal}.zarr"))
+                            ds_ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_{refcal}',
+                                                 domain=region_name).to_dataset_dict().popitem()[1]
 
-                            #np.random.seed(24)
-                            #dsk.random.seed(24)
 
                             # training
                             with measure_time(name=f'train {var}') as mt:
@@ -424,7 +426,10 @@ if __name__ == '__main__':
                                              mode='o')
                                 pcat.update_from_ds(ds=ds_tr,
                                                     info_dict={'id': f"{sim_id}_training_{var}",
-                                                               'domain': region_name},
+                                                               'domain': region_name,
+                                                               'processing_level': "training",
+                                                               'frequency': ds_hist.attrs['cat/frequency']
+                                                                },
                                                     path=path_tr)
 
                     # ---ADJUST---
@@ -438,15 +443,18 @@ if __name__ == '__main__':
                                 measure_time(name=f'adjust {var}', logger=logger)
                         ):
                             # load sim ds
-                            ds_sim = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
-                            ds_tr = xr.open_zarr(f"{workdir}/{sim_id}_{var}_training.zarr")
+                            #ds_sim = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
+                            ds_sim = pcat.search(id=sim_id,
+                                                 processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
+                            #ds_tr = xr.open_zarr(f"{workdir}/{sim_id}_{var}_training.zarr")
+                            ds_tr = pcat.search(id=f'{sim_id}_training_{var}').to_dataset_dict().popitem()[1]
 
                             ds_scen = adjust(dsim=ds_sim,
                                              dtrain=ds_tr,
                                              **conf['adjusting_args'])
-
                             path_adj = f"{workdir}/{sim_id}_{var}_adjusted.zarr"
-
+                            ds_scen.lat.encoding.pop('chunks')
+                            ds_scen.lon.encoding.pop('chunks')
                             save_to_zarr(ds=ds_scen,
                                          filename=path_adj,
                                          auto_rechunk=False,
@@ -464,24 +472,22 @@ if __name__ == '__main__':
                                 dask_perf_file.with_name(f'perf_report_cleanup_{sim_id}_{region_name}.html')),
                             measure_time(name=f'cleanup', logger=logger)
                     ):
-                        # get attrs
-                        simattrs = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr").attrs
-                        #only keep catalog attrs
-                        catattrs = { key: simattrs[key] for key in simattrs if key[:4]=='cat/' }
-                        #ds_ref = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr")
-                        #refattrs = ds_ref.attrs
-
-                        # create new dataset with the right variables
-                        outs = {v: xr.open_zarr(f"{workdir}/{sim_id}_{v}_adjusted.zarr")[v] for v in
-                                CONFIG['biasadjust']['variables'].keys()}
-
-                        # TODO: test loading tasmin with search cat
-
-                        if 'dtr' in outs and 'tasmax' in outs:
-                            #hist_attrs = outs['dtr'].attrs['history']
-                            outs['tasmin'] = xclim_ind.tasmin_from_dtr(dtr=outs.pop('dtr'), tasmax=outs['tasmax'])
-                            #outs['tasmin'].attrs['history'] =  hist_attrs
-                        ds = xr.Dataset(data_vars=outs, attrs=catattrs)
+                        cat = search_data_catalogs(data_catalogs=[CONFIG['paths']['project_catalog']],
+                                                        variables_and_timedeltas= {'tasmax':'1D', 'tasmin':'1D', 'pr':'1D'},
+                                                        allow_resampling= False,
+                                                        allow_conversion= True,
+                                                        other_search_criteria= {'id': [sim_id], 'processing_level':["biasadjusted"]}
+                                                    )
+                        dc = cat.popitem()[1]
+                        ds = extract_dataset(catalog=dc,
+                                                  periods=['1950', '2100'],
+                                             to_level='cleaned_up'
+                                                  )
+                        ds.attrs['cat/id']=sim_id
+                        # remove all global attrs that don;t come from the catalogue
+                        for attr in list(ds.attrs.keys()):
+                            if attr[:4] != 'cat/':
+                                del ds.attrs[attr]
 
                         # unstack nans
                         if CONFIG['custom']['stack_drop_nans']:
@@ -492,24 +498,20 @@ if __name__ == '__main__':
                         for var, attrs in CONFIG['clean_up']['attrs'].items():
                             obj = ds if var == 'global' else ds[var]
                             for attrname, attrtmpl in attrs.items():
-                                # TODO: check if removing refattrs made a difference
-                                #obj.attrs[attrname] = attrtmpl.format(refattrs=refattrs, **fmtkws)
                                 obj.attrs[attrname] = attrtmpl.format( **fmtkws)
-                        ds.attrs['variables'] = tuple(v for v in ds.data_vars if len(ds[v].dims) > 0)
 
                         # only keep specific var attrs
                         for var in ds.data_vars.values():
                             for attr in list(var.attrs.keys()):
                                 if attr not in CONFIG['clean_up']['final_attrs_names']:
                                     del var.attrs[attr]
-
-                        ds.attrs['cat/processing_level'] = 'cleaned_up'
                         path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
                         save_to_zarr(ds=ds,
                                      filename=path_cu,
                                      auto_rechunk=False,
                                      mode='o')
-                        pcat.update_from_ds(ds=ds, path=path_cu)
+                        pcat.update_from_ds(ds=ds, path=path_cu,
+                                            info_dict= {'processing_level': 'cleaned_up'})
 
                 # ---FINAL ZARR ---
                 if (
@@ -532,7 +534,7 @@ if __name__ == '__main__':
                                 **CONFIG['rechunk'],
                                 overwrite=True)
                         ds = xr.open_zarr(fi_path)
-                        pcat.update_from_ds(ds=ds, path=fi_path, info_dict= {'cat/processing_level': 'final'})
+                        pcat.update_from_ds(ds=ds, path=str(fi_path), info_dict= {'processing_level': 'final'})
 
                 # --- SCEN PROPS ---
                 if (
@@ -546,16 +548,21 @@ if __name__ == '__main__':
                             measure_time(name=f'scenprops', logger=logger),
                             timeout(5400, task='scenproperties')
                     ):
-                        ds_scen = xr.open_zarr(f"{CONFIG['paths']['output']}".format(**fmtkws))
+                        #ds_scen = xr.open_zarr(f"{CONFIG['paths']['output']}".format(**fmtkws))
+                        ds_scen = pcat.search(id=sim_id,processing_level='final').to_dataset_dict().popitem()[1]
+
+
                         scen_cal = get_calendar(ds_scen)
                         ds_ref = maybe_unstack(
-                            xr.open_zarr(refdir / f"ref_{region_name}_{scen_cal}.zarr"),
+                            #xr.open_zarr(refdir / f"ref_{region_name}_{scen_cal}.zarr"),
+                            pcat.search(id=f'ECMWF_ERA5-Land_NAM_{scen_cal}',domain=region_name).to_dataset_dict().popitem()[1],
                             stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
                             coords=refdir / f'coords_{region_name}.nc',
                             rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
                         )
 
                         out = compute_properties(ds_scen, ds_ref, ref_period, fut_period)
+                        out.attrs.update(ds_scen.attrs)
 
                         out_path = CONFIG['paths']['checkups'].format(
                             region_name=region_name, sim_id=sim_id, step='scen'
@@ -568,8 +575,13 @@ if __name__ == '__main__':
                                      itervar=True
                                      )
 
-                        pcat.update_from_ds(ds=out, info_dict={'id': f"{sim_id}_scenprops", 'domain': region_name},
-                                            path=out_path)
+                        pcat.update_from_ds(ds=out,
+                                            info_dict={'id': f"{sim_id}_scenprops",
+                                                       #'domain': region_name,
+                                                       #'processing_level': "properties",
+                                                       #'frequency': ds_sim.attrs['cat/frequency']
+                                                       },
+                                            path=str(out_path))
 
                 # --- CHECK UP ---
                 if "check_up" in CONFIG["tasks"]:
@@ -581,12 +593,16 @@ if __name__ == '__main__':
                     ):
 
                         ref = xr.open_zarr(refdir / f"ref_{region_name}_properties.zarr").load()
+                        #ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_properties',domain=region_name).to_dataset_dict().popitem()[1].load(),
                         sim = maybe_unstack(
                             xr.open_zarr(Path(CONFIG['paths']['checkups'].format(step='sim', **fmtkws))),
+                            #pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
                             coords=refdir / f'coords_{region_name}.nc',
                             stack_drop_nans=CONFIG['custom']['stack_drop_nans']
                         ).load()
+                        # TODO: try to make it work with search opening
                         scen = xr.open_zarr(CONFIG['paths']['checkups'].format(step='scen', **fmtkws)).load()
+                        #scen = pcat.search(id=f'{sim_id}_scenprops', domain=region_name).to_dataset_dict().popitem()[1]
 
                         fig_dir = Path(CONFIG['paths']['checkfigs'].format(**fmtkws))
                         fig_dir.mkdir(exist_ok=True, parents=True)
@@ -638,18 +654,24 @@ if __name__ == '__main__':
                 fmtkws = {'region_name': region_name,
                           'sim_id': sim_id}
 
-                dsR = xr.open_zarr(
-                    CONFIG['paths']['output'].format(region_name=region_name, sim_id=sim_id))
+                #dsR = xr.open_zarr(CONFIG['paths']['output'].format(region_name=region_name, sim_id=sim_id))
+                dsR = pcat.search(id=sim_id,
+                                  domain=region_name,
+                                  processing_level='final').to_dataset_dict().popitem()[1]
+
                 list_dsR.append(dsR)
 
             dsC = xr.concat(list_dsR, 'lat')
             dsC.attrs['title'] = f"ESPO-R5 v1.0.0 - {sim_id}"
-            dsC.attrs['cat/processing_level'] = f"final"
-            dsC.attrs['cat/_data_format_'] = f"zarr"
+            dsC.attrs['cat/domain'] = f"NAM"
+            dsC.attrs.pop('intake_esm_dataset_key')
+
             dsC_path = CONFIG['paths']['concat_output'].format(sim_id=sim_id)
-            # TODO: verify that we don't want the path to be public
-            #dsC.attrs['cat/path'] = dsC_path
-            dsC.to_zarr(dsC_path)
+            dsC.attrs['cat/path'] = ''
+            save_to_zarr(ds=dsC,
+                         filename=dsC_path,
+                         auto_rechunk=False,
+                         mode='o')
             pcat.update_from_ds(ds=dsC, info_dict={'domain': 'concat_regions'},
                                 path=dsC_path)
 

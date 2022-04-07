@@ -5,24 +5,24 @@ project:
     id: rer
 
 tasks:
-#  - initialize_pcat
+  #- initialize_pcat
   - makeref
   - regrid
   - rechunk
-  - simproperties
+  #- simproperties
   - train
   - adjust
   - clean_up
   - final_zarr
-  - scenproperties
-  - check_up
+  #- scenproperties
+  #- check_up
   - concat
 
 ids:
     #- CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i
-    #- HadGEM2-ES_WRF_rcp85_NAM-44i
-    #- MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i
-    - GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i
+    #- HadGEM2-ES_WRF_rcp85_NAM-22i
+    - MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i
+    #- GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i
     #- ['CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i', 'CanESM2_CRCM5-OUR_rcp45_NAM-22i', 'CanESM2_CRCM5-OUR_rcp85_NAM-22i', 'CanESM2_CRCM5-UQAM_rcp45_NAM-44i', 'CanESM2_CRCM5-UQAM_rcp85_NAM-22i', 'CanESM2_CRCM5-UQAM_rcp85_NAM-44i', 'CanESM2_CanRCM4_rcp45_NAM-22i', 'CanESM2_CanRCM4_rcp45_NAM-44i', 'CanESM2_CanRCM4_rcp85_NAM-22i', 'CanESM2_CanRCM4_rcp85_NAM-44i', 'CanESM2_RCA4_rcp45_NAM-44i', 'CanESM2_RCA4_rcp85_NAM-44i', 'EC-EARTH_HIRHAM5_rcp45_NAM-44i', 'EC-EARTH_HIRHAM5_rcp85_NAM-44i', 'EC-EARTH_RCA4_rcp45_NAM-44i', 'EC-EARTH_RCA4_rcp85_NAM-44i', 'GEMatm-Can_CRCM5-UQAM_rcp85_NAM-22i', 'GEMatm-Can_CRCM5-UQAM_rcp85_NAM-44i', 'GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i', 'GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-44i', 'GFDL-ESM2M_CRCM5-OUR_rcp45_NAM-22i', 'GFDL-ESM2M_CRCM5-OUR_rcp85_NAM-22i', 'GFDL-ESM2M_RegCM4_rcp85_NAM-22i', 'GFDL-ESM2M_RegCM4_rcp85_NAM-44i', 'GFDL-ESM2M_WRF_rcp85_NAM-22i', 'GFDL-ESM2M_WRF_rcp85_NAM-44i', 'HadGEM2-ES_RegCM4_rcp85_NAM-22i', 'HadGEM2-ES_RegCM4_rcp85_NAM-44i', 'HadGEM2-ES_WRF_rcp85_NAM-22i', 'HadGEM2-ES_WRF_rcp85_NAM-44i', 'MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i', 'MPI-ESM-LR_CRCM5-UQAM_rcp45_NAM-44i', 'MPI-ESM-LR_CRCM5-UQAM_rcp85_NAM-22i', 'MPI-ESM-LR_CRCM5-UQAM_rcp85_NAM-44i', 'MPI-ESM-LR_RegCM4_rcp85_NAM-22i', 'MPI-ESM-LR_RegCM4_rcp85_NAM-44i', 'MPI-ESM-LR_WRF_rcp85_NAM-22i', 'MPI-ESM-LR_WRF_rcp85_NAM-44i', 'MPI-ESM-MR_CRCM5-UQAM_rcp85_NAM-22i', 'MPI-ESM-MR_CRCM5-UQAM_rcp85_NAM-44i'])
 
 
@@ -31,8 +31,6 @@ dask:
         dashboard_address: 6787
         # silence_logs: 50
     array.slicing.split_large_chunks: False
-    # num_workers: 16
-    # scheduler: processes
 
 logging:
     formatters:
@@ -104,13 +102,18 @@ custom:
     stack_drop_nans: &stack
         True
     chunks:
-        lat: 20 #2
-        lon: 20 #2
-        loc: 600 #10 # for 120 Mo chunks (~35 chunks in qc)
+        lat: 20
+        lon: 20
+        loc: 60 # for 120 Mo chunks (~35 chunks in qc)
+#        lat: 2 # test
+#        lon: 2 # test
+#        loc: 10 # test
         time: -1
     out_chunks:
-        lat: 50 #2
-        lon: 50 #2
+#        lat: 2 # test
+#        lon: 2 # test
+        lat: 50
+        lon: 50
         time: 4year
     future_period:
         - '2071'
