@@ -1,15 +1,13 @@
 from dask.distributed import Client, performance_report
-from dask import compute, config as dskconf
+from dask import config as dskconf
 import atexit
 from pathlib import Path
-import pandas as pd
 import xarray as xr
 import shutil
 import numpy as np
 import json
 import logging
 from matplotlib import pyplot as plt
-import dask.array as dsk
 import os
 from dask.diagnostics import ProgressBar
 
@@ -17,14 +15,15 @@ from xclim import atmos
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
 from xclim.sdba import properties, measures
 from xclim.core.formatting import update_xclim_history
-import xclim as xc
 
+"""
 # add link to xscen
 import yaml
 import sys
 with open("paths_ESPO-R.yml", "r") as stream:
     out = yaml.safe_load(stream)
 sys.path.extend([out['paths']['xscen']])
+"""
 
 from xscen.checkups import fig_compare_and_diff, fig_bias_compare_and_diff
 from xscen.catalog import ProjectCatalog, parse_directory, parse_from_ds, DataCatalog
@@ -46,14 +45,14 @@ mode = 'o'
 
 
 def compute_properties(sim, ref, ref_period, fut_period):
+    # TODO add more diagnstics, xclim.sdba and from Yannick (R2?)
     ds_hist = sim.sel(time=ref_period)
 
     # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
     pr_threshes = ref.pr.quantile([0.9, 0.99], dim='time', keep_attrs=True).load()
     out = xr.Dataset(data_vars={
-        'pr_wet_freq_q99_hist': properties.relative_frequency(ds_hist.pr, op='>=',
-                                                              thresh=pr_threshes.sel(quantile=0.99, drop=True),
-                                                              group='time'),
+        'pr_wet_freq_q99_hist': properties.relative_frequency(ds_hist.pr, thresh=pr_threshes.sel(quantile=0.99, drop=True),
+                                                              group='time', op='>='),
         'tx_mean_rmse': rmse(atmos.tx_mean(ds_hist.tasmax, freq='MS').chunk({'time': -1}),
                              atmos.tx_mean(ref.tasmax, freq='MS').chunk({'time': -1})),
         'tn_mean_rmse': rmse(atmos.tn_mean(tasmin=ds_hist.tasmin, freq='MS').chunk({'time': -1}),
@@ -183,9 +182,7 @@ if __name__ == '__main__':
 
                 # convert calendars
                 ds_refnl = convert_calendar(ds_ref, "noleap")
-                #ds_refnl.attrs['cat/id'] = f"{ds_refnl.attrs['cat/id']}_noleap"
                 ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
-                #ds_ref360.attrs['cat/id'] = f"{ds_ref360.attrs['cat/id']}_360day"
 
                 save_to_zarr(ds_ref, f"{refdir}/ref_{region_name}_default.zarr", auto_rechunk=False,
                              compute=True, encoding=CONFIG['custom']['encoding'], mode=mode)
@@ -274,7 +271,6 @@ if __name__ == '__main__':
                         ds_sim = fix_cordex_na(ds_sim)
 
                         # get reference
-                        #ds_refnl = xr.open_zarr(f"{refdir}/ref_{region_name}_noleap.zarr",decode_timedelta=False)
                         ds_refnl = pcat.search(id=f'ECMWF_ERA5-Land_NAM_noleap',domain=region_name).to_dataset_dict().popitem()[1]
 
                         # regrid
@@ -337,12 +333,10 @@ if __name__ == '__main__':
                             measure_time(name=f'simproperties', logger=logger),
                             timeout(3600, task='simproperties')
                     ):
-                        #ds_sim = xr.open_zarr(workdir / f'{sim_id}_regchunked.zarr')
                         ds_sim = pcat.search(id=sim_id,
                                             processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
 
                         simcal = get_calendar(ds_sim)
-                        #ds_ref = xr.open_zarr(refdir / f"ref_{region_name}_{simcal}.zarr")
                         ds_ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_{simcal}',
                                              domain=region_name).to_dataset_dict().popitem()[1]
 
@@ -398,7 +392,6 @@ if __name__ == '__main__':
                                 measure_time(name=f'train {var}', logger=logger)
                         ):
                             # load hist ds (simulation)
-                            #ds_hist = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
                             ds_hist = pcat.search(id=sim_id,processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
 
                             # load ref ds
@@ -406,10 +399,8 @@ if __name__ == '__main__':
                             simcal = get_calendar(ds_hist)
                             refcal = minimum_calendar(simcal,
                                                       CONFIG['custom']['maximal_calendar'])
-                            #ds_ref = (xr.open_zarr(f"{refdir}/ref_{region_name}_{refcal}.zarr"))
                             ds_ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_{refcal}',
                                                  domain=region_name).to_dataset_dict().popitem()[1]
-
 
                             # training
                             with measure_time(name=f'train {var}') as mt:
@@ -443,10 +434,8 @@ if __name__ == '__main__':
                                 measure_time(name=f'adjust {var}', logger=logger)
                         ):
                             # load sim ds
-                            #ds_sim = xr.open_zarr(f"{workdir}/{sim_id}_regchunked.zarr")
                             ds_sim = pcat.search(id=sim_id,
                                                  processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
-                            #ds_tr = xr.open_zarr(f"{workdir}/{sim_id}_{var}_training.zarr")
                             ds_tr = pcat.search(id=f'{sim_id}_training_{var}').to_dataset_dict().popitem()[1]
 
                             ds_scen = adjust(dsim=ds_sim,
@@ -484,7 +473,7 @@ if __name__ == '__main__':
                                              to_level='cleaned_up'
                                                   )
                         ds.attrs['cat/id']=sim_id
-                        # remove all global attrs that don;t come from the catalogue
+                        # remove all global attrs that don't come from the catalogue
                         for attr in list(ds.attrs.keys()):
                             if attr[:4] != 'cat/':
                                 del ds.attrs[attr]
@@ -548,13 +537,11 @@ if __name__ == '__main__':
                             measure_time(name=f'scenprops', logger=logger),
                             timeout(5400, task='scenproperties')
                     ):
-                        #ds_scen = xr.open_zarr(f"{CONFIG['paths']['output']}".format(**fmtkws))
                         ds_scen = pcat.search(id=sim_id,processing_level='final').to_dataset_dict().popitem()[1]
 
 
                         scen_cal = get_calendar(ds_scen)
                         ds_ref = maybe_unstack(
-                            #xr.open_zarr(refdir / f"ref_{region_name}_{scen_cal}.zarr"),
                             pcat.search(id=f'ECMWF_ERA5-Land_NAM_{scen_cal}',domain=region_name).to_dataset_dict().popitem()[1],
                             stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
                             coords=refdir / f'coords_{region_name}.nc',
@@ -576,11 +563,7 @@ if __name__ == '__main__':
                                      )
 
                         pcat.update_from_ds(ds=out,
-                                            info_dict={'id': f"{sim_id}_scenprops",
-                                                       #'domain': region_name,
-                                                       #'processing_level': "properties",
-                                                       #'frequency': ds_sim.attrs['cat/frequency']
-                                                       },
+                                            info_dict={'id': f"{sim_id}_scenprops"},
                                             path=str(out_path))
 
                 # --- CHECK UP ---
@@ -592,17 +575,13 @@ if __name__ == '__main__':
                             measure_time(name=f'checkup', logger=logger)
                     ):
 
-                        ref = xr.open_zarr(refdir / f"ref_{region_name}_properties.zarr").load()
-                        #ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_properties',domain=region_name).to_dataset_dict().popitem()[1].load(),
+                        ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_properties',domain=region_name).to_dataset_dict().popitem()[1].load()
                         sim = maybe_unstack(
-                            xr.open_zarr(Path(CONFIG['paths']['checkups'].format(step='sim', **fmtkws))),
-                            #pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
+                            pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
                             coords=refdir / f'coords_{region_name}.nc',
                             stack_drop_nans=CONFIG['custom']['stack_drop_nans']
                         ).load()
-                        # TODO: try to make it work with search opening
-                        scen = xr.open_zarr(CONFIG['paths']['checkups'].format(step='scen', **fmtkws)).load()
-                        #scen = pcat.search(id=f'{sim_id}_scenprops', domain=region_name).to_dataset_dict().popitem()[1]
+                        scen = pcat.search(id=f'{sim_id}_scenprops', domain=region_name).to_dataset_dict().popitem()[1].load()
 
                         fig_dir = Path(CONFIG['paths']['checkfigs'].format(**fmtkws))
                         fig_dir.mkdir(exist_ok=True, parents=True)
@@ -654,7 +633,6 @@ if __name__ == '__main__':
                 fmtkws = {'region_name': region_name,
                           'sim_id': sim_id}
 
-                #dsR = xr.open_zarr(CONFIG['paths']['output'].format(region_name=region_name, sim_id=sim_id))
                 dsR = pcat.search(id=sim_id,
                                   domain=region_name,
                                   processing_level='final').to_dataset_dict().popitem()[1]
@@ -662,12 +640,13 @@ if __name__ == '__main__':
                 list_dsR.append(dsR)
 
             dsC = xr.concat(list_dsR, 'lat')
+
             dsC.attrs['title'] = f"ESPO-R5 v1.0.0 - {sim_id}"
             dsC.attrs['cat/domain'] = f"NAM"
             dsC.attrs.pop('intake_esm_dataset_key')
 
             dsC_path = CONFIG['paths']['concat_output'].format(sim_id=sim_id)
-            dsC.attrs['cat/path'] = ''
+            dsC.attrs.pop('cat/path')
             save_to_zarr(ds=dsC,
                          filename=dsC_path,
                          auto_rechunk=False,

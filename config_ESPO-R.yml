@@ -9,19 +9,19 @@ tasks:
   - makeref
   - regrid
   - rechunk
-  #- simproperties
+  - simproperties
   - train
   - adjust
   - clean_up
   - final_zarr
-  #- scenproperties
-  #- check_up
+  - scenproperties
+  - check_up
   - concat
 
 ids:
-    #- CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i
+    - CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i
     #- HadGEM2-ES_WRF_rcp85_NAM-22i
-    - MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i
+    #- MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i
     #- GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i
     #- ['CNRM-CM5_CRCM5-OUR_rcp85_NAM-22i', 'CanESM2_CRCM5-OUR_rcp45_NAM-22i', 'CanESM2_CRCM5-OUR_rcp85_NAM-22i', 'CanESM2_CRCM5-UQAM_rcp45_NAM-44i', 'CanESM2_CRCM5-UQAM_rcp85_NAM-22i', 'CanESM2_CRCM5-UQAM_rcp85_NAM-44i', 'CanESM2_CanRCM4_rcp45_NAM-22i', 'CanESM2_CanRCM4_rcp45_NAM-44i', 'CanESM2_CanRCM4_rcp85_NAM-22i', 'CanESM2_CanRCM4_rcp85_NAM-44i', 'CanESM2_RCA4_rcp45_NAM-44i', 'CanESM2_RCA4_rcp85_NAM-44i', 'EC-EARTH_HIRHAM5_rcp45_NAM-44i', 'EC-EARTH_HIRHAM5_rcp85_NAM-44i', 'EC-EARTH_RCA4_rcp45_NAM-44i', 'EC-EARTH_RCA4_rcp85_NAM-44i', 'GEMatm-Can_CRCM5-UQAM_rcp85_NAM-22i', 'GEMatm-Can_CRCM5-UQAM_rcp85_NAM-44i', 'GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-22i', 'GEMatm-MPI_CRCM5-UQAM_rcp85_NAM-44i', 'GFDL-ESM2M_CRCM5-OUR_rcp45_NAM-22i', 'GFDL-ESM2M_CRCM5-OUR_rcp85_NAM-22i', 'GFDL-ESM2M_RegCM4_rcp85_NAM-22i', 'GFDL-ESM2M_RegCM4_rcp85_NAM-44i', 'GFDL-ESM2M_WRF_rcp85_NAM-22i', 'GFDL-ESM2M_WRF_rcp85_NAM-44i', 'HadGEM2-ES_RegCM4_rcp85_NAM-22i', 'HadGEM2-ES_RegCM4_rcp85_NAM-44i', 'HadGEM2-ES_WRF_rcp85_NAM-22i', 'HadGEM2-ES_WRF_rcp85_NAM-44i', 'MPI-ESM-LR_CRCM5-OUR_rcp85_NAM-22i', 'MPI-ESM-LR_CRCM5-UQAM_rcp45_NAM-44i', 'MPI-ESM-LR_CRCM5-UQAM_rcp85_NAM-22i', 'MPI-ESM-LR_CRCM5-UQAM_rcp85_NAM-44i', 'MPI-ESM-LR_RegCM4_rcp85_NAM-22i', 'MPI-ESM-LR_RegCM4_rcp85_NAM-44i', 'MPI-ESM-LR_WRF_rcp85_NAM-22i', 'MPI-ESM-LR_WRF_rcp85_NAM-44i', 'MPI-ESM-MR_CRCM5-UQAM_rcp85_NAM-22i', 'MPI-ESM-MR_CRCM5-UQAM_rcp85_NAM-44i'])
 
