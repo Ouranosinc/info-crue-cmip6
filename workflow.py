@@ -10,20 +10,15 @@ import logging
 from matplotlib import pyplot as plt
 import os
 from dask.diagnostics import ProgressBar
+import pandas as pd
+from calendar import isleap
 
-from xclim import atmos
+from xclim import atmos,sdba
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
-from xclim.sdba import properties, measures
+from xclim.core.units import convert_units_to
+from xclim.sdba import properties, measures, construct_moving_yearly_window, unpack_moving_yearly_window
 from xclim.core.formatting import update_xclim_history
-
-"""
-# add link to xscen
-import yaml
-import sys
-with open("paths_ESPO-R.yml", "r") as stream:
-    out = yaml.safe_load(stream)
-sys.path.extend([out['paths']['xscen']])
-"""
+from xclim.sdba.measures import rmse
 
 from xscen.checkups import fig_compare_and_diff, fig_bias_compare_and_diff
 from xscen.catalog import ProjectCatalog, parse_directory, parse_from_ds, DataCatalog
@@ -36,16 +31,18 @@ from xscen.biasadjust import train, adjust
 from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout
 
 # Load configuration
-load_config('paths_ESPO-R.yml', 'config_ESPO-R.yml', verbose=(__name__ == '__main__'), reset=True)
+load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
 workdir = Path(CONFIG['paths']['workdir'])
-refdir = Path(CONFIG['paths']['refdir'])
 # TODO: before doing it for real, change the mode, but for testing it is in overwrite
 mode = 'o'
 
 
 def compute_properties(sim, ref, ref_period, fut_period):
     # TODO add more diagnstics, xclim.sdba and from Yannick (R2?)
+    fut_period = slice(*map(str, fut_period))
+    ref_period = slice(*map(str, ref_period))
+
     ds_hist = sim.sel(time=ref_period)
 
     # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
@@ -75,68 +72,12 @@ def compute_properties(sim, ref, ref_period, fut_period):
     return out
 
 
-def fix_cordex_na(ds):
-    """AWS-stored CORDEX datasets are all on the same standard calendar, this converts
-    the data back to the original calendar, removing added NaNs.
-    """
-    orig_calendar = ds.attrs.get('original_calendar', 'standard')
-
-    if orig_calendar in ['365_day', '360_day']:
-        logger.info(f'Converting calendar to {orig_calendar}')
-        ds = convert_calendar(ds, 'noleap')  # drops Feb 29th
-        if orig_calendar == '360_day':
-            time = date_range_like(ds.time, calendar='360_day')
-            ds = ds.where(~ds.time.dt.dayofyear.isin([31, 90, 151, 243, 304]), drop=True)
-            if ds.time.size != time.size:
-                raise ValueError('I thought I had it woups. Conversion to 360_day failed.')
-            ds['time'] = time
-    return ds
-
-
-@measures.check_same_units_and_convert
-@update_xclim_history
-def rmse(sim: xr.DataArray, ref: xr.DataArray) -> xr.DataArray:
-    """Root mean square error.
-
-    The root mean square error on the time dimension between the simulation and the reference.
-
-    Parameters
-    ----------
-    sim : xr.DataArray
-      Data from the simulation (a time-series for each grid-point)
-    ref : xr.DataArray
-      Data from the reference (observations) (a time-series for each grid-point)
-
-    Returns
-    -------
-    xr.DataArray,
-      Root mean square error between the simulation and the reference
-    """
-
-    def _rmse(sim, ref):
-        return np.mean(np.sqrt((sim - ref) ** 2), axis=-1)
-
-    out = xr.apply_ufunc(
-        _rmse,
-        sim,
-        ref,
-        input_core_dims=[['time'], ['time']],
-        dask='parallelized',
-    )
-    out.attrs.update(sim.attrs)
-    out.attrs["long_name"] = "Root mean square"
-    return out
-
 
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
     dask_perf_file = Path(CONFIG['paths']['reports']) / 'perf_report_template.html'
     dask_perf_file.parent.mkdir(exist_ok=True, parents=True)
-
-    fut_period = slice(*map(str, CONFIG['custom']['future_period']))
-    ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
-
     atexit.register(send_mail_on_exit, subject=CONFIG['scr_utils']['subject'])
 
     # initialize Project Catalog
@@ -145,79 +86,6 @@ if __name__ == '__main__':
 
     # load project catalog
     pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
-
-    # ---MAKEREF---
-    for region_name, region_dict in CONFIG['custom']['regions'].items():
-        if (
-                "makeref" in CONFIG["tasks"]
-                and not pcat.exists_in_cat(domain=region_name, processing_level='extracted', source='ERA5-Land')
-        ):
-            with (
-                    Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws),
-                    performance_report(dask_perf_file.with_name(f'perf_report_makeref_{region_name}.html')),
-                    measure_time(name='makeref', logger=logger)
-            ):
-                # search
-                cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
-
-                # extract
-                dc = cat_ref.popitem()[1]
-                ds_ref = extract_dataset(catalog=dc,
-                                         region=region_dict,
-                                         **CONFIG['extraction']['reference']['extract_dataset']
-                                         )
-                ds_ref['time'] = ds_ref.time.dt.floor('D')
-                dref_ref = ds_ref.chunk({'time': -1})  # time period already cut in extract
-                ds_ref_props = compute_properties(dref_ref, dref_ref, ref_period, None).chunk({'lon': -1, 'lat': -1})
-
-                if CONFIG['custom']['stack_drop_nans']:
-                    variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
-                                         'variables_and_timedeltas'].keys())
-                    ds_ref = stack_drop_nans(
-                        ds_ref,
-                        ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
-                        to_file=f'{refdir}/coords_{region_name}.nc'
-                    )
-                ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
-
-                # convert calendars
-                ds_refnl = convert_calendar(ds_ref, "noleap")
-                ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
-
-                save_to_zarr(ds_ref, f"{refdir}/ref_{region_name}_default.zarr", auto_rechunk=False,
-                             compute=True, encoding=CONFIG['custom']['encoding'], mode=mode)
-                save_to_zarr(ds_refnl, f"{refdir}/ref_{region_name}_noleap.zarr", auto_rechunk=False,
-                             compute=True, encoding=CONFIG['custom']['encoding'], mode=mode),
-                save_to_zarr(ds_ref360, f"{refdir}/ref_{region_name}_360day.zarr", auto_rechunk=False,
-                             compute=True, encoding=CONFIG['custom']['encoding'], mode=mode),
-                save_to_zarr(ds_ref_props, f"{refdir}/ref_{region_name}_properties.zarr", auto_rechunk=False,
-                             compute=True, mode='o')
-
-                logger.info('Reference generated, painting nan count and sending plot.')
-                dref_props = xr.open_zarr(f"{refdir}/ref_{region_name}_properties.zarr").load()
-                dref_props.attrs.update(ds_ref.attrs)
-
-                fig, ax = plt.subplots(figsize=(10, 10))
-                cmap = plt.cm.winter.copy()
-                cmap.set_under('white')
-                dref_props.nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
-                ax.set_title(
-                    f'Reference {region_name} - NaN count \nmax {dref_props.nan_count.max().item()} out of {dref_ref.time.size}')
-                plt.close('all')
-
-                # update cat
-                for ds, name in zip([ds_ref, ds_refnl, ds_ref360,dref_props], ['default', 'noleap', '360day', 'properties']):
-
-                    pcat.update_from_ds(ds=ds, path=f"{refdir}/ref_{region_name}_{name}.zarr",
-                                        info_dict= {'id': f"{ds_ref.attrs['cat/id']}_{name}",
-                                                    #'domain': region_name
-                                                    })
-
-                send_mail(
-                    subject=f'Reference for region {region_name} - Success',
-                    msg=f"Action 'makeref' succeeded for region {region_name}.",
-                    attachments=[fig]
-                )
 
     for sim_id in CONFIG['ids']:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
@@ -229,7 +97,7 @@ if __name__ == '__main__':
                 # ---REGRID---
                 if (
                         "regrid" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
+                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=f"ref_{sim_id}")
                 ):
                     with (
                             Client(n_workers=5, threads_per_worker=3, memory_limit="10GB", **daskkws),
@@ -238,89 +106,80 @@ if __name__ == '__main__':
                     ):
 
                         # search the data that we need
-                        cat_sim = search_data_catalogs(**CONFIG['extraction']['simulations']['search_data_catalogs'])
-
+                        cat_sim = search_data_catalogs(**CONFIG['extraction']['simulations']['search_data_catalogs'],
+                                                       other_search_criteria={'id': sim_id}
+                                                       )
                         # extract
-                        dc = cat_sim[sim_id]
+                        dc = cat_sim.popitem()[1]
                         ds_sim = extract_dataset(catalog=dc,
+                                                 region=region_dict,
                                                  **CONFIG['extraction']['simulations']['extract_dataset'],
                                                  )
-                        # clean_up_ds
-                        name = ds_sim.member_id.item()
-                        for attrname, attrval in ds_sim.attrs.items():
-                            if isinstance(attrval, str):
-                                try:
-                                    val = json.loads(attrval)
-                                except json.JSONDecodeError:
-                                    pass
-                                else:
-                                    if isinstance(val, dict) and name in val:
-                                        ds_sim.attrs[attrname] = val[name]
 
-                        ds_sim['time'] = ds_sim.time.dt.floor('D')
-
-                        variables = list(ds_sim.data_vars)
-                        ds_sim = ds_sim.drop_vars(
-                            (
-                                    set(ds_sim.data_vars.keys()).union(
-                                        name for name, crd in ds_sim.coords.items() if name not in crd.dims)
-                                    - set(variables) - {'lon', 'lat'}
+                        if CONFIG['custom']['stack_drop_nans']:
+                            variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
+                                                 'variables_and_timedeltas'].keys())
+                            ds_sim = stack_drop_nans(
+                                ds_sim,
+                                ds_sim[variables[0]].isel(time=130, drop=True).notnull(),
+                                to_file=f'{workdir}/coords_{region_name}.nc'
                             )
-                        )
-
-                        ds_sim = fix_cordex_na(ds_sim)
-
-                        # get reference
-                        ds_refnl = pcat.search(id=f'ECMWF_ERA5-Land_NAM_noleap',domain=region_name).to_dataset_dict().popitem()[1]
-
-                        # regrid
-                        ds_sim_regrid = regrid(
-                            ds=ds_sim,
-                            ds_grid=ds_refnl,
-                            **CONFIG['regrid']
-                        )
 
                         # chunk time dim
-                        ds_sim_regrid = ds_sim_regrid.chunk(translate_time_chunk({'time': '4year'},
-                                                                                 get_calendar(ds_sim_regrid),
-                                                                                 ds_sim_regrid.time.size
-                                                                                 )
-                                                            )
+                        ds_sim = ds_sim.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_sim.dims})
 
                         # save to zarr
                         path_rg = f"{workdir}/{sim_id}_regridded.zarr"
-                        save_to_zarr(ds=ds_sim_regrid,
+                        save_to_zarr(ds=ds_sim,
                                      filename=path_rg,
                                      auto_rechunk=False,
                                      encoding=CONFIG['custom']['encoding'],
                                      compute=True,
                                      mode=mode
                                      )
-                        pcat.update_from_ds(ds=ds_sim_regrid, path=path_rg)
+                        pcat.update_from_ds(ds=ds_sim, path=path_rg)
 
-                #  ---RECHUNK---
-                if (
-                        "rechunk" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded_and_rechunked',id=sim_id)
-                ):
-                    with (
-                            Client(n_workers=2, threads_per_worker=5, memory_limit="18GB", **daskkws),
-                            performance_report(
-                                dask_perf_file.with_name(f'perf_report_rechunk_{sim_id}_{region_name}.html')),
-                            measure_time(name=f'rechunk', logger=logger)
-                    ):
-                        path_rc = f"{workdir}/{sim_id}_regchunked.zarr"
-                        rechunk(path_in=f"{workdir}/{sim_id}_regridded.zarr",
-                                path_out=path_rc,
-                                chunks_over_dim=CONFIG['custom']['chunks'],
-                                **CONFIG['rechunk'],
-                                overwrite=True)
+                        # TODO: ususally we will have to regrid but for testing CMIP5 ref is already in the right format
+                        # get reference that has the domain equivalent to the source of sim
+                        cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'],
+                                                        other_search_criteria={'domain':ds_sim.attrs['cat/source']})
 
-                        ds_sim_rechunked = xr.open_zarr(path_rc, decode_timedelta=False)
+                        # extract
+                        dc = cat_ref.popitem()[1]
+                        ds_ref_regrid = extract_dataset(catalog=dc,
+                                                 region=region_dict,
+                                                 **CONFIG['extraction']['reference']['extract_dataset']
+                                                 )
+                        # TODO: maybe remove this after CMIP5
+                        ds_ref_regrid['tasmax'] = convert_units_to(ds_ref_regrid['tasmax'], 'K')
+                        ds_ref_regrid['tasmin'] = convert_units_to(ds_ref_regrid['tasmin'], 'K')
 
-                        pcat.update_from_ds(ds=ds_sim_rechunked,
-                                            path=path_rc,
-                                            info_dict={'processing_level': 'regridded_and_rechunked'})
+                        #TODO: remove this after CMIP5. remove the whole in time. fake the time axis
+                        ds_ref_regrid = convert_calendar(ds_ref_regrid, 'noleap') # avoid the feb 29th in 1996 lenght problem
+                        fake_time = pd.date_range('1971-01-01','2000-12-31')
+                        fake_time = pd.DatetimeIndex(data=(t for t in fake_time if not (isleap(t.year) and t.month ==2 and t.day ==29)))
+                        ds_ref_regrid['time'] = fake_time
+
+                        if CONFIG['custom']['stack_drop_nans']:
+                            variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
+                                                 'variables_and_timedeltas'].keys())
+                            ds_ref_regrid = stack_drop_nans(
+                                ds_ref_regrid,
+                                ds_ref_regrid[variables[0]].isel(time=130, drop=True).notnull(),
+                                to_file=f'{workdir}/coords_{region_name}.nc'
+                            )
+
+
+                        ds_ref_regrid = ds_ref_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref_regrid.dims})
+
+                        save_to_zarr(ds_ref_regrid, f"{workdir}/ref_{sim_id}_{region_name}.zarr", auto_rechunk=False,
+                                     compute=True, encoding=CONFIG['custom']['encoding'], mode=mode)
+
+                        pcat.update_from_ds(ds=ds_ref_regrid, path = f"{workdir}/ref_{sim_id}_{region_name}.zarr",
+                                            info_dict={'id': f"ref_{ds_sim.attrs['cat/id']}",
+                                                       'processing_level': 'regridded'
+                                                       })
+
 
                 # --- SIM PROPERTIES ---
                 if ("simproperties" in CONFIG["tasks"]
@@ -333,32 +192,48 @@ if __name__ == '__main__':
                             measure_time(name=f'simproperties', logger=logger),
                             timeout(3600, task='simproperties')
                     ):
-                        ds_sim = pcat.search(id=sim_id,
-                                            processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
+                        print('test')
+                        # properties on ref
+                        ds_ref = pcat.search(id=f'ref_{sim_id}', domain=region_name).to_dataset_dict().popitem()[1]
+                        ds_ref =ds_ref.chunk({'time': -1})
+                        ds_ref_props = compute_properties(ds_ref, ds_ref, CONFIG['custom']['ref_period'], None).chunk({'lon': -1, 'lat': -1})
+                        ds_ref_props.attrs.update(ds_ref.attrs)
 
-                        simcal = get_calendar(ds_sim)
-                        ds_ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_{simcal}',
-                                             domain=region_name).to_dataset_dict().popitem()[1]
+                        path_ref = Path(CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='ref'))
+                        path_ref.parent.mkdir(exist_ok=True, parents=True)
+                        save_to_zarr(ds_ref_props,path_ref , auto_rechunk=False,compute=True, mode='o')
 
-                        out = compute_properties(ds_sim, ds_ref, ref_period, fut_period)
-                        out.attrs.update(ds_sim.attrs)
+                        ds_ref_props_unstack = unstack_fill_nan(xr.open_zarr(path_ref), coords=workdir / f'coords_{region_name}.nc')
 
-                        out_path = Path(CONFIG['paths']['checkups'].format(
-                            region_name=region_name, sim_id=sim_id, step='sim'
-                        ))
-                        out_path.parent.mkdir(exist_ok=True, parents=True)
-                        save_to_zarr(ds=out,
-                                     filename=out_path,
-                                     auto_rechunk=False,
-                                     mode=mode,
-                                     itervar=True
-                                     )
+                        fig_ref, ax = plt.subplots(figsize=(10, 10))
+                        cmap = plt.cm.winter.copy()
+                        cmap.set_under('white')
+                        ds_ref_props_unstack.nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
+                        ax.set_title(
+                            f'Reference {region_name} - NaN count \nmax {ds_ref_props.nan_count.max().item()} out of {ds_ref.time.size}')
+                        plt.close('all')
 
-                        logger.info('Sim properties computed, painting nan count and sending plot.')
-                        dsim_props = unstack_fill_nan(xr.open_zarr(out_path), coords=refdir / f'coords_{region_name}.nc')
-                        nan_count = dsim_props.nan_count.load()
+                        pcat.update_from_ds(ds=ds_ref_props, path=path_ref,
+                                                info_dict={'id': f"{ds_ref_props.attrs['cat/id']}_properties",})
 
-                        fig, ax = plt.subplots(figsize=(12, 8))
+
+
+                        # sim properties
+                        ds_sim = pcat.search(id=sim_id,domain=region_name,
+                                            processing_level='extracted').to_dataset_dict().popitem()[1]
+
+                        ds_sim_props = compute_properties(ds_sim, ds_ref, CONFIG['custom']['ref_period'], CONFIG['custom']['future_period'])
+                        ds_sim_props.attrs.update(ds_sim.attrs)
+
+                        path_sim = Path(CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='sim'))
+                        save_to_zarr(ds=out, filename=path_sim, auto_rechunk=False, mode=mode, itervar=True )
+
+                        logger.info('Sim and Ref properties computed, painting nan count and sending plot.')
+
+                        ds_sim_props_unstack = unstack_fill_nan(ds_sim_props, coords=workdir / f'coords_{region_name}.nc')
+                        nan_count = ds_sim_props_unstack.nan_count.load()
+
+                        fig_sim, ax = plt.subplots(figsize=(12, 8))
                         cmap = plt.cm.winter.copy()
                         cmap.set_under('white')
                         nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
@@ -367,88 +242,181 @@ if __name__ == '__main__':
                         send_mail(
                             subject=f'Properties of {sim_id} {region_name} - Success',
                             msg=f"Action 'simproperties' succeeded.",
-                            attachments=[fig]
+                            attachments=[fig_ref, fig_sim]
                         )
                         plt.close('all')
 
-                        pcat.update_from_ds(ds=out,
-                                            info_dict={'id': f"{sim_id}_simprops",
-                                                       #'domain': region_name,
-                                                       #'processing_level': "properties",
-                                                       #'frequency': ds_sim.attrs['cat/frequency']
-                                                       },
-                                            path=out_path)
+                        pcat.update_from_ds(ds=ds_sim_props,
+                                            info_dict={'id': f"{sim_id}_simprops"},
+                                            path=path_sim)
 
                 # ---BIAS ADJUST---
-                for var, conf in CONFIG['biasadjust']['variables'].items():
+                for var, conf in CONFIG['biasadjust_qm']['variables'].items():
 
-                    # ---TRAIN ---
+                    # ---TRAIN QM---
                     if (
-                            "train" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_{var}")
+                            "train_qm" in CONFIG["tasks"]
+                            and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_qm_{var}")
                     ):
                         with (
                                 Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                                measure_time(name=f'train {var}', logger=logger)
+                                measure_time(name=f'train_qm {var}', logger=logger)
                         ):
                             # load hist ds (simulation)
-                            ds_hist = pcat.search(id=sim_id,processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
+                            ds_hist = pcat.search(id=sim_id,processing_level='extracted',domain=region_name).to_dataset_dict().popitem()[1]
 
                             # load ref ds
-                            # choose right calendar
-                            simcal = get_calendar(ds_hist)
-                            refcal = minimum_calendar(simcal,
-                                                      CONFIG['custom']['maximal_calendar'])
-                            ds_ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_{refcal}',
-                                                 domain=region_name).to_dataset_dict().popitem()[1]
+                            ds_ref = pcat.search(id=f'ref_{sim_id}', domain=region_name).to_dataset_dict().popitem()[1]
 
                             # training
-                            with measure_time(name=f'train {var}') as mt:
-                                ds_tr = train(dref=ds_ref,
-                                              dhist=ds_hist,
-                                              var=[var],
-                                              **conf['training_args'])
+                            ds_tr = train(dref=ds_ref,
+                                          # TODO: time slice only for CMIP5, remove when do CMIP6
+                                          dhist=ds_hist.sel(time=slice('1971','2000')),
+                                          var=[var],
+                                          **conf['training_args']
+                                            )
 
-                                path_tr = f"{workdir}/{sim_id}_{var}_training.zarr"
+                            path_tr = f"{workdir}/{sim_id}_{var}_training_qm.zarr"
 
-                                save_to_zarr(ds=ds_tr,
-                                             filename=path_tr,
-                                             auto_rechunk=False,
-                                             mode='o')
-                                pcat.update_from_ds(ds=ds_tr,
-                                                    info_dict={'id': f"{sim_id}_training_{var}",
-                                                               'domain': region_name,
-                                                               'processing_level': "training",
-                                                               'frequency': ds_hist.attrs['cat/frequency']
-                                                                },
-                                                    path=path_tr)
+                            save_to_zarr(ds=ds_tr,
+                                         filename=path_tr,
+                                         auto_rechunk=False,
+                                         mode='o')
+                            pcat.update_from_ds(ds=ds_tr,
+                                                info_dict={'id': f"{sim_id}_training_qm_{var}",
+                                                           'domain': region_name,
+                                                           'processing_level': "training",
+                                                           'frequency': ds_hist.attrs['cat/frequency']
+                                                            },
+                                                path=path_tr)
 
-                    # ---ADJUST---
+                    # ---ADJUST QM---
                     if (
-                            "adjust" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='biasadjusted',
+                            "adjust_qm" in CONFIG["tasks"]
+                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                       processing_level= ['biasadjusted','half_biasadjusted'],
                                                        variable=var)
                     ):
                         with (
                                 Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                                measure_time(name=f'adjust {var}', logger=logger)
+                                measure_time(name=f'adjust_qm {var}', logger=logger)
                         ):
                             # load sim ds
-                            ds_sim = pcat.search(id=sim_id,
-                                                 processing_level='regridded_and_rechunked').to_dataset_dict().popitem()[1]
-                            ds_tr = pcat.search(id=f'{sim_id}_training_{var}').to_dataset_dict().popitem()[1]
+                            ds_sim = pcat.search(id=sim_id, domain=region_name,
+                                                 processing_level='extracted').to_dataset_dict().popitem()[1]
+                            ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}', domain=region_name).to_dataset_dict().popitem()[1]
 
-                            ds_scen = adjust(dsim=ds_sim,
+                            #if more adjusting needed (pr), the level must reflect that
+                            plevel = 'half_biasadjusted' if var in CONFIG['biasadjust_ex']['variables'] else 'biasadjusted'
+                            ds_scen_qm = adjust(dsim=ds_sim,
                                              dtrain=ds_tr,
+                                             to_level = plevel,
                                              **conf['adjusting_args'])
-                            path_adj = f"{workdir}/{sim_id}_{var}_adjusted.zarr"
-                            ds_scen.lat.encoding.pop('chunks')
-                            ds_scen.lon.encoding.pop('chunks')
-                            save_to_zarr(ds=ds_scen,
+                            path_adj = f"{workdir}/{sim_id}_{var}_{plevel}.zarr"
+                            #ds_scen_qm.lat.encoding.pop('chunks')
+                            #ds_scen_qm.lon.encoding.pop('chunks')
+                            save_to_zarr(ds=ds_scen_qm,
                                          filename=path_adj,
                                          auto_rechunk=False,
                                          mode='o')
-                            pcat.update_from_ds(ds=ds_scen, path=path_adj)
+                            pcat.update_from_ds(ds=ds_scen_qm, path=path_adj)
+
+
+                for var, conf in CONFIG['biasadjust_ex']['variables'].items():
+                    # ---TRAIN EXTREME---
+                    if (
+                            "train_ex" in CONFIG["tasks"]
+                            and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_ex_{var}")
+                    ):
+                        with (
+                                Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
+                                measure_time(name=f'train_ex {var}', logger=logger)
+                        ):
+                            # load hist ds (simulation)
+                            ds_hist = pcat.search(id=sim_id, domain=region_name,
+                                                 processing_level='extracted').to_dataset_dict().popitem()[1]
+
+                            # load ref ds
+
+                            ds_ref = pcat.search(id=f'ref_{sim_id}', domain=region_name).to_dataset_dict().popitem()[1]
+
+                            # training
+                            ds_tr = train(dref=ds_ref,
+                                          # TODO: time slice only for CMIP5, remove when do CMIP6
+                                          dhist=ds_hist.sel(time=slice('1971', '2000')),
+                                          var=[var],
+                                          **conf['training_args'])
+
+                            path_tr = f"{workdir}/{sim_id}_{var}_training_ex.zarr"
+
+                            save_to_zarr(ds=ds_tr,
+                                         filename=path_tr,
+                                         auto_rechunk=False,
+                                         mode='o')
+                            pcat.update_from_ds(ds=ds_tr,
+                                                info_dict={'id': f"{sim_id}_training_ex_{var}",
+                                                           'domain': region_name,
+                                                           'processing_level': "training",
+                                                           'frequency': ds_hist.attrs['cat/frequency']
+                                                           },
+                                                path=path_tr)
+
+                    # ---ADJUST EXTREME---
+                    if (
+                            "adjust_ex" in CONFIG["tasks"]
+                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                       processing_level='biasadjusted',
+                                                       variable=var)
+                    ):
+                        with (
+                                Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                                measure_time(name=f'adjust_ex {var}', logger=logger)
+                        ):
+                            # load scen from quantile mapping
+                            ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
+                                                 processing_level='half_biasadjusted').to_dataset_dict().popitem()[1]
+                            # load sim
+                            ds_sim = pcat.search(id=sim_id, domain=region_name,
+                                                 processing_level='extracted').to_dataset_dict().popitem()[1]
+
+                            ds_tr = pcat.search(id=f'{sim_id}_training_ex_{var}', domain=region_name).to_dataset_dict().popitem()[1]
+
+                            sim_period = slice(*map(str, CONFIG['custom']['sim_period']))
+
+                            # test adjust with moving window
+                            ds_sim=convert_calendar(ds_sim, 'noleap').sel(time = sim_period)
+                            sim_win = construct_moving_yearly_window(ds_sim,
+                                                                     **CONFIG['biasadjust_ex']['moving_yearly_window'])
+
+                            scen_win = construct_moving_yearly_window(ds_scen_qm[var].sel(time = sim_period),
+                                                                      **CONFIG['biasadjust_ex']['moving_yearly_window'])
+
+                            ds_scen_ex_win = adjust(dsim=sim_win,
+                                                dtrain=ds_tr,
+                                                xclim_adjust_args = {'scen': scen_win,
+                                                                     'frac': 0.25},
+                                                **conf['adjusting_args'])
+
+                            ds_scen_ex = unpack_moving_yearly_window(ds_scen_ex_win)
+                            ds_scen_ex = ds_scen_ex.chunk({'time':-1})
+
+                            """
+                            ds_scen_ex = adjust(dsim=ds_sim,
+                                                dtrain=ds_tr,
+                                                xclim_adjust_args = {
+                                                    'scen': ds_scen_qm[var].sel(time = sim_period),
+                                                    'frac': 0.25
+                                                                        },
+                                                **conf['adjusting_args'])
+                            """
+                            path_adj = f"{workdir}/{sim_id}_{var}_biasadjusted.zarr"
+                            ds_scen_ex.lat.encoding.pop('chunks')
+                            ds_scen_ex.lon.encoding.pop('chunks')
+                            save_to_zarr(ds=ds_scen_ex,
+                                         filename=path_adj,
+                                         auto_rechunk=False,
+                                         mode='o')
+                            pcat.update_from_ds(ds=ds_scen_ex, path=path_adj)
 
                 # ---CLEAN UP ---
                 if (
@@ -461,18 +429,20 @@ if __name__ == '__main__':
                                 dask_perf_file.with_name(f'perf_report_cleanup_{sim_id}_{region_name}.html')),
                             measure_time(name=f'cleanup', logger=logger)
                     ):
-                        cat = search_data_catalogs(data_catalogs=[CONFIG['paths']['project_catalog']],
-                                                        variables_and_timedeltas= {'tasmax':'1D', 'tasmin':'1D', 'pr':'1D'},
-                                                        allow_resampling= False,
-                                                        allow_conversion= True,
-                                                        other_search_criteria= {'id': [sim_id], 'processing_level':["biasadjusted"]}
+                        cat = search_data_catalogs(**CONFIG['clean_up']['search_data_catalogs'],
+                                                    other_search_criteria= {'id': [sim_id],
+                                                                            'processing_level':["biasadjusted"],
+                                                                            'domain': region_name}
                                                     )
                         dc = cat.popitem()[1]
                         ds = extract_dataset(catalog=dc,
-                                                  periods=['1950', '2100'],
                                              to_level='cleaned_up'
                                                   )
                         ds.attrs['cat/id']=sim_id
+
+                        # convert pr units
+                        ds['pr'] = convert_units_to(ds['pr'], 'mm/d')
+
                         # remove all global attrs that don't come from the catalogue
                         for attr in list(ds.attrs.keys()):
                             if attr[:4] != 'cat/':
@@ -480,7 +450,7 @@ if __name__ == '__main__':
 
                         # unstack nans
                         if CONFIG['custom']['stack_drop_nans']:
-                            ds = unstack_fill_nan(ds, coords=f"{refdir}/coords_{region_name}.nc")
+                            ds = unstack_fill_nan(ds, coords=f"{workdir}/coords_{region_name}.nc")
                             ds = ds.chunk({d: CONFIG['custom']['chunks'][d] for d in ds.dims})
 
                         # add final attrs
@@ -524,7 +494,9 @@ if __name__ == '__main__':
                                 overwrite=True)
                         ds = xr.open_zarr(fi_path)
                         pcat.update_from_ds(ds=ds, path=str(fi_path), info_dict= {'processing_level': 'final'})
-
+                        # TODO: remove when do checkups
+                        #shutil.rmtree(workdir)
+                        #os.mkdir(workdir)
                 # --- SCEN PROPS ---
                 if (
                         "scenproperties" in CONFIG["tasks"]
@@ -537,7 +509,7 @@ if __name__ == '__main__':
                             measure_time(name=f'scenprops', logger=logger),
                             timeout(5400, task='scenproperties')
                     ):
-                        ds_scen = pcat.search(id=sim_id,processing_level='final').to_dataset_dict().popitem()[1]
+                        ds_scen = pcat.search(id=sim_id,processing_level='final', domain=region_name).to_dataset_dict().popitem()[1]
 
 
                         scen_cal = get_calendar(ds_scen)
@@ -548,7 +520,7 @@ if __name__ == '__main__':
                             rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
                         )
 
-                        out = compute_properties(ds_scen, ds_ref, ref_period, fut_period)
+                        out = compute_properties(ds_scen, ds_ref, CONFIG['custom']['ref_period'], CONFIG['custom']['future_period'])
                         out.attrs.update(ds_scen.attrs)
 
                         out_path = CONFIG['paths']['checkups'].format(
@@ -575,7 +547,7 @@ if __name__ == '__main__':
                             measure_time(name=f'checkup', logger=logger)
                     ):
 
-                        ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_properties',domain=region_name).to_dataset_dict().popitem()[1].load()
+                        ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_properties', domain=region_name).to_dataset_dict().popitem()[1].load()
                         sim = maybe_unstack(
                             pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
                             coords=refdir / f'coords_{region_name}.nc',
@@ -616,8 +588,8 @@ if __name__ == '__main__':
                         )
                         plt.close('all')
                         # when region is done erase workdir
-                        shutil.rmtree(workdir)
-                        os.mkdir(workdir)
+                        #shutil.rmtree(workdir)
+                        #os.mkdir(workdir)
 
         if (
                 "concat" in CONFIG["tasks"]
