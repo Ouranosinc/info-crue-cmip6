@@ -5,7 +5,7 @@ project:
     id: ic6
 
 tasks:
-  #- initialize_pcat
+  - initialize_pcat
   - regrid
   - simproperties
   - train_qm
@@ -14,6 +14,8 @@ tasks:
   - adjust_ex
   - clean_up
   - final_zarr
+  - scenproperties
+  - check_up
 
 
 ids:
@@ -42,7 +44,6 @@ logging:
 
 
 
-#consider calling this reference or something?
 custom:
     encoding:
         tasmax:
@@ -74,7 +75,7 @@ custom:
         - '2100'
     ref_period : &ref_period
         - '1971'
-        - '2002'
+        - '2000'
     sim_period: &sim_period
         - '1956' # cut the first 5 years to have the 40 year window fit well in the extreme pr bias correction
         - '2100'
@@ -90,7 +91,7 @@ extraction:
                 pr: 1D
             allow_resampling: False
             allow_conversion: True
-            periods : *ref_period
+            periods : ['1971', '2002'] # this is only for CMIP5, normally *ref_period
         extract_dataset:
             xr_open_kwargs:
                 drop_variables:

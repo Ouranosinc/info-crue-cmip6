@@ -39,22 +39,23 @@ mode = 'o'
 
 
 def compute_properties(sim, ref, ref_period, fut_period):
-    # TODO add more diagnstics, xclim.sdba and from Yannick (R2?)
-    fut_period = slice(*map(str, fut_period))
+    # TODO add more diagnostics, xclim.sdba and from Yannick (R2?)
+    if fut_period:
+        fut_period = slice(*map(str, fut_period))
     ref_period = slice(*map(str, ref_period))
 
-    ds_hist = sim.sel(time=ref_period)
+    hist = sim.sel(time=ref_period)
 
     # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
     pr_threshes = ref.pr.quantile([0.9, 0.99], dim='time', keep_attrs=True).load()
     out = xr.Dataset(data_vars={
-        'pr_wet_freq_q99_hist': properties.relative_frequency(ds_hist.pr, thresh=pr_threshes.sel(quantile=0.99, drop=True),
+        'pr_wet_freq_q99_hist': properties.relative_frequency(hist.pr, thresh=pr_threshes.sel(quantile=0.99, drop=True),
                                                               group='time', op='>='),
-        'tx_mean_rmse': rmse(atmos.tx_mean(ds_hist.tasmax, freq='MS').chunk({'time': -1}),
+        'tx_mean_rmse': rmse(atmos.tx_mean(hist.tasmax, freq='MS').chunk({'time': -1}),
                              atmos.tx_mean(ref.tasmax, freq='MS').chunk({'time': -1})),
-        'tn_mean_rmse': rmse(atmos.tn_mean(tasmin=ds_hist.tasmin, freq='MS').chunk({'time': -1}),
+        'tn_mean_rmse': rmse(atmos.tn_mean(tasmin=hist.tasmin, freq='MS').chunk({'time': -1}),
                              atmos.tn_mean(tasmin=ref.tasmin, freq='MS').chunk({'time': -1})),
-        'prcptot_rmse': rmse(atmos.precip_accumulation(ds_hist.pr, freq='MS').chunk({'time': -1}),
+        'prcptot_rmse': rmse(atmos.precip_accumulation(hist.pr, freq='MS').chunk({'time': -1}),
                              atmos.precip_accumulation(ref.pr, freq='MS').chunk({'time': -1})),
         'nan_count': sim.to_array().isnull().sum('time').mean('variable'),
     })
@@ -122,8 +123,10 @@ if __name__ == '__main__':
                             ds_sim = stack_drop_nans(
                                 ds_sim,
                                 ds_sim[variables[0]].isel(time=130, drop=True).notnull(),
-                                to_file=f'{workdir}/coords_{region_name}.nc'
+                                to_file=f'{workdir}/coords_{sim_id}_{region_name}.nc'
                             )
+                        # change calendar. need similar calendar sim and ref to calculate properties
+                        ds_sim= convert_calendar(ds_sim, 'noleap')
 
                         # chunk time dim
                         ds_sim = ds_sim.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_sim.dims})
@@ -159,6 +162,7 @@ if __name__ == '__main__':
                         fake_time = pd.date_range('1971-01-01','2000-12-31')
                         fake_time = pd.DatetimeIndex(data=(t for t in fake_time if not (isleap(t.year) and t.month ==2 and t.day ==29)))
                         ds_ref_regrid['time'] = fake_time
+                        ds_ref_regrid = convert_calendar(ds_ref_regrid, 'noleap')
 
                         if CONFIG['custom']['stack_drop_nans']:
                             variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
@@ -166,7 +170,7 @@ if __name__ == '__main__':
                             ds_ref_regrid = stack_drop_nans(
                                 ds_ref_regrid,
                                 ds_ref_regrid[variables[0]].isel(time=130, drop=True).notnull(),
-                                to_file=f'{workdir}/coords_{region_name}.nc'
+                                to_file=f'{workdir}/coords_{sim_id}_{region_name}.nc'
                             )
 
 
@@ -192,45 +196,46 @@ if __name__ == '__main__':
                             measure_time(name=f'simproperties', logger=logger),
                             timeout(3600, task='simproperties')
                     ):
-                        print('test')
                         # properties on ref
                         ds_ref = pcat.search(id=f'ref_{sim_id}', domain=region_name).to_dataset_dict().popitem()[1]
-                        ds_ref =ds_ref.chunk({'time': -1})
-                        ds_ref_props = compute_properties(ds_ref, ds_ref, CONFIG['custom']['ref_period'], None).chunk({'lon': -1, 'lat': -1})
-                        ds_ref_props.attrs.update(ds_ref.attrs)
+                        ds_ref=ds_ref.chunk({'time': -1})
+                        ds_ref_props = compute_properties(ds_ref, ds_ref,CONFIG['custom']['ref_period'], None)
+                        #ds_ref_props.attrs.update(ds_ref.attrs)
 
                         path_ref = Path(CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='ref'))
                         path_ref.parent.mkdir(exist_ok=True, parents=True)
                         save_to_zarr(ds_ref_props,path_ref , auto_rechunk=False,compute=True, mode='o')
 
-                        ds_ref_props_unstack = unstack_fill_nan(xr.open_zarr(path_ref), coords=workdir / f'coords_{region_name}.nc')
-
+                        ds_ref_props_unstack = unstack_fill_nan(xr.open_zarr(path_ref), coords=workdir / f'coords_{sim_id}_{region_name}.nc').load()
                         fig_ref, ax = plt.subplots(figsize=(10, 10))
                         cmap = plt.cm.winter.copy()
                         cmap.set_under('white')
                         ds_ref_props_unstack.nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
                         ax.set_title(
-                            f'Reference {region_name} - NaN count \nmax {ds_ref_props.nan_count.max().item()} out of {ds_ref.time.size}')
+                            f'Reference {region_name} - NaN count \nmax {ds_ref_props_unstack.nan_count.max().item()} out of {ds_ref.time.size}')
                         plt.close('all')
 
-                        pcat.update_from_ds(ds=ds_ref_props, path=path_ref,
-                                                info_dict={'id': f"{ds_ref_props.attrs['cat/id']}_properties",})
+                        pcat.update_from_ds(ds=ds_ref_props, path=str(path_ref),
+                                                info_dict={'id': f"{sim_id}_refprops",
+                                                           'domain': region_name,
+                                                           'frequency': ds_ref.attrs['cat/frequency'],
+                                                           'processing_level': 'properties'
+                                                           })
 
 
 
                         # sim properties
-                        ds_sim = pcat.search(id=sim_id,domain=region_name,
-                                            processing_level='extracted').to_dataset_dict().popitem()[1]
-
+                        ds_sim = pcat.search(id=sim_id,domain=region_name,processing_level='extracted').to_dataset_dict().popitem()[1]
+                        ds_sim = ds_sim.chunk({'time': -1})
                         ds_sim_props = compute_properties(ds_sim, ds_ref, CONFIG['custom']['ref_period'], CONFIG['custom']['future_period'])
-                        ds_sim_props.attrs.update(ds_sim.attrs)
+                        #ds_sim_props.attrs.update(ds_sim.attrs)
 
                         path_sim = Path(CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='sim'))
-                        save_to_zarr(ds=out, filename=path_sim, auto_rechunk=False, mode=mode, itervar=True )
+                        save_to_zarr(ds=ds_sim_props, filename=path_sim, auto_rechunk=False, mode=mode, itervar=True )
 
                         logger.info('Sim and Ref properties computed, painting nan count and sending plot.')
 
-                        ds_sim_props_unstack = unstack_fill_nan(ds_sim_props, coords=workdir / f'coords_{region_name}.nc')
+                        ds_sim_props_unstack = unstack_fill_nan(ds_sim_props, coords=workdir / f'coords_{sim_id}_{region_name}.nc')
                         nan_count = ds_sim_props_unstack.nan_count.load()
 
                         fig_sim, ax = plt.subplots(figsize=(12, 8))
@@ -247,8 +252,12 @@ if __name__ == '__main__':
                         plt.close('all')
 
                         pcat.update_from_ds(ds=ds_sim_props,
-                                            info_dict={'id': f"{sim_id}_simprops"},
-                                            path=path_sim)
+                                            info_dict={'id': f"{sim_id}_simprops",
+                                                       'domain': region_name,
+                                                       'frequency': ds_sim.attrs['cat/frequency'],
+                                                       'processing_level': 'properties'
+                                                       },
+                                            path=str(path_sim))
 
                 # ---BIAS ADJUST---
                 for var, conf in CONFIG['biasadjust_qm']['variables'].items():
@@ -450,7 +459,7 @@ if __name__ == '__main__':
 
                         # unstack nans
                         if CONFIG['custom']['stack_drop_nans']:
-                            ds = unstack_fill_nan(ds, coords=f"{workdir}/coords_{region_name}.nc")
+                            ds = unstack_fill_nan(ds, coords=f"{workdir}/coords_{sim_id}_{region_name}.nc")
                             ds = ds.chunk({d: CONFIG['custom']['chunks'][d] for d in ds.dims})
 
                         # add final attrs
@@ -494,9 +503,7 @@ if __name__ == '__main__':
                                 overwrite=True)
                         ds = xr.open_zarr(fi_path)
                         pcat.update_from_ds(ds=ds, path=str(fi_path), info_dict= {'processing_level': 'final'})
-                        # TODO: remove when do checkups
-                        #shutil.rmtree(workdir)
-                        #os.mkdir(workdir)
+
                 # --- SCEN PROPS ---
                 if (
                         "scenproperties" in CONFIG["tasks"]
@@ -511,32 +518,26 @@ if __name__ == '__main__':
                     ):
                         ds_scen = pcat.search(id=sim_id,processing_level='final', domain=region_name).to_dataset_dict().popitem()[1]
 
-
-                        scen_cal = get_calendar(ds_scen)
                         ds_ref = maybe_unstack(
-                            pcat.search(id=f'ECMWF_ERA5-Land_NAM_{scen_cal}',domain=region_name).to_dataset_dict().popitem()[1],
+                            pcat.search(id=f'ref_{sim_id}', domain=region_name).to_dataset_dict().popitem()[1],
                             stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
-                            coords=refdir / f'coords_{region_name}.nc',
+                            coords=workdir / f'coords_{sim_id}_{region_name}.nc',
                             rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
                         )
 
-                        out = compute_properties(ds_scen, ds_ref, CONFIG['custom']['ref_period'], CONFIG['custom']['future_period'])
-                        out.attrs.update(ds_scen.attrs)
+                        ds_scen_props = compute_properties(ds_scen, ds_ref, CONFIG['custom']['ref_period'], CONFIG['custom']['future_period'])
 
-                        out_path = CONFIG['paths']['checkups'].format(
-                            region_name=region_name, sim_id=sim_id, step='scen'
-                        )
+                        path_scen = CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='scen')
 
-                        save_to_zarr(ds=out,
-                                     filename=out_path,
-                                     auto_rechunk=False,
-                                     mode=mode,
-                                     itervar=True
-                                     )
+                        save_to_zarr(ds=ds_scen_props,filename=path_scen,auto_rechunk=False,mode=mode,itervar=True)
 
-                        pcat.update_from_ds(ds=out,
-                                            info_dict={'id': f"{sim_id}_scenprops"},
-                                            path=str(out_path))
+                        pcat.update_from_ds(ds=ds_scen_props,
+                                            info_dict={'id': f"{sim_id}_scenprops",
+                                                       'domain': region_name,
+                                                       'frequency': ds_scen.attrs['cat/frequency'],
+                                                       'processing_level': 'properties'
+                                                       },
+                                            path=str(path_scen))
 
                 # --- CHECK UP ---
                 if "check_up" in CONFIG["tasks"]:
@@ -547,12 +548,17 @@ if __name__ == '__main__':
                             measure_time(name=f'checkup', logger=logger)
                     ):
 
-                        ref = pcat.search(id=f'ECMWF_ERA5-Land_NAM_properties', domain=region_name).to_dataset_dict().popitem()[1].load()
-                        sim = maybe_unstack(
-                            pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
-                            coords=refdir / f'coords_{region_name}.nc',
+                        ref = maybe_unstack(
+                            pcat.search(id=f"{sim_id}_refprops", domain=region_name).to_dataset_dict().popitem()[1].load(),
+                            coords=workdir / f'coords_{sim_id}_{region_name}.nc',
                             stack_drop_nans=CONFIG['custom']['stack_drop_nans']
                         ).load()
+                        sim = maybe_unstack(
+                            pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
+                            coords=workdir / f'coords_{sim_id}_{region_name}.nc',
+                            stack_drop_nans=CONFIG['custom']['stack_drop_nans']
+                        ).load()
+
                         scen = pcat.search(id=f'{sim_id}_scenprops', domain=region_name).to_dataset_dict().popitem()[1].load()
 
                         fig_dir = Path(CONFIG['paths']['checkfigs'].format(**fmtkws))
@@ -588,8 +594,8 @@ if __name__ == '__main__':
                         )
                         plt.close('all')
                         # when region is done erase workdir
-                        #shutil.rmtree(workdir)
-                        #os.mkdir(workdir)
+                        shutil.rmtree(workdir)
+                        os.mkdir(workdir)
 
         if (
                 "concat" in CONFIG["tasks"]
