@@ -5,7 +5,8 @@ project:
     id: ic6
 
 tasks:
-  - initialize_pcat
+  #- initialize_pcat
+  - makeref
   - regrid
   - simproperties
   - train_qm
@@ -19,7 +20,11 @@ tasks:
 
 
 ids:
-    - A10_RCP45_R41_qc
+    - CMIP6_ScenarioMIP_AS-RCEC_TaiESM1_EXPERIMENT_r1i1p1f1_gn
+
+experiments: &experiments
+    - ssp245
+    #- ssp370
 
 dask:
     client:
@@ -59,28 +64,39 @@ custom:
             bbox:
                 lon_bnds: [ -81, -78 ]
                 lat_bnds: [ 42, 46 ]
+#        qc:
+#            name: qc
+#            method: bbox
+#            bbox:
+#                lon_bnds: [ -83, -56 ]
+#                lat_bnds: [ 42, 63 ]
     stack_drop_nans: &stack
         True
     chunks:
         lat: 2 # test
         lon: 2 # test
         loc: 10 # test
+#        lat: 15
+#        lon: 15
+#        loc: 50 # test
         time: -1
     out_chunks:
         lat: 2 # test
         lon: 2 # test
+#        lat: 30
+#        lon: 30
         time: 4year
     future_period:
         - '2071'
         - '2100'
-    ref_period : &ref_period
+    ref_period : &ref_period # TODO: validate this
         - '1971'
         - '2000'
     sim_period: &sim_period
-        - '1956' # cut the first 5 years to have the 40 year window fit well in the extreme pr bias correction
+        - '1956'
         - '2100'
-        #- '2050'
-        #- '2080'
+    calendar: noleap
+
 
 extraction:
     reference:
@@ -90,39 +106,37 @@ extraction:
                 tasmin: 1D
                 pr: 1D
             allow_resampling: False
-            allow_conversion: True
-            periods : ['1971', '2002'] # this is only for CMIP5, normally *ref_period
-        extract_dataset:
-            xr_open_kwargs:
-                drop_variables:
-                    - height
-                    - time_vectors
+            allow_conversion: False
+            periods : *ref_period
+            other_search_criteria:
+                project: &ref_project
+                    "era5-land"
+                processing_level: ["raw"]
+        extract_dataset: {}
     simulations:
         search_data_catalogs: &search
             variables_and_timedeltas:
                 tasmax: 1D
                 tasmin: 1D
                 pr: 1D
-            allow_conversion: True
+            match_hist_and_fut: True
+            allow_conversion: False
             allow_resampling: False
-            periods : *sim_period
+            other_search_criteria:
+                processing_level: "raw"
+                mip_era: 'CMIP6'
+                experiment: *experiments
         extract_dataset:
+            periods : *sim_period
             xr_combine_kwargs:
-                combine_attrs: override
-            xr_open_kwargs:
-                drop_variables:
-                    - time_vectors
-                    - height
+              combine_attrs: override
+    ref_project: *ref_project
 
 regrid:
     regridder_kwargs:
         extrap_method: inverse_dist
         locstream_out: *stack
         reuse_weights: False
-
-rechunk:
-    worker_mem: 2GB
-
 
 biasadjust_qm:
     variables:
@@ -171,7 +185,6 @@ biasadjust_qm:
                 xclim_adjust_args:
                     detrend: 3
 
-
 biasadjust_ex:
     moving_yearly_window:
         window: 40
@@ -207,8 +220,8 @@ clean_up:
             Conventions: CF-1.9
             title: Info-Crue CMIP6 - {sim_id} - Region {region_name}
             institution: Ouranos
+            # TODO: CHANGE THIS
             source: |
-                CHANGE THIS
                 Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
                 quantile mapping on a day-of-year basis with a window of 31 days, LOESS
                 detrending and 50 quantiles. The reference was ERA5-Land over the
