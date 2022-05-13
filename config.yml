@@ -5,7 +5,7 @@ project:
     id: ic6
 
 tasks:
-  #- initialize_pcat
+  - initialize_pcat
   - makeref
   - regrid
   - simproperties
@@ -20,11 +20,17 @@ tasks:
 
 
 ids:
-    - CMIP6_ScenarioMIP_AS-RCEC_TaiESM1_EXPERIMENT_r1i1p1f1_gn
+  #- CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_gr1
+    #- CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_gn
+    # downloaded and complete  (20)
+    #['CMIP6_ScenarioMIP_AS-RCEC_TaiESM1_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CCCma_CanESM5_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-CM6-1_EXPERIMENT_r1i1p1f2_gr', 'CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_gr', 'CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_EXPERIMENT_r1i1p1f1_gr', 'CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_gr1', 'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_EXPERIMENT_r1i1p1f1_gr', 'CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_MOHC_UKESM1-0-LL_EXPERIMENT_r1i1p1f2_gn', 'CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_NCC_NorESM2-MM_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_gr', 'CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_gr1']
+    # in the TCR likely range #https://zenodo.org/record/6476375#.YnVQNNPMJhE (14)
+   ['CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_gr', 'CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_gr1', 'CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_gn', 'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_gr', 'CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_gr1']
+
 
 experiments: &experiments
     - ssp245
-    #- ssp370
+    - ssp370
 
 dask:
     client:
@@ -58,43 +64,46 @@ custom:
         pr:
             dtype: float32
     regions:
-        test1:
-            name: test1
-            method: bbox
-            bbox:
-                lon_bnds: [ -81, -78 ]
-                lat_bnds: [ 42, 46 ]
-#        qc:
-#            name: qc
+#       test1:
+#            name: test1
 #            method: bbox
 #            bbox:
-#                lon_bnds: [ -83, -56 ]
-#                lat_bnds: [ 42, 63 ]
+#                lon_bnds: [ -81, -78 ]
+#                lat_bnds: [ 42, 46 ]
+        qc:
+            name: qc
+            method: bbox
+            bbox:
+                lon_bnds: [ -83, -56 ]
+                lat_bnds: [ 42, 63 ]
     stack_drop_nans: &stack
         True
     chunks:
-        lat: 2 # test
-        lon: 2 # test
-        loc: 10 # test
-#        lat: 15
-#        lon: 15
-#        loc: 50 # test
+#        lat: 2 # test
+#        lon: 2 # test
+#        loc: 10 # test
+        lat: 15
+        lon: 15
+        loc: 50
         time: -1
     out_chunks:
-        lat: 2 # test
-        lon: 2 # test
-#        lat: 30
-#        lon: 30
+#        lat: 2 # test
+#        lon: 2 # test
+        lat: 30
+        lon: 30
         time: 4year
     future_period:
         - '2071'
         - '2100'
-    ref_period : &ref_period # TODO: validate this
-        - '1971'
+    ref_period : &ref_period
+        - '1991'
         - '2000'
     sim_period: &sim_period
         - '1956'
         - '2100'
+    check_period:
+      - '1981'
+      - '1982'
     calendar: noleap
 
 
@@ -114,7 +123,7 @@ extraction:
                 processing_level: ["raw"]
         extract_dataset: {}
     simulations:
-        search_data_catalogs: &search
+        search_data_catalogs:
             variables_and_timedeltas:
                 tasmax: 1D
                 tasmin: 1D
@@ -130,6 +139,9 @@ extraction:
             periods : *sim_period
             xr_combine_kwargs:
               combine_attrs: override
+            xr_open_kwargs:
+              drop_variables:
+                - height
     ref_project: *ref_project
 
 regrid:
@@ -206,7 +218,11 @@ biasadjust_ex:
 
 
 clean_up:
-    search_data_catalogs: *search
+    search_data_catalogs:
+      variables_and_timedeltas:
+        tasmax: 1D
+        tasmin: 1D
+        pr: 1D
     final_attrs_names:
         - bias_adjustment
         - cell_methods
@@ -220,13 +236,11 @@ clean_up:
             Conventions: CF-1.9
             title: Info-Crue CMIP6 - {sim_id} - Region {region_name}
             institution: Ouranos
-            # TODO: CHANGE THIS
             source: |
                 Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
-                quantile mapping on a day-of-year basis with a window of 31 days, LOESS
+                quantile mapping on a day-of-year basis with a window of 31 days, 3rd degree polynomial
                 detrending and 50 quantiles. The reference was ERA5-Land over the
-                1981-2010 period. Tasmax, dtr and pr were adjusted, tasmin was computed
-                from tasmax and dtr after the adjustment.
+                1991-2010 period. There is a second bias adjustement for pr's extreme values.
             redistribution: Redistribution prohibited. For internal use only.
             version: "1.0.0"
         tasmax:
@@ -242,6 +256,8 @@ clean_up:
             long_name: Mean daily precipitation flux
             cell_methods: "time: mean within days"
 
+rechunk:
+    worker_mem: 2GB
 
 scr_utils:
     measure_time:

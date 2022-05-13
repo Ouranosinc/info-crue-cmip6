@@ -37,34 +37,23 @@ refdir = Path(CONFIG['paths']['refdir'])
 # TODO: before doing it for real, change the mode, but for testing it is in overwrite
 mode = 'o'
 
-
-def compute_properties(sim, ref, ref_period, fut_period):
+def compute_properties(sim, ref, period):
     # TODO add more diagnostics, xclim.sdba and from Yannick (R2?)
-    hist = sim.sel(time=ref_period)
+    nan_count = sim.to_array().isnull().sum('time').mean('variable')
+    hist = sim.sel(time=period)
+    ref = ref.sel(time=period)
 
     # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
-    pr_threshes = ref.pr.quantile([0.9, 0.99], dim='time', keep_attrs=True).load()
     out = xr.Dataset(data_vars={
-        'pr_wet_freq_q99_hist': properties.relative_frequency(hist.pr, thresh=pr_threshes.sel(quantile=0.99, drop=True),
-                                                              group='time', op='>='),
+
         'tx_mean_rmse': rmse(atmos.tx_mean(hist.tasmax, freq='MS').chunk({'time': -1}),
                              atmos.tx_mean(ref.tasmax, freq='MS').chunk({'time': -1})),
         'tn_mean_rmse': rmse(atmos.tn_mean(tasmin=hist.tasmin, freq='MS').chunk({'time': -1}),
                              atmos.tn_mean(tasmin=ref.tasmin, freq='MS').chunk({'time': -1})),
         'prcptot_rmse': rmse(atmos.precip_accumulation(hist.pr, freq='MS').chunk({'time': -1}),
                              atmos.precip_accumulation(ref.pr, freq='MS').chunk({'time': -1})),
-        'nan_count': sim.to_array().isnull().sum('time').mean('variable'),
+        'nan_count': nan_count,
     })
-    out['pr_wet_freq_q99_hist'].attrs[
-        'long_name'] = 'Relative frequency of days with precip over the 99th percentile of the reference, in the present.'
-
-    if fut_period is not None:
-        out['pr_wet_freq_q99_fut'] = properties.relative_frequency(sim.pr.sel(time=fut_period).chunk({'time': -1}),
-                                                                   op='>=',
-                                                                   thresh=pr_threshes.sel(quantile=0.99, drop=True),
-                                                                   group='time')
-        out['pr_wet_freq_q99_fut'].attrs[
-            'long_name'] = 'Relative frequency of days with precip over the 99th percentile of the reference, in the future.'
 
     return out
 
@@ -80,6 +69,7 @@ if __name__ == '__main__':
     fut_period = slice(*map(str, CONFIG['custom']['future_period']))
     ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
     sim_period = slice(*map(str, CONFIG['custom']['sim_period']))
+    check_period = slice(*map(str, CONFIG['custom']['check_period']))
 
     calendar = CONFIG['custom']['calendar']
     ref_project = CONFIG['extraction']['ref_project']
@@ -112,7 +102,7 @@ if __name__ == '__main__':
                                          **CONFIG['extraction']['reference']['extract_dataset']
                                          )
                 dref_ref = ds_ref.chunk({'time': -1})  # time period already cut in extract
-                ds_ref_props = compute_properties(dref_ref, dref_ref, ref_period, None).chunk({'lon': -1, 'lat': -1})
+                ds_ref_props_nan_count= dref_ref.to_array().isnull().sum('time').mean('variable')
 
                 if CONFIG['custom']['stack_drop_nans']:
                     variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
@@ -127,29 +117,30 @@ if __name__ == '__main__':
                 # convert calendars
                 ds_refnl = convert_calendar(ds_ref, calendar, align_on='date')
 
-                save_to_zarr(ds_refnl, f"{refdir}/ref_{region_name}_{calendar}.zarr", auto_rechunk=False,
-                             compute=True, encoding=CONFIG['custom']['encoding'], mode=mode),
-                save_to_zarr(ds_ref_props, f"{refdir}/ref_{region_name}_properties.zarr", auto_rechunk=False,
-                             compute=True, mode='o')
+                save_to_zarr(ds_refnl, f"{workdir}/ref_{region_name}_{calendar}.zarr",
+                             compute=True, encoding=CONFIG['custom']['encoding'], mode=mode)
+                shutil.move( f"{workdir}/ref_{region_name}_{calendar}.zarr", f"{refdir}/ref_{region_name}_{calendar}.zarr")
 
-                logger.info('Reference generated, painting nan count and sending plot.')
-                dref_props = xr.open_zarr(f"{refdir}/ref_{region_name}_properties.zarr").load()
-                dref_props.attrs.update(ds_ref.attrs)
-                dref_props['cat/processing_level']= 'properties'
+                save_to_zarr(ds_ref_props_nan_count.to_dataset(name='nan_count'),
+                             f"{workdir}/ref_{region_name}_nancount.zarr",
+                             compute=True, mode=mode)
+                shutil.move( f"{workdir}/ref_{region_name}_nancount.zarr", f"{refdir}/ref_{region_name}_nancount.zarr")
 
+                print('finish save')
+
+                ds_ref_props_nan_count = xr.open_zarr(f"{refdir}/ref_{region_name}_nancount.zarr", decode_timedelta=False).load()
                 fig, ax = plt.subplots(figsize=(10, 10))
                 cmap = plt.cm.winter.copy()
                 cmap.set_under('white')
-                dref_props.nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
+                ds_ref_props_nan_count.plot(ax=ax, vmin=1, vmax=1000, cmap=cmap)
                 ax.set_title(
-                    f'Reference {region_name} - NaN count \nmax {dref_props.nan_count.max().item()} out of {dref_ref.time.size}')
+                    f'Reference {region_name} - NaN count \nmax {ds_ref_props_nan_count.nan_count.max().item()} out of {dref_ref.time.size}')
                 plt.close('all')
-
+                print('fig')
                 # update cat
-                for ds, name in zip([ds_refnl, dref_props], [ calendar, 'properties']):
-                    pcat.update_from_ds(ds=ds, path=f"{refdir}/ref_{region_name}_{name}.zarr",
-                                        info_dict={'calendar': name})
-
+                pcat.update_from_ds(ds=ds_refnl, path=f"{refdir}/ref_{region_name}_{calendar}.zarr",
+                                        info_dict={'calendar': calendar})
+                print('update')
                 send_mail(
                     subject=f'Reference for region {region_name} - Success',
                     msg=f"Action 'makeref' succeeded for region {region_name}.",
@@ -172,7 +163,8 @@ if __name__ == '__main__':
                             and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
                     ):
                         with (
-                                Client(n_workers=5, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                                #Client(n_workers=5, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                                Client(n_workers=2, threads_per_worker=3, memory_limit="20GB", **daskkws),
                                 performance_report(dask_perf_file.with_name(f'perf_report_regrid_{sim_id}_{region_name}.html')),
                                 measure_time(name='regrid', logger=logger)
                         ):
@@ -200,13 +192,15 @@ if __name__ == '__main__':
                             )
 
                             # chunk
-                            ds_sim_regrid = ds_sim_regrid.chunk({CONFIG['custom']['chunks']})
+                            ds_sim_regrid = ds_sim_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_sim_regrid.dims})
+
+                            # TODO: try this
+                            #out = out.chunk(translate_time_chunk({'time': '4year'}, get_calendar(out), out.time.size))
 
                             # save to zarr
                             path_rg = f"{workdir}/{sim_id}_regridded.zarr"
                             save_to_zarr(ds=ds_sim_regrid,
                                          filename=path_rg,
-                                         auto_rechunk=False,
                                          encoding=CONFIG['custom']['encoding'],
                                          compute=True,
                                          mode=mode
@@ -219,6 +213,7 @@ if __name__ == '__main__':
                             and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_simprops")
                     ):
                         with (
+                                #Client(n_workers=3, threads_per_worker=3, memory_limit="15GB", **daskkws),
                                 Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
                                 performance_report(
                                     dask_perf_file.with_name(f'perf_report_simprops_{sim_id}_{region_name}.html')),
@@ -235,21 +230,23 @@ if __name__ == '__main__':
                                                  calendar= simcal,
                                                  domain=region_name).to_dataset_dict().popitem()[1]
 
-                            ds_sim_props = compute_properties(ds_sim, ds_ref, ref_period, fut_period)
+                            ds_sim_props = compute_properties(ds_sim, ds_ref, check_period)
                             ds_sim_props.attrs.update(ds_sim.attrs)
 
                             path_sim = Path(CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='sim'))
                             path_sim.parent.mkdir(exist_ok=True, parents=True)
+                            path_sim_exec  = f"{workdir}/{path_scen.name}"
 
                             save_to_zarr(ds=ds_sim_props,
-                                         filename=path_sim,
-                                         auto_rechunk=False,
+                                         filename=path_sim_exec,
                                          mode=mode,
-                                         itervar=True)
+                                         itervar=True
+                                         )
+                            shutil.move(path_sim_exec, path_sim)
 
                             logger.info('Sim properties computed, painting nan count and sending plot.')
 
-                            ds_sim_props_unstack = unstack_fill_nan(ds_sim_props, coords=workdir / f'coords_{sim_id}_{region_name}.nc')
+                            ds_sim_props_unstack = unstack_fill_nan(ds_sim_props, coords=refdir / f'coords_{region_name}.nc')
                             nan_count = ds_sim_props_unstack.nan_count.load()
 
                             fig, ax = plt.subplots(figsize=(12, 8))
@@ -304,7 +301,6 @@ if __name__ == '__main__':
 
                                 save_to_zarr(ds=ds_tr,
                                              filename=path_tr,
-                                             auto_rechunk=False,
                                              mode='o')
                                 pcat.update_from_ds(ds=ds_tr,
                                                     info_dict={'id': f"{sim_id}_training_qm_{var}",
@@ -332,7 +328,8 @@ if __name__ == '__main__':
                                 ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}', domain=region_name).to_dataset_dict().popitem()[1]
 
                                 #if more adjusting needed (pr), the level must reflect that
-                                plevel = 'half_biasadjusted' if var in CONFIG['biasadjust_ex']['variables'] else 'biasadjusted'
+                                plevel = 'half_biasadjusted' if (var in CONFIG['biasadjust_ex']['variables'])\
+                                                                and ('train_ex' in CONFIG['tasks']) else 'biasadjusted'
                                 ds_scen_qm = adjust(dsim=ds_sim,
                                                  dtrain=ds_tr,
                                                  to_level = plevel,
@@ -342,7 +339,6 @@ if __name__ == '__main__':
                                 #ds_scen_qm.lon.encoding.pop('chunks')
                                 save_to_zarr(ds=ds_scen_qm,
                                              filename=path_adj,
-                                             auto_rechunk=False,
                                              mode='o')
                                 pcat.update_from_ds(ds=ds_scen_qm, path=path_adj)
 
@@ -377,7 +373,6 @@ if __name__ == '__main__':
 
                                 save_to_zarr(ds=ds_tr,
                                              filename=path_tr,
-                                             auto_rechunk=False,
                                              mode='o')
                                 pcat.update_from_ds(ds=ds_tr,
                                                     info_dict={'id': f"{sim_id}_training_ex_{var}",
@@ -431,7 +426,6 @@ if __name__ == '__main__':
                                 ds_scen_ex.lon.encoding.pop('chunks')
                                 save_to_zarr(ds=ds_scen_ex,
                                              filename=path_adj,
-                                             auto_rechunk=False,
                                              mode='o')
                                 pcat.update_from_ds(ds=ds_scen_ex, path=path_adj)
 
@@ -453,7 +447,8 @@ if __name__ == '__main__':
                                                         )
                             dc = cat.popitem()[1]
                             ds = extract_dataset(catalog=dc,
-                                                 to_level='cleaned_up'
+                                                 to_level='cleaned_up',
+                                                 periods= CONFIG['custom']['sim_period']
                                                       )
                             ds.attrs['cat/id']=sim_id
 
@@ -467,7 +462,7 @@ if __name__ == '__main__':
 
                             # unstack nans
                             if CONFIG['custom']['stack_drop_nans']:
-                                ds = unstack_fill_nan(ds, coords=f"{workdir}/coords_{sim_id}_{region_name}.nc")
+                                ds = unstack_fill_nan(ds, coords=f"{refdir}/coords_{region_name}.nc")
                                 ds = ds.chunk({d: CONFIG['custom']['chunks'][d] for d in ds.dims})
 
                             # add final attrs
@@ -484,7 +479,6 @@ if __name__ == '__main__':
                             path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
                             save_to_zarr(ds=ds,
                                          filename=path_cu,
-                                         auto_rechunk=False,
                                          mode='o')
                             pcat.update_from_ds(ds=ds, path=path_cu,
                                                 info_dict= {'processing_level': 'cleaned_up'})
@@ -533,16 +527,18 @@ if __name__ == '__main__':
                                             calendar=scen_cal,
                                             domain=region_name).to_dataset_dict().popitem()[1],
                                 stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
-                                coords=workdir / f'coords_{sim_id}_{region_name}.nc',
+                                coords=refdir / f'coords_{region_name}.nc',
                                 rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
                             )
 
-                            ds_scen_props = compute_properties(ds_scen, ds_ref, ref_period, fut_period)
+                            ds_scen_props = compute_properties(ds_scen, ds_ref, check_period)
                             ds_scen_props.attrs.update(ds_scen.attrs)
 
                             path_scen = CONFIG['paths']['checkups'].format(region_name=region_name, sim_id=sim_id, step='scen')
+                            path_scen_exec = f"{workdir}/{path_scen.name}"
 
-                            save_to_zarr(ds=ds_scen_props,filename=path_scen,auto_rechunk=False,mode=mode,itervar=True)
+                            save_to_zarr(ds=ds_scen_props,filename=path_scen,mode=mode,itervar=True)
+                            shutil.move(path_scen_exec,path_scen)
 
                             pcat.update_from_ds(ds=ds_scen_props,
                                                 info_dict={'id': f"{sim_id}_scenprops",
@@ -558,12 +554,9 @@ if __name__ == '__main__':
                                 measure_time(name=f'checkup', logger=logger)
                         ):
 
-                            ref = pcat.search(project = ref_project,
-                                              processing_level='properties',
-                                              domain=region_name).to_dataset_dict().popitem()[1].load()
                             sim = maybe_unstack(
                                 pcat.search(id=f'{sim_id}_simprops', domain=region_name).to_dataset_dict().popitem()[1],
-                                coords=workdir / f'coords_{sim_id}_{region_name}.nc',
+                                coords=refdir / f'coords_{region_name}.nc',
                                 stack_drop_nans=CONFIG['custom']['stack_drop_nans']
                             ).load()
 
@@ -581,19 +574,11 @@ if __name__ == '__main__':
                             ).savefig(fig_dir / 'Nan_count.png')
                             paths.append(fig_dir / 'Nan_count.png')
 
-                            # Extremes - between fut and hist
-                            fig_compare_and_diff(
-                                scen.pr_wet_freq_q99_hist.rename('historical'),
-                                scen.pr_wet_freq_q99_fut.rename('future'),
-                                title='Comparing frequency of extremes future vs present.'
-                            ).savefig(fig_dir / 'Extremes_pr_scen_hist-fut.png')
-                            paths.append(fig_dir / 'Extremes_pr_scen_hist-fut.png')
-
-                            for var in ['pr_wet_freq_q99_hist', 'tx_mean_rmse', 'tn_mean_rmse', 'prcptot_rmse']:
-                                fig_bias_compare_and_diff(
-                                    ref[var], sim[var], scen[var],
-                                ).savefig(fig_dir / f'{var}_bias_compare.png')
-                                paths.append(fig_dir / f'{var}_bias_compare.png')
+                            for var in [ 'tx_mean_rmse', 'tn_mean_rmse', 'prcptot_rmse']:
+                                fig_compare_and_diff(
+                                    sim[var], scen[var], op = "improvement"
+                                ).savefig(fig_dir / f'{var}_compare.png')
+                                paths.append(fig_dir / f'{var}_compare.png')
 
                             send_mail(
                                 subject=f"{sim_id}/{region_name} - Succès",
@@ -635,7 +620,6 @@ if __name__ == '__main__':
                 dsC.attrs.pop('cat/path')
                 save_to_zarr(ds=dsC,
                              filename=dsC_path,
-                             auto_rechunk=False,
                              mode='o')
                 pcat.update_from_ds(ds=dsC, info_dict={'domain': 'concat_regions'},
                                     path=dsC_path)
