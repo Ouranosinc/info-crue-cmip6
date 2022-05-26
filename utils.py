@@ -2,6 +2,10 @@ import xarray as xr
 import logging
 from pathlib import Path
 import shutil
+from matplotlib import pyplot as plt
+import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 from xclim.sdba.measures import rmse
 from xclim import atmos, sdba
@@ -84,3 +88,82 @@ def calculate_properties(ds, pcat, step, unstack=False, diag_dict=CONFIG['diagno
                             info_dict={'processing_level': f'diag_{step}'},
                             path=str(path_diag))
         return all_prop
+
+def plot_diagnotics(ref, sim, scen):
+    """
+    Creates plots of diagnostics.
+    If show_maps is True, creates one figure per property with 3 property map (ref, sim, scen) and 2 bias maps(sim-ref, scen-ref).
+    Always creates a heat map, showing which one of sim or scen is the best for each properties.
+    :param ref: reference dataset
+    :param sim: simulation dataset
+    :param scen: scenario dataset
+    :return: list of paths to figures
+    """
+    sim_id = sim.attrs['sim_id']
+    hmap = []
+    paths=[]
+    diag_dir = Path(CONFIG['paths']['diagfigs'].format(sim_id=sim_id))
+    diag_dir.mkdir(exist_ok=True, parents=True)
+
+    #iterate through all available properties
+    for var_name in sim.data_vars:
+        # get property
+        prop_sim = sim[var_name]
+        prop_ref = ref[var_name]
+        prop_scen = scen[var_name]
+
+        #calculate bias
+        bias_scen_prop = sdba.measures.bias(sim=prop_scen, ref=prop_ref).load()
+        bias_sim_prop = sdba.measures.bias(sim=prop_sim, ref=prop_ref).load()
+
+        #mean the absolute value of the bias over all positions and add to heat map
+        hmap.append([abs(bias_sim_prop).mean().values, abs(bias_scen_prop).mean().values])
+
+        #individual figure for all properties with 5 maps
+        if CONFIG['diagnostics']['show_maps']:
+            fig, axs = plt.subplots(2, 3, figsize=(15, 7))
+            maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
+            mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
+            maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
+
+            prop_ref.plot(ax=axs[0, 0], vmax=maxi_prop, vmin=mini_prop)
+            axs[0, 0].set_title('REF')
+            prop_scen.plot(ax=axs[0, 1], vmax=maxi_prop, vmin=mini_prop)
+            axs[0, 1].set_title('SCEN')
+            bias_scen_prop.plot(ax=axs[0, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
+            axs[0, 2].set_title('bias scen')
+
+            prop_sim.plot(ax=axs[1, 1], vmax=maxi_prop, vmin=mini_prop)
+            axs[1, 1].set_title('SIM')
+            bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
+            axs[1, 2].set_title('bias sim')
+            fig.delaxes(axs[1][0])
+            fig.suptitle(var_name, fontsize=20)
+            fig.tight_layout()
+
+            fig.savefig(diag_dir / f"{prop_sim.name}.png")
+            paths.append(diag_dir / f"{prop_sim.name}.png")
+
+    # plot heat map of biases ( 1 column per properties, 1 column for sim , 1 column for scen)
+    hmap = np.array(hmap).T
+    hmap = np.array(
+        [(c - min(c)) / (max(c) - min(c)) if max(c) != min(c) else [0.5] * len(c) for c in
+         hmap.T]).T
+    dict_prop = sim.data_vars
+    labels_row = ['sim', 'scen']
+    fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
+    im = ax.imshow(hmap, cmap='RdYlGn_r')
+    ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop.keys(), rotation=45,
+                  ha='right')
+    ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
+
+    divider = make_axes_locatable(ax)
+    cax = divider.new_vertical(size='15%', pad=0.4)
+    fig_hmap.add_axes(cax)
+    cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
+    cbar.ax.set_xticklabels(['best', 'worst'])
+    plt.title('Normalised mean bias of properties')
+    fig_hmap.tight_layout()
+    fig_hmap.savefig(diag_dir / f"hmap.png", bbox_inches='tight')
+    paths.append(diag_dir / f"hmap.png")
+    return paths
