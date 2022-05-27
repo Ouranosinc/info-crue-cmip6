@@ -14,6 +14,7 @@ from xscen.config import CONFIG, load_config
 from xscen.io import save_to_zarr
 from xscen.common import  maybe_unstack
 
+
 load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 workdir = Path(CONFIG['paths']['workdir'])
 refdir = Path(CONFIG['paths']['refdir'])
@@ -83,7 +84,7 @@ def calculate_properties(ds, pcat, step, unstack=False, diag_dict=CONFIG['diagno
                                                                step=step))
         path_diag_exec = f"{workdir}/{path_diag.name}"
         save_to_zarr(ds=all_prop, filename=path_diag_exec, mode='o', itervar=True)
-        shutil.move(path_diag_exec, path_diag, dirs_exist_ok=True)
+        shutil.move(path_diag_exec, path_diag)
         pcat.update_from_ds(ds=all_prop,
                             info_dict={'processing_level': f'diag_{step}'},
                             path=str(path_diag))
@@ -106,7 +107,7 @@ def plot_diagnotics(ref, sim, scen):
     diag_dir.mkdir(exist_ok=True, parents=True)
 
     #iterate through all available properties
-    for var_name in sim.data_vars:
+    for i, var_name in enumerate(sim.data_vars):
         # get property
         prop_sim = sim[var_name]
         prop_ref = ref[var_name]
@@ -115,6 +116,7 @@ def plot_diagnotics(ref, sim, scen):
         #calculate bias
         bias_scen_prop = sdba.measures.bias(sim=prop_scen, ref=prop_ref).load()
         bias_sim_prop = sdba.measures.bias(sim=prop_sim, ref=prop_ref).load()
+
 
         #mean the absolute value of the bias over all positions and add to heat map
         hmap.append([abs(bias_sim_prop).mean().values, abs(bias_scen_prop).mean().values])
@@ -167,3 +169,61 @@ def plot_diagnotics(ref, sim, scen):
     fig_hmap.savefig(diag_dir / f"hmap.png", bbox_inches='tight')
     paths.append(diag_dir / f"hmap.png")
     return paths
+
+
+
+def save_diagnotics(ref, sim, scen, pcat):
+    """
+    calculate the biases amd the heat map and save
+    Saves files of biases and heat map.
+    :param ref: reference dataset
+    :param sim: simulation dataset
+    :param scen: scenario dataset
+    :param pcat: project catalog to update
+    """
+    hmap = []
+    #iterate through all available properties
+    for i, var_name in enumerate(sim.data_vars):
+        # get property
+        prop_sim = sim[var_name]
+        prop_ref = ref[var_name]
+        prop_scen = scen[var_name]
+
+        #calculate bias
+        bias_scen_prop = sdba.measures.bias(sim=prop_scen, ref=prop_ref).load()
+        bias_sim_prop = sdba.measures.bias(sim=prop_sim, ref=prop_ref).load()
+
+        # put all bias in one dataset
+        if i == 0:
+            all_bias_scen_prop = bias_scen_prop.to_dataset(name=var_name)
+            all_bias_sim_prop = bias_sim_prop.to_dataset(name=var_name)
+        else:
+            all_bias_scen_prop[var_name] = bias_scen_prop
+            all_bias_sim_prop[var_name] = bias_sim_prop
+
+
+        #mean the absolute value of the bias over all positions and add to heat map
+        hmap.append([abs(bias_sim_prop).mean().values, abs(bias_scen_prop).mean().values])
+
+    # plot heat map of biases ( 1 column per properties, 1 column for sim , 1 column for scen)
+    hmap = np.array(hmap).T
+    hmap = np.array(
+        [(c - min(c)) / (max(c) - min(c)) if max(c) != min(c) else [0.5] * len(c) for c in
+         hmap.T]).T
+
+    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
+                                                           sim_id=scen.attrs['cat/id'],
+                                                           step='hmap'))
+    #replace zarr by npy
+    path_diag = path_diag.with_suffix('.npy')
+    np.save(path_diag, hmap)
+
+    for ds, step in zip([all_bias_scen_prop,all_bias_sim_prop],['scen_bias','sim_bias']):
+        path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
+                                                               sim_id=scen.attrs['cat/id'],
+                                                               step=step))
+        save_to_zarr(ds=ds, filename=path_diag, mode='o', itervar=True)
+        pcat.update_from_ds(ds=ds,
+                            info_dict={'processing_level': f'diag_{step}'},
+                            path=str(path_diag))
+

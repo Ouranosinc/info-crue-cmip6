@@ -1,4 +1,4 @@
-from dask.distributed import Client, performance_report
+from dask.distributed import Client
 from dask import config as dskconf
 import atexit
 from pathlib import Path
@@ -26,7 +26,7 @@ from xscen.regridding import regrid
 from xscen.biasadjust import train, adjust
 from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout
 
-from utils import compute_properties,calculate_properties, plot_diagnotics
+from utils import compute_properties,calculate_properties, plot_diagnotics, save_diagnotics
 
 # Load configuration
 load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
@@ -42,8 +42,6 @@ mode = 'o'
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
-    dask_perf_file = Path(CONFIG['paths']['reports']) / 'perf_report_template.html'
-    dask_perf_file.parent.mkdir(exist_ok=True, parents=True)
     atexit.register(send_mail_on_exit, subject=CONFIG['scr_utils']['subject'])
 
     # defining variables
@@ -54,8 +52,6 @@ if __name__ == '__main__':
 
     calendar = CONFIG['custom']['calendar']
     ref_project = CONFIG['extraction']['ref_project']
-
-    logger.info(' test of logging')
 
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
@@ -90,6 +86,7 @@ if __name__ == '__main__':
                 save_to_zarr(ds_ref_props_nan_count.to_dataset(name='nan_count'),
                              f"{workdir}/ref_{region_name}_nancount.zarr",
                              compute=True, mode=mode)
+                                         
                 #diagnostics
                 if 'diagnostics' in CONFIG['tasks'] :
                     calculate_properties(ds=dref_ref, pcat=pcat, step='ref')
@@ -113,12 +110,13 @@ if __name__ == '__main__':
                 save_to_zarr(ds_refnl, f"{workdir}/ref_{region_name}_{calendar}.zarr",
                              compute=True, encoding=CONFIG['custom']['encoding'], mode=mode)
                 shutil.move( f"{workdir}/ref_{region_name}_{calendar}.zarr",
-                             f"{refdir}/ref_{region_name}_{calendar}.zarr",
-                             dirs_exist_ok=True)
+                             f"{refdir}/ref_{region_name}_{calendar}.zarr"
+                             )
+
 
 
                 # plot nan_count and email
-                ds_ref_props_nan_count = xr.open_zarr(f"{refdir}/ref_{region_name}_nancount.zarr", decode_timedelta=False).load()
+                ds_ref_props_nan_count = xr.open_zarr(f"{workdir}/ref_{region_name}_nancount.zarr", decode_timedelta=False).load()
                 fig, ax = plt.subplots(figsize=(10, 10))
                 cmap = plt.cm.winter.copy()
                 cmap.set_under('white')
@@ -156,7 +154,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
-                                performance_report(dask_perf_file.with_name(f'perf_report_regrid_{sim_id}_{region_name}.html')),
                                 measure_time(name='cut', logger=logger)
                         ):
                             # search the data that we need
@@ -191,7 +188,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
-                                performance_report(dask_perf_file.with_name(f'perf_report_regrid_{sim_id}_{region_name}.html')),
                                 measure_time(name='regrid', logger=logger)
                         ):
                             #get sim
@@ -229,8 +225,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                                performance_report(
-                                    dask_perf_file.with_name(f'perf_report_simprops_{sim_id}_{region_name}.html')),
                                 measure_time(name=f'simproperties', logger=logger),
                                 timeout(3600, task='simproperties')
                         ):
@@ -255,7 +249,7 @@ if __name__ == '__main__':
                                          mode=mode,
                                          itervar=True
                                          )
-                            shutil.move(path_sim_exec, path_sim, dirs_exist_ok=True)
+                            shutil.move(path_sim_exec, path_sim)
 
                             logger.info('Sim properties computed, painting nan count and sending plot.')
 
@@ -449,8 +443,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=4, threads_per_worker=3, memory_limit="15GB", **daskkws),
-                                performance_report(
-                                    dask_perf_file.with_name(f'perf_report_cleanup_{sim_id}_{region_name}.html')),
                                 measure_time(name=f'cleanup', logger=logger)
                         ):
                             #get all adjusted data
@@ -476,7 +468,7 @@ if __name__ == '__main__':
 
                             # fix attrs
                             ds.attrs['cat/id'] = sim_id
-                            ds.attrs.pop('cat/path')
+                            #ds.attrs.pop('cat/path')
                             # remove all global attrs that don't come from the catalogue
                             for attr in list(ds.attrs.keys()):
                                 if attr[:4] != 'cat/':
@@ -508,8 +500,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
-                                performance_report(
-                                    dask_perf_file.with_name(f'perf_report_final_zarr_{sim_id}_{region_name}.html')),
                                 measure_time(name=f'final zarr rechunk', logger=logger)
                         ):
                             #rechunk and move to final destination
@@ -523,12 +513,14 @@ if __name__ == '__main__':
                                     overwrite=True)
 
                             #  move regridded to save it permantly
-                            shutil.move(f"{workdir}/{sim_id}_regridded.zarr", f"{regriddir}/{sim_id}_regridded.zarr", dirs_exist_ok=True)
-                            pcat.update_from_ds(ds=ds_sim, path = f"{regriddir}/{sim_id}_regridded.zarr")
+                            final_regrid_path =f"{regriddir}/{sim_id}_regridded.zarr"
+                            shutil.move(f"{workdir}/{sim_id}_regridded.zarr", final_regrid_path )
+                            ds_sim=xr.open_zarr(final_regrid_path)
+                            pcat.update_from_ds(ds=ds_sim, path = final_regrid_path)
 
                             # move log to save it permantly
                             path_log = CONFIG['logging']['handlers']['file']['filename']
-                            shutil.move(path_log, CONFIG['paths']['logging'].format(**fmtkws), dirs_exist_ok=True)
+                            shutil.move(path_log, CONFIG['paths']['logging'].format(**fmtkws) )
 
                             # erase workdir content
                             if workdir.exists() and workdir.is_dir():
@@ -546,8 +538,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                                performance_report(
-                                    dask_perf_file.with_name(f'perf_report_scenprops_{sim_id}_{region_name}.html')),
                                 measure_time(name=f'scenprops', logger=logger),
                                 timeout(5400, task='scenproperties')
                         ):
@@ -571,7 +561,7 @@ if __name__ == '__main__':
                             path_scen_exec = f"{workdir}/{path_scen.name}"
 
                             save_to_zarr(ds=ds_scen_props,filename=path_scen_exec,mode=mode,itervar=True)
-                            shutil.move(path_scen_exec,path_scen, dirs_exist_ok=True)
+                            shutil.move(path_scen_exec,path_scen)
 
                             pcat.update_from_ds(ds=ds_scen_props,
                                                 info_dict={'id': f"{sim_id}_scenprops",
@@ -582,8 +572,6 @@ if __name__ == '__main__':
                     if "check_up" in CONFIG["tasks"]:
                         with (
                                 Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                                performance_report(
-                                    dask_perf_file.with_name(f'perf_report_checkup_{sim_id}_{region_name}.html')),
                                 measure_time(name=f'checkup', logger=logger)
                         ):
 
@@ -628,8 +616,6 @@ if __name__ == '__main__':
                     ):
                         with (
                                 Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
-                                performance_report(
-                                    dask_perf_file.with_name(f'perf_report_diag_{sim_id}_{region_name}.html')),
                                 measure_time(name=f'diagnostics', logger=logger)
                         ):
                             #load initial data
@@ -653,7 +639,9 @@ if __name__ == '__main__':
                                                domain=region_name).to_dataset_dict().popitem()[1]
 
                             #create plots
-                            paths = plot_diagnotics(ref, sim, scen)
+                            #paths = plot_diagnotics(ref, sim, scen)
+
+                            save_diagnotics(ref, sim, scen, pcat)
 
                             send_mail(
                             subject=f"{sim_id}/{region_name} - Diagnostics",

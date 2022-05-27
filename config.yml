@@ -5,7 +5,7 @@ project:
     id: ic6
 
 tasks:
-  #- initialize_pcat
+#  #- initialize_pcat
 #  - makeref
 #  - cut
 #  - regrid
@@ -18,7 +18,7 @@ tasks:
 #  - final_zarr
 #  #- scenproperties
 #  #- check_up
-#  - diagnostics
+  - diagnostics
 
 
 ids:
@@ -40,7 +40,7 @@ ids:
 
 
 experiments: &experiments
-    - ssp245
+    #- ssp245
     - ssp370
 
 dask:
