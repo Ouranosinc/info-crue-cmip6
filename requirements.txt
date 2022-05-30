@@ -6,7 +6,7 @@ pandas
 xarray
 hvplot
 matplotlib
-mpl-toolkits.clifford
+pyviz
 numpy
 zarr
 hvplot

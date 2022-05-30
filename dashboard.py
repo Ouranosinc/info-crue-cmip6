@@ -1,3 +1,4 @@
+# app is here: https://share.streamlit.io/ouranosinc/info-crue-cmip6/main/dashboard.py
 import streamlit as st
 import holoviews as hv
 from pathlib import Path
