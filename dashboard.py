@@ -42,14 +42,14 @@ if useCat:
     hmap = np.load(path_diag)
 else:
     option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
-    ref=xr.open_zarr(f'dashboard_data/diag_ref_ERA_ecmwf_ERA5_era5-land_NAM_qc.zarr')
+    ref = xr.open_zarr(f'dashboard_data/diag_ref_ERA_ecmwf_ERA5_era5-land_NAM_qc.zarr')
     sim = xr.open_zarr(f'dashboard_data/diag_sim_{option_id}.zarr')
     scen = xr.open_zarr(f'dashboard_data/diag_scen_{option_id}.zarr')
     bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_bias_{option_id}.zarr')
     bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_bias_{option_id}.zarr')
     hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
 
-
+st.write(ref)
 # choose properties
 option_var = st.selectbox('Properties',scen.data_vars)
 prop_sim = sim[option_var]
