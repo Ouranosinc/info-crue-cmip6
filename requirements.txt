@@ -4,5 +4,6 @@ pandas
 xarray
 hvplot
 matplotlib
+zarr
 
 
