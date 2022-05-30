@@ -57,25 +57,25 @@ prop_ref = ref[option_var]
 prop_scen = scen[option_var]
 bias_scen_prop = bias_scen[option_var]
 bias_sim_prop = bias_sim[option_var]
-#
-# #colormap
-# maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
-# mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
-# maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
-# cmap='viridis_r' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'plasma'
-# cmap_bias ='BrBG' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'coolwarm'
-#
-# long_name=prop_sim.attrs['long_name']
-#
-# col1, col2, col3 = st.columns([2,1,1])
-# w, h = 350, 300
-# col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
-# col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop))))
-# col3.write(hv.render(bias_sim_prop.hvplot(width=w, height=h, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
-# col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop))))
-# col3.write(hv.render(bias_scen_prop.hvplot(width=w, height=h, title=f'SCEN BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
-#
-#
+
+#colormap
+maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
+mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
+maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
+cmap='viridis_r' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'plasma'
+cmap_bias ='BrBG' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'coolwarm'
+
+long_name=prop_sim.attrs['long_name']
+
+col1, col2, col3 = st.columns([2,1,1])
+w, h = 350, 300
+col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
+col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop))))
+col3.write(hv.render(bias_sim_prop.hvplot(width=w, height=h, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
+col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop))))
+col3.write(hv.render(bias_scen_prop.hvplot(width=w, height=h, title=f'SCEN BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
+
+
 
 
 
