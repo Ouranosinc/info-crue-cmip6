@@ -49,7 +49,7 @@ else:
     bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_bias_{option_id}.zarr')
     hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
 
-st.write(ref)
+
 # choose properties
 option_var = st.selectbox('Properties',scen.data_vars)
 prop_sim = sim[option_var]
@@ -57,6 +57,7 @@ prop_ref = ref[option_var]
 prop_scen = scen[option_var]
 bias_scen_prop = bias_scen[option_var]
 bias_sim_prop = bias_sim[option_var]
+st.write(prop_ref)
 
 #colormap
 maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
