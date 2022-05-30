@@ -1,0 +1,9 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "history": "annual_cycle_amplitude-pr: [2022-05-28 20:40:00] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-pr: [2022-05-28 14:02:02] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:57] annual_cycle_amplitude-pr: bias(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "units": "%"
+}

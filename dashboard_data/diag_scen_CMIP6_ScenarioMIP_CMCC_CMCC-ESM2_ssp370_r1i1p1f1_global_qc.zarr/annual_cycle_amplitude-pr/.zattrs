@@ -1,0 +1,9 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:08:39] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+    "long_name": "relative amplitude of the annual cycle",
+    "units": "%"
+}

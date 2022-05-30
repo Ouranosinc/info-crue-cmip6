@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_methods": "time: mean",
+    "history": "[2022-05-28 13:35:23] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+    "long_name": "Quantile 0.98",
+    "original_variable": "t2m",
+    "standard_name": "air_temperature",
+    "units": "K"
+}

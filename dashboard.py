@@ -5,37 +5,48 @@ import pandas as pd
 import numpy as np
 import xarray as xr
 from matplotlib import pyplot as plt
-import hvplot.xarray
-import panel as pn
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import glob
 
-from xclim import sdba
+useCat=True
 
-from xscen.config import CONFIG, load_config
-from xscen.catalog import ProjectCatalog
+
 
 st.set_page_config(layout="wide")
-
-load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
-pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
-
 st.title('Diagnostiques de Info-Crue CMIP6')
 
-# choose id
-option_id = st.selectbox('id',pcat.search(type='simulations').df.id.unique())
+if useCat:
+    from xscen.config import CONFIG, load_config
+    from xscen.catalog import ProjectCatalog
+    load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+    pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
-#load all properties from ref, sim, scen
-ref = pcat.search( processing_level='diag_ref').to_dataset_dict().popitem()[1]
-sim = pcat.search(id= option_id, processing_level='diag_sim').to_dataset_dict().popitem()[1]
-scen = pcat.search(id= option_id, processing_level='diag_scen').to_dataset_dict().popitem()[1]
-#get bias
-bias_sim = pcat.search(id=option_id, processing_level='diag_sim_bias').to_dataset_dict().popitem()[1]
-bias_scen = pcat.search(id=option_id, processing_level='diag_scen_bias').to_dataset_dict().popitem()[1]
+    # choose id
+    option_id = st.selectbox('id',pcat.search(type='simulations').df.id.unique())
 
-#create dataset with everything
-ds= xr.concat([sim,bias_sim, scen, bias_scen],
-              pd.Index(['sim','sim_bias','scen','scen_bias'],
-              name ='data_type'))
+    #load all properties from ref, sim, scen
+    ref = pcat.search( processing_level='diag_ref').to_dataset_dict().popitem()[1]
+    sim = pcat.search(id= option_id, processing_level='diag_sim').to_dataset_dict().popitem()[1]
+    scen = pcat.search(id= option_id, processing_level='diag_scen').to_dataset_dict().popitem()[1]
+    #get bias
+    bias_sim = pcat.search(id=option_id, processing_level='diag_sim_bias').to_dataset_dict().popitem()[1]
+    bias_scen = pcat.search(id=option_id, processing_level='diag_scen_bias').to_dataset_dict().popitem()[1]
+
+    # load hmap
+    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
+                                                           sim_id=scen.attrs['cat/id'],
+                                                           step='hmap'))
+    # replace .zarr by .npy
+    path_diag = path_diag.with_suffix('.npy')
+    hmap = np.load(path_diag)
+else:
+    option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
+    ref=xr.open_dataset(f'dashboard_data/diag_ref_ERA_ecmwf_ERA5_era5-land_NAM_qc.zarr.zarr')
+    sim = xr.open_dataset(f'dashboard_data/diag_sim_{option_id}.zarr')
+    scen = xr.open_dataset(f'dashboard_data/diag_scen_{option_id}.zarr')
+    bias_sim = xr.open_dataset(f'dashboard_data/diag_sim_bias_{option_id}.zarr')
+    bias_scen = xr.open_dataset(f'dashboard_data/diag_scen_bias_{option_id}.zarr')
+
 
 # choose properties
 option_var = st.selectbox('Properties',scen.data_vars)
@@ -64,13 +75,7 @@ col3.write(hv.render(bias_scen_prop.hvplot(width=w, height=h, title=f'SCEN BIAS'
 
 
 
-#load hmap
-path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
-                                                       sim_id=scen.attrs['cat/id'],
-                                                       step='hmap'))
-# replace .zarr by .npy
-path_diag = path_diag.with_suffix('.npy')
-hmap = np.load(path_diag)
+
 
 #plot hmap
 dict_prop = sim.data_vars
@@ -94,24 +99,24 @@ st.write(fig_hmap)
 
 
 
-# #plot 5 maps
-# fig, axs = plt.subplots(2, 3, figsize=(15, 7))
-# maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
-# mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
-# maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
-#
-# prop_ref.plot(ax=axs[0, 0], vmax=maxi_prop, vmin=mini_prop)
-# axs[0, 0].set_title('REF')
-# prop_scen.plot(ax=axs[0, 1], vmax=maxi_prop, vmin=mini_prop)
-# axs[0, 1].set_title('SCEN')
-# bias_scen_prop.plot(ax=axs[0, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
-# axs[0, 2].set_title('bias scen')
-#
-# prop_sim.plot(ax=axs[1, 1], vmax=maxi_prop, vmin=mini_prop)
-# axs[1, 1].set_title('SIM')
-# bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
-# axs[1, 2].set_title('bias sim')
-# fig.delaxes(axs[1][0])
-# fig.suptitle(option_var, fontsize=20)
-# fig.tight_layout()
-# st.write(fig)
+#plot 5 maps
+fig, axs = plt.subplots(2, 3, figsize=(15, 7))
+maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
+mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
+maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
+
+prop_ref.plot(ax=axs[0, 0], vmax=maxi_prop, vmin=mini_prop)
+axs[0, 0].set_title('REF')
+prop_scen.plot(ax=axs[0, 1], vmax=maxi_prop, vmin=mini_prop)
+axs[0, 1].set_title('SCEN')
+bias_scen_prop.plot(ax=axs[0, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
+axs[0, 2].set_title('bias scen')
+
+prop_sim.plot(ax=axs[1, 1], vmax=maxi_prop, vmin=mini_prop)
+axs[1, 1].set_title('SIM')
+bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
+axs[1, 2].set_title('bias sim')
+fig.delaxes(axs[1][0])
+fig.suptitle(option_var, fontsize=20)
+fig.tight_layout()
+st.write(fig)

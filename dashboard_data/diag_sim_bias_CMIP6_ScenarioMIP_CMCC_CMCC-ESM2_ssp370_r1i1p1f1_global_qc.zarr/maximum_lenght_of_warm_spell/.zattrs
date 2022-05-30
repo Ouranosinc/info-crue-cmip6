@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "maximum_lenght_of_warm_spell: 2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 20:13:53] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_lenght_of_warm_spell: [2022-05-28 13:39:41] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:49] maximum_lenght_of_warm_spell: bias(sim=maximum_lenght_of_warm_spell, ref=maximum_lenght_of_warm_spell) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "original_name": "TREFHTMX",
+    "standard_name": "air_temperature",
+    "units": "day"
+}

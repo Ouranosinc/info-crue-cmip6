@@ -1,0 +1,9 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "history": "[2022-05-28 20:40:00] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+    "long_name": "relative amplitude of the annual cycle",
+    "units": "%"
+}

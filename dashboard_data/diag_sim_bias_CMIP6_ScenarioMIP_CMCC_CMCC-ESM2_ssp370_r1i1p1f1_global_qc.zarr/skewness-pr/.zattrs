@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "skewness-pr: [2022-05-28 20:28:28] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\nskewness-pr: [2022-05-28 13:52:04] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:55] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "original_name": "PRECT",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

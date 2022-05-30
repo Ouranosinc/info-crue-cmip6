@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "acf-pr: [2022-05-28 20:29:32] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta\nacf-pr: [2022-05-28 13:54:26] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:56] acf-pr: bias(sim=acf-pr, ref=acf-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "original_name": "PRECT",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

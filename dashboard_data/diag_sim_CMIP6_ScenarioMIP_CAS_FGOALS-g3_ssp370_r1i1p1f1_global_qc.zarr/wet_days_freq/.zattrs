@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean (interval: 10 minutes)",
+    "comment": "includes both liquid and solid phases",
+    "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:43:44] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+    "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
+    "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
+    "history": "quantile_02-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:17] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta\nquantile_02-tasmin: [2022-05-28 13:42:11] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:28] quantile_02-tasmin: bias(sim=quantile_02-tasmin, ref=quantile_02-tasmin) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "standard_name": "air_temperature",
+    "units": "K"
+}

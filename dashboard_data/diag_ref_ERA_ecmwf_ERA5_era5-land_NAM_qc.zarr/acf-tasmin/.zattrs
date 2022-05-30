@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_methods": "time: mean",
+    "history": "[2022-05-28 13:42:30] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+    "long_name": "lag-1 autocorrelation",
+    "original_variable": "t2m",
+    "standard_name": "air_temperature",
+    "units": ""
+}

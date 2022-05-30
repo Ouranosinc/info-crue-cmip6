@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 20:13:53] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+    "long_name": "max of spell length when input variable >= quantile 0.9",
+    "original_name": "TREFHTMX",
+    "standard_name": "air_temperature",
+    "units": "day"
+}

@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "mean-pr: [2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 20:59:53] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\nmean-pr: [2022-05-28 13:50:50] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:54] mean-pr: bias(sim=mean-pr, ref=mean-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "standard_name": "precipitation_flux",
+    "units": "kg m-2 s-1"
+}

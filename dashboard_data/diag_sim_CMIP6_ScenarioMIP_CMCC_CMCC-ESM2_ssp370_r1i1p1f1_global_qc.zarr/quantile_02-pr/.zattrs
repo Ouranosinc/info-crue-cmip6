@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "[2022-05-28 20:28:38] quantile: quantile(da=pr, q=0.02, group='time') - xclim version: 0.36.6-beta",
+    "long_name": "Quantile 0.02",
+    "original_name": "PRECT",
+    "standard_name": "precipitation_flux",
+    "units": "kg m-2 s-1"
+}

@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "mean-pr: [2022-05-28 20:28:22] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\nmean-pr: [2022-05-28 13:50:50] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:54] mean-pr: bias(sim=mean-pr, ref=mean-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "original_name": "PRECT",
+    "standard_name": "precipitation_flux",
+    "units": "kg m-2 s-1"
+}
