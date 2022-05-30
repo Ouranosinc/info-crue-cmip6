@@ -46,6 +46,7 @@ else:
     scen = xr.open_zarr(f'dashboard_data/diag_scen_{option_id}.zarr')
     bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_bias_{option_id}.zarr')
     bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_bias_{option_id}.zarr')
+    hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
 
 
 # choose properties
