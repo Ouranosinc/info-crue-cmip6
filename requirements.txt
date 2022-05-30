@@ -12,3 +12,20 @@ zarr
 hvplot
 panel
 
+pip==21.3.1
+altair
+bokeh==2.4.1
+descartes
+holoviews
+hvplot
+matplotlib
+mpl-toolkits.clifford
+numpy
+pandas
+panel
+pillow
+plotly
+sklearn
+simplejson
+streamlit
+xarray
