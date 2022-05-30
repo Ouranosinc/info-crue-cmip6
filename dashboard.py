@@ -9,7 +9,6 @@ import hvplot.xarray
 import panel as pn
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
 from xclim import sdba
 
 from xscen.config import CONFIG, load_config
@@ -20,14 +19,10 @@ st.set_page_config(layout="wide")
 load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
-
-st.title('Testing')
-st.write('Proving that hvplot works')
-
+st.title('Diagnostiques de Info-Crue CMIP6')
 
 # choose id
 option_id = st.selectbox('id',pcat.search(type='simulations').df.id.unique())
-
 
 #load all properties from ref, sim, scen
 ref = pcat.search( processing_level='diag_ref').to_dataset_dict().popitem()[1]
@@ -37,7 +32,6 @@ scen = pcat.search(id= option_id, processing_level='diag_scen').to_dataset_dict(
 bias_sim = pcat.search(id=option_id, processing_level='diag_sim_bias').to_dataset_dict().popitem()[1]
 bias_scen = pcat.search(id=option_id, processing_level='diag_scen_bias').to_dataset_dict().popitem()[1]
 
-
 #create dataset with everything
 ds= xr.concat([sim,bias_sim, scen, bias_scen],
               pd.Index(['sim','sim_bias','scen','scen_bias'],
@@ -45,36 +39,28 @@ ds= xr.concat([sim,bias_sim, scen, bias_scen],
 
 # choose properties
 option_var = st.selectbox('Properties',scen.data_vars)
-
-
-
-
-# #choose property to show
 prop_sim = sim[option_var]
 prop_ref = ref[option_var]
 prop_scen = scen[option_var]
 bias_scen_prop = bias_scen[option_var]
 bias_sim_prop = bias_sim[option_var]
 
-
+#colormap
 maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
 mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
 maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
-
 cmap='viridis_r' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'plasma'
 cmap_bias ='BrBG' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'coolwarm'
 
 long_name=prop_sim.attrs['long_name']
 
-
 col1, col2, col3 = st.columns([2,1,1])
 w, h = 350, 300
-col1.write(hv.render(prop_ref.hvplot(title=f'ref\n {long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
-col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'sim \n {long_name}', cmap=cmap, clim=(mini_prop,maxi_prop))))
-col3.write(hv.render(bias_sim_prop.hvplot(width=w, height=h, title=f'sim bias \n {long_name}', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
-col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'scen \n {long_name}', cmap=cmap, clim=(mini_prop,maxi_prop))))
-col3.write(hv.render(bias_scen_prop.hvplot(width=w, height=h, title=f'scen bias\n {long_name}', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
-
+col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
+col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop))))
+col3.write(hv.render(bias_sim_prop.hvplot(width=w, height=h, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
+col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop))))
+col3.write(hv.render(bias_scen_prop.hvplot(width=w, height=h, title=f'SCEN BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
 
 
 
@@ -105,13 +91,6 @@ fig_hmap.tight_layout()
 
 st.write(fig_hmap)
 
-
-#choose type
-option_type = st.radio(
-     'data type',
-    ('sim', 'scen','ref'))
-# test hvplot
-st.write(hv.render(scen[option_var].hvplot()))
 
 
 

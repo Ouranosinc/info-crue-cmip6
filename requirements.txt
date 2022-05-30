@@ -1,0 +1,7 @@
+streamlit
+holoviews
+pandas
+xarray
+hvplot
+
+
