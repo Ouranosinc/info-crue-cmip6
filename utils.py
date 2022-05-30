@@ -58,7 +58,7 @@ def calculate_properties(ds, pcat, step, unstack=False, diag_dict=CONFIG['diagno
     region_name = ds.attrs['cat/domain']
     if not pcat.exists_in_cat(domain=region_name, processing_level=f'diag_{step}', id=ds.attrs['cat/id']):
         for i, (name, prop) in enumerate(diag_dict.items()):
-            logger.info(f"Calculating diagnostic {name}")
+            logger.info(f"Calculating {step} diagnostic {name}")
             prop = eval(prop['func'])(da=ds[prop['var']], **prop['args']).load()
 
             if unstack:
@@ -68,9 +68,15 @@ def calculate_properties(ds, pcat, step, unstack=False, diag_dict=CONFIG['diagno
                     coords=refdir / f'coords_{region_name}.nc',
                     rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
                 )
+                prop=prop.transpose("lat", "lon")
 
-            if ("season" or "month") in prop.coords:
-                prop = prop[0]
+            if "season" in prop.coords:
+                prop = prop.isel(season=0)
+                prop=prop.drop('season')
+            if "month" in prop.coords:
+                prop = prop.isel(month=0)
+                prop=prop.drop('month')
+
 
             # put all properties in one dataset
             if i == 0:
@@ -218,11 +224,13 @@ def save_diagnotics(ref, sim, scen, pcat):
     path_diag = path_diag.with_suffix('.npy')
     np.save(path_diag, hmap)
 
+    all_bias_scen_prop.attrs.update(scen.attrs)
+    all_bias_sim_prop.attrs.update(sim.attrs)
     for ds, step in zip([all_bias_scen_prop,all_bias_sim_prop],['scen_bias','sim_bias']):
         path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
                                                                sim_id=scen.attrs['cat/id'],
                                                                step=step))
-        save_to_zarr(ds=ds, filename=path_diag, mode='o', itervar=True)
+        save_to_zarr(ds=ds, filename=path_diag, mode='o')
         pcat.update_from_ds(ds=ds,
                             info_dict={'processing_level': f'diag_{step}'},
                             path=str(path_diag))

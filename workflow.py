@@ -140,7 +140,7 @@ if __name__ == '__main__':
             for region_name, region_dict in CONFIG['custom']['regions'].items():
                 #depending on the final tasks, check that the final file doesn't already exists
                 final = {'check_up': dict(domain=region_name, processing_level='final', id=sim_id),
-                         'diagnostics': dict(domain=region_name, processing_level='diagnostic', id=sim_id)}
+                         'diagnostics': dict(domain=region_name, processing_level='diag_scen', id=sim_id)}
                 if not pcat.exists_in_cat(**final[CONFIG["tasks"][-1]]):
 
                     fmtkws = {'region_name': region_name,
@@ -484,6 +484,11 @@ if __name__ == '__main__':
                                     if attr not in CONFIG['clean_up']['final_attrs_names']:
                                         del var.attrs[attr]
 
+                            # remove attrs of pr because too long with ExtremeValues
+                            # This was fix with a new version of xclim, but that version is incompatible with streamlit
+                            # del ds.pr.attrs['bias_adjustment']
+                            # del ds.pr.attrs['history']
+
                             #save and update
                             path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
                             save_to_zarr(ds=ds,
@@ -643,8 +648,8 @@ if __name__ == '__main__':
 
                             save_diagnotics(ref, sim, scen, pcat)
 
-                            send_mail(
-                            subject=f"{sim_id}/{region_name} - Diagnostics",
-                            msg=f"Diagnostiques pour la simulation {sim_id}/{region_name} ont été accomplies.",
-                            attachments=paths
-                            )
+                            # send_mail(
+                            # subject=f"{sim_id}/{region_name} - Diagnostics",
+                            # msg=f"Diagnostiques pour la simulation {sim_id}/{region_name} ont été accomplies.",
+                            # attachments=paths
+                            # )
