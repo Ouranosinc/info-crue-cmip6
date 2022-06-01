@@ -8,6 +8,7 @@ import xarray as xr
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import glob
+import hvplot.xarray
 
 useCat=False
 
@@ -57,7 +58,6 @@ prop_ref = ref[option_var]
 prop_scen = scen[option_var]
 bias_scen_prop = bias_scen[option_var]
 bias_sim_prop = bias_sim[option_var]
-st.write(prop_ref)
 
 #colormap
 maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
@@ -70,7 +70,7 @@ long_name=prop_sim.attrs['long_name']
 
 col1, col2, col3 = st.columns([2,1,1])
 w, h = 350, 300
-#col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
+col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
 col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop))))
 col3.write(hv.render(bias_sim_prop.hvplot(width=w, height=h, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
 col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop))))
