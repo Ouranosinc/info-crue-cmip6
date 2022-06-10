@@ -125,10 +125,14 @@ custom:
 extraction:
     reference:
         search_data_catalogs:
-            variables_and_timedeltas:
-                tasmax: 1D
-                tasmin: 1D
-                pr: 1D
+#            variables_and_timedeltas:
+#                tasmax: 1D
+#                tasmin: 1D
+#                pr: 1D
+            variables_and_freqs:
+                tasmax: D
+                tasmin: D
+                pr: D
             allow_resampling: False
             allow_conversion: False
             periods : *ref_period
@@ -139,10 +143,14 @@ extraction:
         extract_dataset: {}
     simulations:
         search_data_catalogs:
-            variables_and_timedeltas:
-                tasmax: 1D
-                tasmin: 1D
-                pr: 1D
+#            variables_and_timedeltas:
+#                tasmax: 1D
+#                tasmin: 1D
+#                pr: 1D
+            variables_and_freqs:
+              tasmax: D
+              tasmin: D
+              pr: D
             match_hist_and_fut: True
             allow_conversion: False
             allow_resampling: False

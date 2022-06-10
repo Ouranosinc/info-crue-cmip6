@@ -10,7 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import glob
 import hvplot.xarray
 
-useCat=False
+useCat=True
 
 
 
@@ -68,13 +68,14 @@ cmap_bias ='BrBG' if prop_sim.attrs['standard_name']== 'precipitation_flux' else
 
 long_name=prop_sim.attrs['long_name']
 
-col1, col2, col3 = st.columns([2,1,1])
-w, h = 350, 300
-col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=650, height=600, cmap=cmap, clim=(mini_prop,maxi_prop))))
-col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop))))
-col3.write(hv.render(bias_sim_prop.hvplot(width=w, height=h, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
-col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop))))
-col3.write(hv.render(bias_scen_prop.hvplot(width=w, height=h, title=f'SCEN BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
+col1, col2, col3 = st.columns([6,3,4])
+w, h = 300, 300
+wb, hb = 400, 300
+col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=600, height=616, cmap=cmap, clim=(mini_prop,maxi_prop))))
+col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
+col3.write(hv.render(bias_sim_prop.hvplot(width=wb, height=hb, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
+col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
+col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
 
 
 
@@ -103,23 +104,23 @@ st.write(fig_hmap)
 
 
 #plot 5 maps
-fig, axs = plt.subplots(2, 3, figsize=(15, 7))
-maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
-mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
-maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
-
-prop_ref.plot(ax=axs[0, 0], vmax=maxi_prop, vmin=mini_prop)
-axs[0, 0].set_title('REF')
-prop_scen.plot(ax=axs[0, 1], vmax=maxi_prop, vmin=mini_prop)
-axs[0, 1].set_title('SCEN')
-bias_scen_prop.plot(ax=axs[0, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
-axs[0, 2].set_title('bias scen')
-
-prop_sim.plot(ax=axs[1, 1], vmax=maxi_prop, vmin=mini_prop)
-axs[1, 1].set_title('SIM')
-bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
-axs[1, 2].set_title('bias sim')
-fig.delaxes(axs[1][0])
-fig.suptitle(option_var, fontsize=20)
-fig.tight_layout()
-st.write(fig)
+# fig, axs = plt.subplots(2, 3, figsize=(15, 7))
+# maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
+# mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
+# maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
+#
+# prop_ref.plot(ax=axs[0, 0], vmax=maxi_prop, vmin=mini_prop)
+# axs[0, 0].set_title('REF')
+# prop_scen.plot(ax=axs[0, 1], vmax=maxi_prop, vmin=mini_prop)
+# axs[0, 1].set_title('SCEN')
+# bias_scen_prop.plot(ax=axs[0, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
+# axs[0, 2].set_title('bias scen')
+#
+# prop_sim.plot(ax=axs[1, 1], vmax=maxi_prop, vmin=mini_prop)
+# axs[1, 1].set_title('SIM')
+# bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
+# axs[1, 2].set_title('bias sim')
+# fig.delaxes(axs[1][0])
+# fig.suptitle(option_var, fontsize=20)
+# fig.tight_layout()
+# st.write(fig)

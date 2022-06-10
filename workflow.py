@@ -8,7 +8,7 @@ import numpy as np
 import logging
 from matplotlib import pyplot as plt
 import os
-
+import logging
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from xclim import atmos, sdba
@@ -458,8 +458,15 @@ if __name__ == '__main__':
                                                       )
 
 
-                            # convert pr units # TODO: ask which final units to use
-                            #ds['pr'] = convert_units_to(ds['pr'], 'mm/d')
+                            # convert units
+                            ds['pr'] = convert_units_to(ds['pr'], 'mm/d')
+                            ds['tasmax'] = convert_units_to(ds['tasmax'], 'degC')
+                            ds['tasmin'] = convert_units_to(ds['tasmin'], 'degC')
+
+                            # put back feb 29th
+                            with_missing = convert_calendar(ds, 'standard', missing=np.NaN)
+                            ds = with_missing.interpolate_na('time', method='linear')
+
 
                             # unstack nans
                             if CONFIG['custom']['stack_drop_nans']:
