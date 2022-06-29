@@ -100,25 +100,25 @@ col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN BIA
 
 
 
-
+# TODO: fix hmap before putting it back
 #plot hmap
-dict_prop = sim.data_vars
-labels_row = ['sim', 'scen']
-fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
-im = ax.imshow(hmap, cmap='RdYlGn_r')
-ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop.keys(), rotation=45,
-              ha='right')
-ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
-
-divider = make_axes_locatable(ax)
-cax = divider.new_vertical(size='15%', pad=0.4)
-fig_hmap.add_axes(cax)
-cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
-cbar.ax.set_xticklabels(['best', 'worst'])
-plt.title('Normalised mean bias of properties')
-fig_hmap.tight_layout()
-
-st.write(fig_hmap)
+# dict_prop = sim.data_vars
+# labels_row = ['sim', 'scen']
+# fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
+# im = ax.imshow(hmap, cmap='RdYlGn_r')
+# ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop.keys(), rotation=45,
+#               ha='right')
+# ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
+#
+# divider = make_axes_locatable(ax)
+# cax = divider.new_vertical(size='15%', pad=0.4)
+# fig_hmap.add_axes(cax)
+# cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
+# cbar.ax.set_xticklabels(['best', 'worst'])
+# plt.title('Normalised mean bias of properties')
+# fig_hmap.tight_layout()
+#
+# st.write(fig_hmap)
 
 
 
