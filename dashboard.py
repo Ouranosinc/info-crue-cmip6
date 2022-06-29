@@ -61,16 +61,20 @@ else:
 
 
 # choose properties
+option_var = st.selectbox('Input Variables',['Minimum Temperature', 'Maximum Temperature', 'Precipitation'])
+# TODO: change this it won't always work
+var2original_name={'Minimum Temperature':'TREFHTMN', 'Maximum Temperature':'TREFHTMX', 'Precipitation':'PRECT' }
+props_of_var= [x for x in scen.data_vars if scen[x].attrs['standard_name']== var2original_name[option_var]]
 
 def show_long_name(name):
     return sim[name].attrs['long_name']
 
-option_var = st.selectbox('Properties',scen.data_vars, format_func = show_long_name)
-prop_sim = sim[option_var]
-prop_ref = ref[option_var]
-prop_scen = scen[option_var]
-bias_scen_prop = bias_scen[option_var]
-bias_sim_prop = bias_sim[option_var]
+option_prop = st.selectbox('Properties',props_of_var, format_func = show_long_name)
+prop_sim = sim[option_prop]
+prop_ref = ref[option_prop]
+prop_scen = scen[option_prop]
+bias_scen_prop = bias_scen[option_prop]
+bias_sim_prop = bias_sim[option_prop]
 
 #colormap
 maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
@@ -134,6 +138,6 @@ st.write(fig_hmap)
 # bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
 # axs[1, 2].set_title('bias sim')
 # fig.delaxes(axs[1][0])
-# fig.suptitle(option_var, fontsize=20)
+# fig.suptitle(option_prop, fontsize=20)
 # fig.tight_layout()
 # st.write(fig)
