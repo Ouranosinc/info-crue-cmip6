@@ -17,6 +17,8 @@ useCat=False
 st.set_page_config(layout="wide")
 st.title('Diagnostiques de Info-Crue CMIP6')
 
+cols = st.columns(2)
+
 if useCat:
     from xscen.config import CONFIG, load_config
     from xscen.catalog import ProjectCatalog
@@ -46,8 +48,8 @@ else:
     #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
     ids = [x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')]
     models = [y.split('_')[3] for y in ids ]
-    option_model = st.selectbox('Models',models)
-    option_ssp = st.selectbox('Experiments',['ssp370'])
+    option_model = cols[0].selectbox('Models',models)
+    option_ssp = cols[1].selectbox('Experiments',['ssp370'])
 
     option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
 
@@ -60,10 +62,9 @@ else:
     hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
 
 
+cols2=st.columns(2)
 # choose properties
-option_var = st.selectbox('Input Variables',['Minimum Temperature', 'Maximum Temperature', 'Precipitation'])
-# TODO: change this it won't always work
-var2original_name={'Minimum Temperature':'TREFHTMN', 'Maximum Temperature':'TREFHTMX', 'Precipitation':'PRECT' }
+option_var = cols2[0].selectbox('Input Variables',['Minimum Temperature', 'Maximum Temperature', 'Precipitation'])
 varlong2short = {'Minimum Temperature':'tasmin', 'Maximum Temperature':'tasmax', 'Precipitation':'pr' }
 
 props_of_var= [x for x in scen.data_vars if varlong2short[option_var] in scen[x].attrs['history'] ]
@@ -71,7 +72,7 @@ props_of_var= [x for x in scen.data_vars if varlong2short[option_var] in scen[x]
 def show_long_name(name):
     return sim[name].attrs['long_name']
 
-option_prop = st.selectbox('Properties',props_of_var, format_func = show_long_name)
+option_prop = cols2[1].selectbox('Properties',props_of_var, format_func = show_long_name)
 prop_sim = sim[option_prop]
 prop_ref = ref[option_prop]
 prop_scen = scen[option_prop]
