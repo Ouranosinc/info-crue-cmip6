@@ -46,8 +46,8 @@ else:
     #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
     ids = [x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')]
     models = [y.split('_')[3] for y in ids ]
-    option_model = st.selectbox('models',models)
-    option_ssp = st.selectbox('experiment',['ssp370'])
+    option_model = st.selectbox('Models',models)
+    option_ssp = st.selectbox('Experiments',['ssp370'])
 
     option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
 
@@ -61,7 +61,11 @@ else:
 
 
 # choose properties
-option_var = st.selectbox('Properties',scen.data_vars)
+
+def show_long_name(name):
+    return sim[name].attrs['long_name']
+
+option_var = st.selectbox('Properties',scen.data_vars, format_func = show_long_name)
 prop_sim = sim[option_var]
 prop_ref = ref[option_var]
 prop_scen = scen[option_var]
