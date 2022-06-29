@@ -64,7 +64,9 @@ else:
 option_var = st.selectbox('Input Variables',['Minimum Temperature', 'Maximum Temperature', 'Precipitation'])
 # TODO: change this it won't always work
 var2original_name={'Minimum Temperature':'TREFHTMN', 'Maximum Temperature':'TREFHTMX', 'Precipitation':'PRECT' }
-props_of_var= [x for x in scen.data_vars if scen[x].attrs['standard_name']== var2original_name[option_var]]
+varlong2short = {'Minimum Temperature':'tasmin', 'Maximum Temperature':'tasmax', 'Precipitation':'pr' }
+
+props_of_var= [x for x in scen.data_vars if varlong2short[option_var] in scen[x].attr['history'] ]
 
 def show_long_name(name):
     return sim[name].attrs['long_name']
