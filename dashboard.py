@@ -45,7 +45,7 @@ else:
 
     #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
     ids = [x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')]
-    models = [y.split('_')[6] for y in ids ]
+    models = [y.split('_')[3] for y in ids ]
     option_model = st.selectbox('models',models)
     option_ssp = st.selectbox('experiment',['ssp370'])
 
