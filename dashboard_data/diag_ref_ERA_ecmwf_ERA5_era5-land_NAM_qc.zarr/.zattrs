@@ -2,7 +2,6 @@
     "Conventions": "CF-1.8",
     "activity": "ERA",
     "cat/_data_format_": "zarr",
-    "cat/activity": "ERA",
     "cat/bias_adjust_institution": NaN,
     "cat/bias_adjust_project": NaN,
     "cat/domain": "qc",
@@ -16,7 +15,6 @@
     "cat/mip_era": NaN,
     "cat/processing_level": "extracted",
     "cat/project": "era5-land",
-    "cat/source": "ERA5",
     "cat/timedelta": "1 days 00:00:00",
     "cat/type": "reanalysis",
     "cat/version": NaN,
@@ -27,7 +25,5 @@
     "intake_esm_dataset_key": "ERA_ecmwf_ERA5_era5-land_NAM.NAM.raw.day",
     "processing_level": "raw",
     "project": "era5-land",
-    "realm": "atmos",
-    "source": "ERA5",
-    "type": "reanalysis"
+    "realm": "atmos"
 }

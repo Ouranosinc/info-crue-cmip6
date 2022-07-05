@@ -25,16 +25,16 @@
     "cat/type": "simulations",
     "cat/variable": [
         "pr",
-        "tasmin",
-        "tasmax"
+        "tasmax",
+        "tasmin"
     ],
     "cat/version": NaN,
     "institution": "Ouranos",
     "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1_global.qc.final.day",
     "intake_esm_vars": [
         "pr",
-        "tasmin",
-        "tasmax"
+        "tasmax",
+        "tasmin"
     ],
     "redistribution": "Redistribution prohibited. For internal use only.",
     "title": "Info-Crue CMIP6 - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1_global",

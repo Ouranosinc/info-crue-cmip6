@@ -3,7 +3,7 @@
         "lat",
         "lon"
     ],
-    "history": "annual_cycle_amplitude-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:40:03] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-pr: [2022-05-28 14:02:02] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:33] annual_cycle_amplitude-pr: bias(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.36.6-beta",
-    "long_name": "Bias",
-    "units": "%"
+    "history": "annual_cycle_amplitude-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:02:35] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-pr: [2022-07-05 12:53:23] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:10] annual_cycle_amplitude-pr: ratio(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Ratio",
+    "units": ""
 }

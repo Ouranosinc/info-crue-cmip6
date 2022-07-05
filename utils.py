@@ -56,45 +56,46 @@ def calculate_properties(ds, pcat, step, unstack=False, diag_dict=CONFIG['diagno
     :return: A dataset with all properties
     """
     region_name = ds.attrs['cat/domain']
-    if not pcat.exists_in_cat(domain=region_name, processing_level=f'diag_{step}', id=ds.attrs['cat/id']):
-        for i, (name, prop) in enumerate(diag_dict.items()):
-            logger.info(f"Calculating {step} diagnostic {name}")
-            prop = eval(prop['func'])(da=ds[prop['var']], **prop['args']).load()
+    for i, (name, prop) in enumerate(diag_dict.items()):
+        logger.info(f"Calculating {step} diagnostic {name}")
+        prop = eval(prop['func'])(da=ds[prop['var']], **prop['args']).load()
 
-            if unstack:
-                prop = maybe_unstack(
-                    prop,
-                    stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
-                    coords=refdir / f'coords_{region_name}.nc',
-                    rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
-                )
-                prop=prop.transpose("lat", "lon")
+        if "season" in prop.coords:
+            prop = prop.isel(season=0)
+            prop=prop.drop('season')
+        if "month" in prop.coords:
+            prop = prop.isel(month=0)
+            prop=prop.drop('month')
 
-            if "season" in prop.coords:
-                prop = prop.isel(season=0)
-                prop=prop.drop('season')
-            if "month" in prop.coords:
-                prop = prop.isel(month=0)
-                prop=prop.drop('month')
+        if unstack:
+            prop = maybe_unstack(
+                prop,
+                stack_drop_nans=CONFIG['custom']['stack_drop_nans'],
+                coords=refdir / f'coords_{region_name}.nc',
+                rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
+            )
+            prop=prop.transpose("lat", "lon")
 
 
-            # put all properties in one dataset
-            if i == 0:
-                all_prop = prop.to_dataset(name=name)
-            else:
-                all_prop[name] = prop
-        all_prop.attrs.update(ds.attrs)
 
-        path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                               sim_id=ds.attrs['cat/id'],
-                                                               step=step))
-        path_diag_exec = f"{workdir}/{path_diag.name}"
-        save_to_zarr(ds=all_prop, filename=path_diag_exec, mode='o', itervar=True)
-        shutil.move(path_diag_exec, path_diag)
-        pcat.update_from_ds(ds=all_prop,
-                            info_dict={'processing_level': f'diag_{step}'},
-                            path=str(path_diag))
-        return all_prop
+
+        # put all properties in one dataset
+        if i == 0:
+            all_prop = prop.to_dataset(name=name)
+        else:
+            all_prop[name] = prop
+    all_prop.attrs.update(ds.attrs)
+
+    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
+                                                           sim_id=ds.attrs['cat/id'],
+                                                           step=step))
+    path_diag_exec = f"{workdir}/{path_diag.name}"
+    save_to_zarr(ds=all_prop, filename=path_diag_exec, mode='o', itervar=True)
+    shutil.move(path_diag_exec, path_diag)
+    pcat.update_from_ds(ds=all_prop,
+                        info_dict={'processing_level': f'diag_{step}'},
+                        path=str(path_diag))
+    return all_prop
 
 def plot_diagnotics(ref, sim, scen):
     """
@@ -189,15 +190,21 @@ def save_diagnotics(ref, sim, scen, pcat):
     """
     hmap = []
     #iterate through all available properties
-    for i, var_name in enumerate(sim.data_vars):
+    for i, var_name in enumerate(sorted(sim.data_vars)):
         # get property
         prop_sim = sim[var_name]
         prop_ref = ref[var_name]
         prop_scen = scen[var_name]
 
+        if 'measure' in CONFIG['diagnostics']['properties'][var_name]:
+            measure_name = CONFIG['diagnostics']['properties'][var_name]['measure']
+        else:
+            measure_name= 'bias'
+
+        measure= getattr(sdba.measures,measure_name)
         #calculate bias
-        bias_scen_prop = sdba.measures.bias(sim=prop_scen, ref=prop_ref).load()
-        bias_sim_prop = sdba.measures.bias(sim=prop_sim, ref=prop_ref).load()
+        bias_scen_prop = measure(sim=prop_scen, ref=prop_ref).load()
+        bias_sim_prop = measure(sim=prop_sim, ref=prop_ref).load()
 
         # put all bias in one dataset
         if i == 0:
@@ -209,7 +216,10 @@ def save_diagnotics(ref, sim, scen, pcat):
 
 
         #mean the absolute value of the bias over all positions and add to heat map
-        hmap.append([abs(bias_sim_prop).mean().values, abs(bias_scen_prop).mean().values])
+        if measure_name == 'ratio': #if ratio, best is 1, this moves best to 0 to compare with bias
+            hmap.append([abs(bias_sim_prop -1).mean().values, abs(bias_scen_prop -1).mean().values])
+        else:
+            hmap.append([abs(bias_sim_prop).mean().values, abs(bias_scen_prop).mean().values])
 
     # plot heat map of biases ( 1 column per properties, 1 column for sim , 1 column for scen)
     hmap = np.array(hmap).T

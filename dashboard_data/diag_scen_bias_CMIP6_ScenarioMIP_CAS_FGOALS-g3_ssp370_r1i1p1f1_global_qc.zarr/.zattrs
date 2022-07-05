@@ -24,17 +24,17 @@
     "cat/timedelta": "1 days 00:00:00",
     "cat/type": "simulations",
     "cat/variable": [
+        "pr",
         "tasmax",
-        "tasmin",
-        "pr"
+        "tasmin"
     ],
     "cat/version": NaN,
     "institution": "Ouranos",
     "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1_global.qc.final.day",
     "intake_esm_vars": [
+        "pr",
         "tasmax",
-        "tasmin",
-        "pr"
+        "tasmin"
     ],
     "redistribution": "Redistribution prohibited. For internal use only.",
     "title": "Info-Crue CMIP6 - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1_global",

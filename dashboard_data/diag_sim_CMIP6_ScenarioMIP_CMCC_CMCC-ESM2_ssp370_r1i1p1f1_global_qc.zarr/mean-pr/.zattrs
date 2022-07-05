@@ -6,9 +6,9 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: time: mean",
     "comment": "includes both liquid and solid phases",
-    "history": "[2022-05-28 20:28:22] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-05 14:22:06] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
     "long_name": "Mean",
     "original_name": "PRECT",
     "standard_name": "precipitation_flux",
-    "units": "kg m-2 s-1"
+    "units": "mm d-1"
 }

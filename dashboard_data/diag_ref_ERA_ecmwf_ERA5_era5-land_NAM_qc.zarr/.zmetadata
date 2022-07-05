@@ -4,7 +4,6 @@
             "Conventions": "CF-1.8",
             "activity": "ERA",
             "cat/_data_format_": "zarr",
-            "cat/activity": "ERA",
             "cat/bias_adjust_institution": NaN,
             "cat/bias_adjust_project": NaN,
             "cat/domain": "qc",
@@ -18,7 +17,6 @@
             "cat/mip_era": NaN,
             "cat/processing_level": "extracted",
             "cat/project": "era5-land",
-            "cat/source": "ERA5",
             "cat/timedelta": "1 days 00:00:00",
             "cat/type": "reanalysis",
             "cat/version": NaN,
@@ -29,9 +27,7 @@
             "intake_esm_dataset_key": "ERA_ecmwf_ERA5_era5-land_NAM.NAM.raw.day",
             "processing_level": "raw",
             "project": "era5-land",
-            "realm": "atmos",
-            "source": "ERA5",
-            "type": "reanalysis"
+            "realm": "atmos"
         },
         ".zgroup": {
             "zarr_format": 2
@@ -65,7 +61,7 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 14:04:46] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:57:31] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
@@ -74,8 +70,8 @@
         },
         "acf-pr/.zarray": {
             "chunks": [
-                106,
-                271
+                136,
+                211
             ],
             "compressor": {
                 "blocksize": 0,
@@ -89,19 +85,19 @@
             "filters": null,
             "order": "C",
             "shape": [
-                211,
-                271
+                271,
+                211
             ],
             "zarr_format": 2
         },
         "acf-pr/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
+                "lon",
+                "lat"
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 13:54:26] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:44:40] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta",
             "long_name": "lag-1 autocorrelation",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
@@ -110,8 +106,8 @@
         },
         "acf-tasmax/.zarray": {
             "chunks": [
-                106,
-                271
+                136,
+                211
             ],
             "compressor": {
                 "blocksize": 0,
@@ -125,18 +121,18 @@
             "filters": null,
             "order": "C",
             "shape": [
-                211,
-                271
+                271,
+                211
             ],
             "zarr_format": 2
         },
         "acf-tasmax/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
+                "lon",
+                "lat"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:35:46] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:17:41] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
             "long_name": "lag-1 autocorrelation",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -144,8 +140,8 @@
         },
         "acf-tasmin/.zarray": {
             "chunks": [
-                106,
-                271
+                136,
+                211
             ],
             "compressor": {
                 "blocksize": 0,
@@ -159,18 +155,18 @@
             "filters": null,
             "order": "C",
             "shape": [
-                211,
-                271
+                271,
+                211
             ],
             "zarr_format": 2
         },
         "acf-tasmin/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
+                "lon",
+                "lat"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:42:30] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:27:12] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta",
             "long_name": "lag-1 autocorrelation",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -203,7 +199,7 @@
                 "lat",
                 "lon"
             ],
-            "history": "[2022-05-28 14:02:02] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:53:23] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
             "long_name": "relative amplitude of the annual cycle",
             "units": "%"
         },
@@ -235,7 +231,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:40:34] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:24:13] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
             "long_name": "absolute amplitude of the annual cycle",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -270,7 +266,7 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 14:03:03] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:55:23] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta",
             "is_dayofyear": 1,
             "long_name": "Phase of the annual cycle",
             "original_long_name": "Total Precipitation",
@@ -306,7 +302,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:40:40] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:24:23] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "is_dayofyear": 1,
             "long_name": "Phase of the annual cycle",
             "original_variable": "t2m",
@@ -341,7 +337,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:50:44] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:38:34] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 0 degC",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -401,10 +397,10 @@
             "long_name": "longitude",
             "units": "degrees_east"
         },
-        "maximum_lenght_of_dry_spell/.zarray": {
+        "maximum_length_of_dry_spell/.zarray": {
             "chunks": [
-                106,
-                271
+                136,
+                211
             ],
             "compressor": {
                 "blocksize": 0,
@@ -418,29 +414,29 @@
             "filters": null,
             "order": "C",
             "shape": [
-                211,
-                271
+                271,
+                211
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_dry_spell/.zattrs": {
+        "maximum_length_of_dry_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
+                "lon",
+                "lat"
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 14:00:17] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
-            "long_name": "max of spell length when input variable < amount 1.1574074074074072e-05",
+            "history": "[2022-07-05 12:50:45] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+            "long_name": "max of spell length when input variable < amount 1.0",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
             "standard_name": "precipitation_flux",
             "units": "day"
         },
-        "maximum_lenght_of_warm_spell/.zarray": {
+        "maximum_length_of_warm_spell/.zarray": {
             "chunks": [
-                106,
-                271
+                136,
+                211
             ],
             "compressor": {
                 "blocksize": 0,
@@ -454,18 +450,18 @@
             "filters": null,
             "order": "C",
             "shape": [
-                211,
-                271
+                271,
+                211
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_warm_spell/.zattrs": {
+        "maximum_length_of_warm_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
+                "lon",
+                "lat"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:39:41] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:22:49] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
             "long_name": "max of spell length when input variable >= quantile 0.9",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -500,12 +496,12 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 13:50:50] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:39:07] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "mean-tasmax/.zarray": {
             "chunks": [
@@ -535,7 +531,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:34:32] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:15:34] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -569,47 +565,11 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:41:23] mean: mean(da=tasmin, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:25:09] mean: mean(da=tasmin, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
             "units": "K"
-        },
-        "quantile_02-pr/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "quantile_02-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_methods": "time: mean (interval: 1 hour)",
-            "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 13:52:59] quantile: quantile(da=pr, q=0.02, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Quantile 0.02",
-            "original_long_name": "Total Precipitation",
-            "original_variable": "tp",
-            "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
         },
         "quantile_02-tasmin/.zarray": {
             "chunks": [
@@ -639,7 +599,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:42:11] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:26:47] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.02",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -674,12 +634,12 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 13:53:42] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:43:44] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.98",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "quantile_98-tasmax/.zarray": {
             "chunks": [
@@ -709,7 +669,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:35:23] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:17:17] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.98",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -744,7 +704,7 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 13:52:04] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:42:30] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
@@ -779,7 +739,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:34:59] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:16:50] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -813,7 +773,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:41:47] skewness: skewness(da=tasmin, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:26:18] skewness: skewness(da=tasmin, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -847,7 +807,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:41:00] relative frequency: relative_frequency(da=tasmax, op='>=', thresh='25 degC', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:24:44] relative frequency: relative_frequency(da=tasmax, op='>=', thresh='25 degC', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 25 degC",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -881,7 +841,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:41:06] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:24:51] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
             "long_name": "slope of the interannual linear trend",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -916,12 +876,12 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 13:51:27] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:40:58] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",
             "standard_name": "precipitation_flux",
-            "units": "kg^2 m-4 s-2"
+            "units": "mm^2 d-2"
         },
         "var-tasmax/.zarray": {
             "chunks": [
@@ -951,7 +911,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:34:42] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:16:26] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -985,7 +945,7 @@
                 "lon"
             ],
             "cell_methods": "time: mean",
-            "history": "[2022-05-28 13:41:31] variance: var(da=tasmin, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:25:56] variance: var(da=tasmin, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "original_variable": "t2m",
             "standard_name": "air_temperature",
@@ -1020,7 +980,7 @@
             ],
             "cell_methods": "time: mean (interval: 1 hour)",
             "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
-            "history": "[2022-05-28 14:04:08] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-07-05 12:56:45] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
             "original_long_name": "Total Precipitation",
             "original_variable": "tp",

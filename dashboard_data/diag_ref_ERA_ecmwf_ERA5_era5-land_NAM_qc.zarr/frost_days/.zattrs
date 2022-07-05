@@ -4,7 +4,7 @@
         "lon"
     ],
     "cell_methods": "time: mean",
-    "history": "[2022-05-28 13:50:44] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-05 12:38:34] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
     "long_name": "Relative frequency of days with input variable >= 0 degC",
     "original_variable": "t2m",
     "standard_name": "air_temperature",

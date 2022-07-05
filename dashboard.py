@@ -9,6 +9,8 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import glob
 import hvplot.xarray
+from matplotlib import colors
+
 
 useCat=False
 
@@ -26,15 +28,17 @@ if useCat:
     pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
     # choose id
-    option_id = st.selectbox('id',pcat.search(type='simulations').df.id.unique())
+    option_id = cols[0].selectbox('Id',pcat.search(type=['simulations', 'simulation']).df.id.unique())
+
+    option_domain = cols[1].selectbox('Domain', pcat.search(type=['simulations', 'simulation']).df.domain.unique())
 
     #load all properties from ref, sim, scen
-    ref = pcat.search( processing_level='diag_ref').to_dataset_dict().popitem()[1]
-    sim = pcat.search(id= option_id, processing_level='diag_sim').to_dataset_dict().popitem()[1]
-    scen = pcat.search(id= option_id, processing_level='diag_scen').to_dataset_dict().popitem()[1]
+    ref = pcat.search( processing_level='diag_ref', domain=option_domain).to_dataset_dict().popitem()[1]
+    sim = pcat.search(id= option_id, processing_level='diag_sim', domain=option_domain).to_dataset_dict().popitem()[1]
+    scen = pcat.search(id= option_id, processing_level='diag_scen', domain=option_domain).to_dataset_dict().popitem()[1]
     #get bias
-    bias_sim = pcat.search(id=option_id, processing_level='diag_sim_bias').to_dataset_dict().popitem()[1]
-    bias_scen = pcat.search(id=option_id, processing_level='diag_scen_bias').to_dataset_dict().popitem()[1]
+    bias_sim = pcat.search(id=option_id, processing_level='diag_sim_bias', domain=option_domain).to_dataset_dict().popitem()[1]
+    bias_scen = pcat.search(id=option_id, processing_level='diag_scen_bias', domain=option_domain).to_dataset_dict().popitem()[1]
 
     # load hmap
     path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
@@ -70,9 +74,9 @@ varlong2short = {'Minimum Temperature':'tasmin', 'Maximum Temperature':'tasmax',
 props_of_var= [x for x in scen.data_vars if varlong2short[option_var] in scen[x].attrs['history'] ]
 
 def show_long_name(name):
-    return sim[name].attrs['long_name']
+    return f"{scen[name].attrs['long_name']} ({name})"
 
-option_prop = cols2[1].selectbox('Properties',props_of_var, format_func = show_long_name)
+option_prop = cols2[1].selectbox('Properties of the variable',props_of_var, format_func = show_long_name)
 prop_sim = sim[option_prop]
 prop_ref = ref[option_prop]
 prop_scen = scen[option_prop]
@@ -83,42 +87,54 @@ bias_sim_prop = bias_sim[option_prop]
 maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
 mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
 maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
-cmap='viridis_r' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'plasma'
-cmap_bias ='BrBG' if prop_sim.attrs['standard_name']== 'precipitation_flux' else 'coolwarm'
+cmap='viridis_r' if option_var == 'Precipitation' else 'plasma'
+cmap_bias ='BrBG' if option_var == 'Precipitation' else 'coolwarm'
 
 long_name=prop_sim.attrs['long_name']
 
 col1, col2, col3 = st.columns([6,3,4])
 w, h = 300, 300
 wb, hb = 400, 300
+
+measure_name = bias_sim_prop.attrs['long_name']
+# fix range of colorbar
+if measure_name =='Ratio': #center around 1 for ratio
+    maxi_rat = maxi_bias
+    mini_rat = max(abs(bias_scen_prop).min().values, abs(bias_sim_prop).min().values)
+    max_deviation_from_1 = max(abs(1-maxi_rat),abs(1-mini_rat))
+    mini, maxi = 1-max_deviation_from_1, 1+max_deviation_from_1
+
+else: # center around 0 for bias
+    mini, maxi = -maxi_bias, maxi_bias
+
 col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=600, height=616, cmap=cmap, clim=(mini_prop,maxi_prop))))
-col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
-col3.write(hv.render(bias_sim_prop.hvplot(width=wb, height=hb, title=f'SIM BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
 col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
-col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN BIAS', cmap=cmap_bias, clim=(-maxi_bias,maxi_bias))))
-
-
+col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
+col3.write(hv.render(bias_sim_prop.hvplot(width=wb, height=hb, title=f'SIM {measure_name}', cmap=cmap_bias,clim=(mini, maxi))))
+col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN {measure_name}', cmap=cmap_bias,clim=(mini,maxi))))
 
 
 # TODO: fix hmap before putting it back
 #plot hmap
-# dict_prop = sim.data_vars
-# labels_row = ['sim', 'scen']
-# fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
-# im = ax.imshow(hmap, cmap='RdYlGn_r')
-# ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop.keys(), rotation=45,
-#               ha='right')
-# ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
-#
-# divider = make_axes_locatable(ax)
-# cax = divider.new_vertical(size='15%', pad=0.4)
-# fig_hmap.add_axes(cax)
-# cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
-# cbar.ax.set_xticklabels(['best', 'worst'])
-# plt.title('Normalised mean bias of properties')
-# fig_hmap.tight_layout()
-#
-# st.write(fig_hmap)
+dict_prop = sorted(sim.data_vars)
+labels_row = ['sim', 'scen']
+fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
+cmap=plt.cm.RdYlGn_r
+norm = colors.BoundaryNorm(np.linspace(0,1,len(labels_row)+2), cmap.N)
+im = ax.imshow(hmap, cmap=cmap, norm=norm)
+ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop, rotation=45,
+              ha='right')
+ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
+
+divider = make_axes_locatable(ax)
+cax = divider.new_vertical(size='15%', pad=0.4)
+fig_hmap.add_axes(cax)
+cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
+cbar.ax.set_xticklabels(['best', 'worst'])
+plt.title('Normalised mean bias of properties')
+fig_hmap.tight_layout()
+
+st.write(fig_hmap)
 
 
 

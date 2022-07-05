@@ -6,7 +6,7 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
     "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-    "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:07:54] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:28] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
     "long_name": "Mean",
     "standard_name": "air_temperature",
     "units": "K"

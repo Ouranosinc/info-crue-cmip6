@@ -29,9 +29,9 @@
             "cat/timedelta": "1 days 00:00:00",
             "cat/type": "simulations",
             "cat/variable": [
+                "pr",
                 "tasmax",
-                "tasmin",
-                "pr"
+                "tasmin"
             ],
             "cat/version": NaN,
             "cmor_version": "3.5.0",
@@ -52,9 +52,9 @@
             "institution_id": "CAS",
             "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1_global.qc.regridded.day",
             "intake_esm_vars": [
+                "pr",
                 "tasmax",
-                "tasmin",
-                "pr"
+                "tasmin"
             ],
             "license": "CMIP6 model data produced by Lawrence Livermore PCMDI is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at https:///pcmdi.llnl.gov/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
             "mip_era": "CMIP6",
@@ -116,43 +116,8 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:43:48] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:04:46] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
-            "standard_name": "precipitation_flux",
-            "units": ""
-        },
-        "acf-pr/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                271,
-                211
-            ],
-            "zarr_format": 2
-        },
-        "acf-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: time: mean (interval: 10 minutes)",
-            "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:30:15] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta",
-            "long_name": "lag-1 autocorrelation",
             "standard_name": "precipitation_flux",
             "units": ""
         },
@@ -173,55 +138,20 @@
             "filters": null,
             "order": "C",
             "shape": [
-                271,
-                211
+                211,
+                271
             ],
             "zarr_format": 2
         },
         "acf-tasmax/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
+                "lat",
+                "lon"
             ],
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:08:54] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
-            "long_name": "lag-1 autocorrelation",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "acf-tasmin/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                271,
-                211
-            ],
-            "zarr_format": 2
-        },
-        "acf-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:59] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:52:16] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
             "long_name": "lag-1 autocorrelation",
             "standard_name": "air_temperature",
             "units": ""
@@ -253,7 +183,7 @@
                 "lat",
                 "lon"
             ],
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:40:03] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:02:35] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
             "long_name": "relative amplitude of the annual cycle",
             "units": "%"
         },
@@ -287,46 +217,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:18:31] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:56:55] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
             "long_name": "absolute amplitude of the annual cycle",
             "standard_name": "air_temperature",
             "units": "delta_degC"
-        },
-        "annual_cycle_phase-pr/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "annual_cycle_phase-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: time: mean (interval: 10 minutes)",
-            "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:42:24] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta",
-            "is_dayofyear": 1,
-            "long_name": "Phase of the annual cycle",
-            "standard_name": "precipitation_flux",
-            "units": ""
         },
         "annual_cycle_phase-tasmax/.zarray": {
             "chunks": [
@@ -358,7 +252,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:19:59] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:58:13] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "is_dayofyear": 1,
             "long_name": "Phase of the annual cycle",
             "standard_name": "air_temperature",
@@ -394,7 +288,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
             "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:07] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:01] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 0 degC",
             "standard_name": "air_temperature",
             "units": ""
@@ -453,7 +347,7 @@
             "long_name": "longitude",
             "units": "degrees_east"
         },
-        "maximum_lenght_of_dry_spell/.zarray": {
+        "maximum_length_of_dry_spell/.zarray": {
             "chunks": [
                 30,
                 30
@@ -470,25 +364,25 @@
             "filters": null,
             "order": "C",
             "shape": [
-                271,
-                211
+                211,
+                271
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_dry_spell/.zattrs": {
+        "maximum_length_of_dry_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
+                "lat",
+                "lon"
             ],
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:36:56] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
-            "long_name": "max of spell length when input variable < amount 1.1574074074074072e-05",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:59] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+            "long_name": "max of spell length when input variable < amount 1.0",
             "standard_name": "precipitation_flux",
             "units": "day"
         },
-        "maximum_lenght_of_warm_spell/.zarray": {
+        "maximum_length_of_warm_spell/.zarray": {
             "chunks": [
                 30,
                 30
@@ -505,20 +399,20 @@
             "filters": null,
             "order": "C",
             "shape": [
-                271,
-                211
+                211,
+                271
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_warm_spell/.zattrs": {
+        "maximum_length_of_warm_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
+                "lat",
+                "lon"
             ],
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:15:31] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:55:25] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
             "long_name": "max of spell length when input variable >= quantile 0.9",
             "standard_name": "air_temperature",
             "units": "day"
@@ -553,10 +447,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:11] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:04] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "mean-tasmax/.zarray": {
             "chunks": [
@@ -588,80 +482,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:07:54] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:28] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "standard_name": "air_temperature",
             "units": "K"
-        },
-        "mean-tasmin/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f4",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "mean-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:02] mean: mean(da=tasmin, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Mean",
-            "standard_name": "air_temperature",
-            "units": "K"
-        },
-        "quantile_02-pr/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "quantile_02-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: time: mean (interval: 10 minutes)",
-            "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:26] quantile: quantile(da=pr, q=0.02, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Quantile 0.02",
-            "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
         },
         "quantile_02-tasmin/.zarray": {
             "chunks": [
@@ -693,7 +517,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
             "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:17] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:59:53] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.02",
             "standard_name": "air_temperature",
             "units": "K"
@@ -728,10 +552,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:33] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:18] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.98",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "quantile_98-tasmax/.zarray": {
             "chunks": [
@@ -763,7 +587,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:08:11] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:41] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.98",
             "standard_name": "air_temperature",
             "units": "K"
@@ -798,7 +622,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:17] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:13] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
             "standard_name": "precipitation_flux",
             "units": ""
@@ -833,78 +657,8 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:08:00] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:37] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "skewness-tasmin/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "skewness-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:06] skewness: skewness(da=tasmin, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Skewness",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "summer_days/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "summer_days/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
-            "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:21:11] relative frequency: relative_frequency(da=tasmax, op='>=', thresh='25 degC', group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Relative frequency of days with input variable >= 25 degC",
             "standard_name": "air_temperature",
             "units": ""
         },
@@ -938,7 +692,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:21:15] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:59:20] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
             "long_name": "slope of the interannual linear trend",
             "standard_name": "air_temperature",
             "units": "K/year"
@@ -973,10 +727,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:13] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:11] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "standard_name": "precipitation_flux",
-            "units": "kg^2 m-4 s-2"
+            "units": "mm^2 d-2"
         },
         "var-tasmax/.zarray": {
             "chunks": [
@@ -1008,42 +762,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:07:57] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Variance",
-            "standard_name": "air_temperature",
-            "units": "K^2"
-        },
-        "var-tasmin/.zarray": {
-            "chunks": [
-                30,
-                30
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f4",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "var-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:04] variance: var(da=tasmin, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:35] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "standard_name": "air_temperature",
             "units": "K^2"
@@ -1078,7 +797,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:43:44] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:04:39] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
             "standard_name": "precipitation_flux",
             "units": ""

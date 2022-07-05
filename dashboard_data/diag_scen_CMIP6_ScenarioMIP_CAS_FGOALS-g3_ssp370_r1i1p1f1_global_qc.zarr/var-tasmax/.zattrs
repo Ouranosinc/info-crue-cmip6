@@ -5,7 +5,7 @@
     ],
     "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
     "cell_methods": "time: maximum within days",
-    "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-27 17:25:41] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 14:44:07] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-27 17:25:41] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:05:05] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
     "long_name": "Variance",
     "standard_name": "air_temperature",
     "units": "K^2"

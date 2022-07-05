@@ -27,16 +27,16 @@
             "cat/type": "simulations",
             "cat/variable": [
                 "pr",
-                "tasmin",
-                "tasmax"
+                "tasmax",
+                "tasmin"
             ],
             "cat/version": NaN,
             "institution": "Ouranos",
             "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1_global.qc.final.day",
             "intake_esm_vars": [
                 "pr",
-                "tasmin",
-                "tasmax"
+                "tasmax",
+                "tasmin"
             ],
             "redistribution": "Redistribution prohibited. For internal use only.",
             "title": "Info-Crue CMIP6 - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1_global",
@@ -74,42 +74,8 @@
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:09:37] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:33:28] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
-            "standard_name": "precipitation_flux",
-            "units": ""
-        },
-        "acf-pr/.zarray": {
-            "chunks": [
-                136,
-                211
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                271,
-                211
-            ],
-            "zarr_format": 2
-        },
-        "acf-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
-            ],
-            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
-            "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:00:46] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta",
-            "long_name": "lag-1 autocorrelation",
             "standard_name": "precipitation_flux",
             "units": ""
         },
@@ -142,41 +108,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:44:38] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
-            "long_name": "lag-1 autocorrelation",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "acf-tasmin/.zarray": {
-            "chunks": [
-                136,
-                211
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                271,
-                211
-            ],
-            "zarr_format": 2
-        },
-        "acf-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
-            ],
-            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
-            "cell_methods": "time: minimum within days",
-            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:54:09] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:27:53] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
             "long_name": "lag-1 autocorrelation",
             "standard_name": "air_temperature",
             "units": ""
@@ -208,7 +140,7 @@
                 "lat",
                 "lon"
             ],
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:08:39] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:33:05] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
             "long_name": "relative amplitude of the annual cycle",
             "units": "%"
         },
@@ -241,45 +173,10 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:52:05] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:30:46] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
             "long_name": "absolute amplitude of the annual cycle",
             "standard_name": "air_temperature",
             "units": "delta_degC"
-        },
-        "annual_cycle_phase-pr/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "annual_cycle_phase-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
-            "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:09:01] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta",
-            "is_dayofyear": 1,
-            "long_name": "Phase of the annual cycle",
-            "standard_name": "precipitation_flux",
-            "units": ""
         },
         "annual_cycle_phase-tasmax/.zarray": {
             "chunks": [
@@ -310,7 +207,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:52:20] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:02] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "is_dayofyear": 1,
             "long_name": "Phase of the annual cycle",
             "standard_name": "air_temperature",
@@ -345,7 +242,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: minimum within days",
-            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:59:47] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:40] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 0 degC",
             "standard_name": "air_temperature",
             "units": ""
@@ -404,7 +301,7 @@
             "long_name": "longitude",
             "units": "degrees_east"
         },
-        "maximum_lenght_of_dry_spell/.zarray": {
+        "maximum_length_of_dry_spell/.zarray": {
             "chunks": [
                 136,
                 211
@@ -426,19 +323,19 @@
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_dry_spell/.zattrs": {
+        "maximum_length_of_dry_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "lon",
                 "lat"
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:06:54] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
-            "long_name": "max of spell length when input variable < amount 1.1574074074074072e-05",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:32:28] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+            "long_name": "max of spell length when input variable < amount 1.0",
             "standard_name": "precipitation_flux",
             "units": "day"
         },
-        "maximum_lenght_of_warm_spell/.zarray": {
+        "maximum_length_of_warm_spell/.zarray": {
             "chunks": [
                 136,
                 211
@@ -460,14 +357,14 @@
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_warm_spell/.zattrs": {
+        "maximum_length_of_warm_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "lon",
                 "lat"
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:50:47] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:30:15] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
             "long_name": "max of spell length when input variable >= quantile 0.9",
             "standard_name": "air_temperature",
             "units": "day"
@@ -501,10 +398,10 @@
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 20:59:53] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:45] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "mean-tasmax/.zarray": {
             "chunks": [
@@ -535,78 +432,10 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:43:46] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:27:08] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Mean",
             "standard_name": "air_temperature",
             "units": "K"
-        },
-        "mean-tasmin/.zarray": {
-            "chunks": [
-                211,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f4",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "mean-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
-            "cell_methods": "time: minimum within days",
-            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:53:18] mean: mean(da=tasmin, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Mean",
-            "standard_name": "air_temperature",
-            "units": "K"
-        },
-        "quantile_02-pr/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "quantile_02-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
-            "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:00:22] quantile: quantile(da=pr, q=0.02, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Quantile 0.02",
-            "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
         },
         "quantile_02-tasmin/.zarray": {
             "chunks": [
@@ -637,7 +466,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: minimum within days",
-            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:53:54] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:27] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.02",
             "standard_name": "air_temperature",
             "units": "K"
@@ -671,10 +500,10 @@
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:00:31] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:32:15] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.98",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "quantile_98-tasmax/.zarray": {
             "chunks": [
@@ -705,7 +534,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:44:23] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:27:41] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Quantile 0.98",
             "standard_name": "air_temperature",
             "units": "K"
@@ -739,7 +568,7 @@
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:00:06] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:32:07] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
             "standard_name": "precipitation_flux",
             "units": ""
@@ -773,76 +602,8 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:44:02] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:27:35] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Skewness",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "skewness-tasmin/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "skewness-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
-            "cell_methods": "time: minimum within days",
-            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:53:35] skewness: skewness(da=tasmin, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Skewness",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "summer_days/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "summer_days/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
-            "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:52:49] relative frequency: relative_frequency(da=tasmax, op='>=', thresh='25 degC', group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Relative frequency of days with input variable >= 25 degC",
             "standard_name": "air_temperature",
             "units": ""
         },
@@ -875,7 +636,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:52:57] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:17] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
             "long_name": "slope of the interannual linear trend",
             "standard_name": "air_temperature",
             "units": "K/year"
@@ -909,10 +670,10 @@
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 20:59:58] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:59] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "standard_name": "precipitation_flux",
-            "units": "kg^2 m-4 s-2"
+            "units": "mm^2 d-2"
         },
         "var-tasmax/.zarray": {
             "chunks": [
@@ -943,41 +704,7 @@
             ],
             "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
             "cell_methods": "time: maximum within days",
-            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:43:55] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
-            "long_name": "Variance",
-            "standard_name": "air_temperature",
-            "units": "K^2"
-        },
-        "var-tasmin/.zarray": {
-            "chunks": [
-                211,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f4",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "var-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
-            "cell_methods": "time: minimum within days",
-            "history": "2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:04:08] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:53:24] variance: var(da=tasmin, group='time') - xclim version: 0.36.6-beta",
+            "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:27:19] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
             "long_name": "Variance",
             "standard_name": "air_temperature",
             "units": "K^2"
@@ -1011,7 +738,7 @@
             ],
             "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
             "cell_methods": "time: mean within days",
-            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 21:09:28] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:33:23] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
             "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
             "standard_name": "precipitation_flux",
             "units": ""

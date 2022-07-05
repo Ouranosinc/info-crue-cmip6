@@ -5,7 +5,7 @@
     ],
     "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
     "cell_methods": "time: maximum within days",
-    "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-05-28 20:52:57] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+    "history": "2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-28 17:54:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:17] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
     "long_name": "slope of the interannual linear trend",
     "standard_name": "air_temperature",
     "units": "K/year"

@@ -5,8 +5,8 @@
     ],
     "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
     "cell_methods": "time: mean within days",
-    "history": "var-pr: [2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-05-28 20:59:58] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\nvar-pr: [2022-05-28 13:51:27] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 21:09:54] var-pr: bias(sim=var-pr, ref=var-pr) - xclim version: 0.36.6-beta",
-    "long_name": "Bias",
+    "history": "var-pr: [2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:31:59] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\nvar-pr: [2022-07-05 12:40:58] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:33:44] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Ratio",
     "standard_name": "precipitation_flux",
-    "units": "kg^2 m-4 s-2"
+    "units": ""
 }

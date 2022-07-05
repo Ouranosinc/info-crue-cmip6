@@ -29,9 +29,9 @@
             "cat/timedelta": "1 days 00:00:00",
             "cat/type": "simulations",
             "cat/variable": [
+                "pr",
                 "tasmax",
-                "tasmin",
-                "pr"
+                "tasmin"
             ],
             "cat/version": NaN,
             "cmor_version": "3.5.0",
@@ -52,9 +52,9 @@
             "institution_id": "CAS",
             "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1_global.qc.regridded.day",
             "intake_esm_vars": [
+                "pr",
                 "tasmax",
-                "tasmin",
-                "pr"
+                "tasmin"
             ],
             "license": "CMIP6 model data produced by Lawrence Livermore PCMDI is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at https:///pcmdi.llnl.gov/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
             "mip_era": "CMIP6",
@@ -116,50 +116,15 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "20mm_freq: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:43:48] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta\n20mm_freq: [2022-05-28 14:04:46] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:34] 20mm_freq: bias(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "precipitation_flux",
-            "units": ""
-        },
-        "acf-pr/.zarray": {
-            "chunks": [
-                136,
-                211
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                271,
-                211
-            ],
-            "zarr_format": 2
-        },
-        "acf-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: time: mean (interval: 10 minutes)",
-            "comment": "includes both liquid and solid phases",
-            "history": "acf-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:30:15] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta\nacf-pr: [2022-05-28 13:54:26] acf: acf(da=pr, lag=1, group='time.season') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:32] acf-pr: bias(sim=acf-pr, ref=acf-pr) - xclim version: 0.36.6-beta",
+            "history": "20mm_freq: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:04:46] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta\n20mm_freq: [2022-07-05 12:57:31] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:09] 20mm_freq: bias(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "precipitation_flux",
             "units": ""
         },
         "acf-tasmax/.zarray": {
             "chunks": [
-                136,
-                211
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -173,55 +138,20 @@
             "filters": null,
             "order": "C",
             "shape": [
-                271,
-                211
+                211,
+                271
             ],
             "zarr_format": 2
         },
         "acf-tasmax/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
+                "lat",
+                "lon"
             ],
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "acf-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:08:54] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta\nacf-tasmax: [2022-05-28 13:35:46] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:25] acf-tasmax: bias(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "acf-tasmin/.zarray": {
-            "chunks": [
-                136,
-                211
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                271,
-                211
-            ],
-            "zarr_format": 2
-        },
-        "acf-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "acf-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:59] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta\nacf-tasmin: [2022-05-28 13:42:30] acf: acf(da=tasmin, lag=1, group='time.season') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:29] acf-tasmin: bias(sim=acf-tasmin, ref=acf-tasmin) - xclim version: 0.36.6-beta",
+            "history": "acf-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:52:16] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta\nacf-tasmax: [2022-07-05 12:17:41] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:10] acf-tasmax: bias(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": ""
@@ -253,9 +183,9 @@
                 "lat",
                 "lon"
             ],
-            "history": "annual_cycle_amplitude-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:40:03] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-pr: [2022-05-28 14:02:02] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:33] annual_cycle_amplitude-pr: bias(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "units": "%"
+            "history": "annual_cycle_amplitude-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:02:35] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-pr: [2022-07-05 12:53:23] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:10] annual_cycle_amplitude-pr: ratio(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.36.6-beta",
+            "long_name": "Ratio",
+            "units": ""
         },
         "annual_cycle_amplitude-tasmax/.zarray": {
             "chunks": [
@@ -287,46 +217,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "annual_cycle_amplitude-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:18:31] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-tasmax: [2022-05-28 13:40:34] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:26] annual_cycle_amplitude-tasmax: bias(sim=annual_cycle_amplitude-tasmax, ref=annual_cycle_amplitude-tasmax) - xclim version: 0.36.6-beta",
+            "history": "annual_cycle_amplitude-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:56:55] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-tasmax: [2022-07-05 12:24:13] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:11] annual_cycle_amplitude-tasmax: bias(sim=annual_cycle_amplitude-tasmax, ref=annual_cycle_amplitude-tasmax) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": "delta_degC"
-        },
-        "annual_cycle_phase-pr/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "annual_cycle_phase-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: time: mean (interval: 10 minutes)",
-            "comment": "includes both liquid and solid phases",
-            "history": "annual_cycle_phase-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:42:24] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta\nannual_cycle_phase-pr: [2022-05-28 14:03:03] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:33] annual_cycle_phase-pr: bias(sim=annual_cycle_phase-pr, ref=annual_cycle_phase-pr) - xclim version: 0.36.6-beta",
-            "is_dayofyear": 1,
-            "long_name": "Bias",
-            "standard_name": "precipitation_flux",
-            "units": ""
         },
         "annual_cycle_phase-tasmax/.zarray": {
             "chunks": [
@@ -358,9 +252,9 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "annual_cycle_phase-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:19:59] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta\nannual_cycle_phase-tasmax: [2022-05-28 13:40:40] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:26] annual_cycle_phase-tasmax: bias(sim=annual_cycle_phase-tasmax, ref=annual_cycle_phase-tasmax) - xclim version: 0.36.6-beta",
+            "history": "annual_cycle_phase-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:58:13] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta\nannual_cycle_phase-tasmax: [2022-07-05 12:24:23] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:11] annual_cycle_phase-tasmax: circular_bias(sim=annual_cycle_phase-tasmax, ref=annual_cycle_phase-tasmax) - xclim version: 0.36.6-beta",
             "is_dayofyear": 1,
-            "long_name": "Bias",
+            "long_name": "Circular bias",
             "standard_name": "air_temperature",
             "units": ""
         },
@@ -394,7 +288,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
             "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "frost_days: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:07] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta\nfrost_days: [2022-05-28 13:50:44] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:29] frost_days: bias(sim=frost_days, ref=frost_days) - xclim version: 0.36.6-beta",
+            "history": "frost_days: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:01] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta\nfrost_days: [2022-07-05 12:38:34] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:12] frost_days: bias(sim=frost_days, ref=frost_days) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": ""
@@ -453,10 +347,10 @@
             "long_name": "longitude",
             "units": "degrees_east"
         },
-        "maximum_lenght_of_dry_spell/.zarray": {
+        "maximum_length_of_dry_spell/.zarray": {
             "chunks": [
-                136,
-                211
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -470,28 +364,28 @@
             "filters": null,
             "order": "C",
             "shape": [
-                271,
-                211
+                211,
+                271
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_dry_spell/.zattrs": {
+        "maximum_length_of_dry_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
+                "lat",
+                "lon"
             ],
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "maximum_lenght_of_dry_spell: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:36:56] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_lenght_of_dry_spell: [2022-05-28 14:00:17] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:32] maximum_lenght_of_dry_spell: bias(sim=maximum_lenght_of_dry_spell, ref=maximum_lenght_of_dry_spell) - xclim version: 0.36.6-beta",
+            "history": "maximum_length_of_dry_spell: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:59] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_length_of_dry_spell: [2022-07-05 12:50:45] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:13] maximum_length_of_dry_spell: bias(sim=maximum_length_of_dry_spell, ref=maximum_length_of_dry_spell) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "precipitation_flux",
             "units": "day"
         },
-        "maximum_lenght_of_warm_spell/.zarray": {
+        "maximum_length_of_warm_spell/.zarray": {
             "chunks": [
-                136,
-                211
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -505,20 +399,20 @@
             "filters": null,
             "order": "C",
             "shape": [
-                271,
-                211
+                211,
+                271
             ],
             "zarr_format": 2
         },
-        "maximum_lenght_of_warm_spell/.zattrs": {
+        "maximum_length_of_warm_spell/.zattrs": {
             "_ARRAY_DIMENSIONS": [
-                "lon",
-                "lat"
+                "lat",
+                "lon"
             ],
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "maximum_lenght_of_warm_spell: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:15:31] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_lenght_of_warm_spell: [2022-05-28 13:39:41] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:25] maximum_lenght_of_warm_spell: bias(sim=maximum_lenght_of_warm_spell, ref=maximum_lenght_of_warm_spell) - xclim version: 0.36.6-beta",
+            "history": "maximum_length_of_warm_spell: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:55:25] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_length_of_warm_spell: [2022-07-05 12:22:49] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:13] maximum_length_of_warm_spell: bias(sim=maximum_length_of_warm_spell, ref=maximum_length_of_warm_spell) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": "day"
@@ -553,10 +447,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "mean-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:11] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\nmean-pr: [2022-05-28 13:50:50] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:30] mean-pr: bias(sim=mean-pr, ref=mean-pr) - xclim version: 0.36.6-beta",
+            "history": "mean-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:04] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\nmean-pr: [2022-07-05 12:39:07] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:14] mean-pr: bias(sim=mean-pr, ref=mean-pr) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "mean-tasmax/.zarray": {
             "chunks": [
@@ -588,80 +482,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "mean-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:07:54] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta\nmean-tasmax: [2022-05-28 13:34:32] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:22] mean-tasmax: bias(sim=mean-tasmax, ref=mean-tasmax) - xclim version: 0.36.6-beta",
+            "history": "mean-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:28] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta\nmean-tasmax: [2022-07-05 12:15:34] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:14] mean-tasmax: bias(sim=mean-tasmax, ref=mean-tasmax) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": "K"
-        },
-        "mean-tasmin/.zarray": {
-            "chunks": [
-                211,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f4",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "mean-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "mean-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:02] mean: mean(da=tasmin, group='time') - xclim version: 0.36.6-beta\nmean-tasmin: [2022-05-28 13:41:23] mean: mean(da=tasmin, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:27] mean-tasmin: bias(sim=mean-tasmin, ref=mean-tasmin) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "air_temperature",
-            "units": "K"
-        },
-        "quantile_02-pr/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "quantile_02-pr/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: time: mean (interval: 10 minutes)",
-            "comment": "includes both liquid and solid phases",
-            "history": "quantile_02-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:26] quantile: quantile(da=pr, q=0.02, group='time') - xclim version: 0.36.6-beta\nquantile_02-pr: [2022-05-28 13:52:59] quantile: quantile(da=pr, q=0.02, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:31] quantile_02-pr: bias(sim=quantile_02-pr, ref=quantile_02-pr) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
         },
         "quantile_02-tasmin/.zarray": {
             "chunks": [
@@ -693,7 +517,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
             "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "quantile_02-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:17] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta\nquantile_02-tasmin: [2022-05-28 13:42:11] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:28] quantile_02-tasmin: bias(sim=quantile_02-tasmin, ref=quantile_02-tasmin) - xclim version: 0.36.6-beta",
+            "history": "quantile_02-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:59:53] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta\nquantile_02-tasmin: [2022-07-05 12:26:47] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:15] quantile_02-tasmin: bias(sim=quantile_02-tasmin, ref=quantile_02-tasmin) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": "K"
@@ -728,10 +552,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "quantile_98-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:33] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\nquantile_98-pr: [2022-05-28 13:53:42] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:31] quantile_98-pr: bias(sim=quantile_98-pr, ref=quantile_98-pr) - xclim version: 0.36.6-beta",
+            "history": "quantile_98-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:18] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\nquantile_98-pr: [2022-07-05 12:43:44] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:15] quantile_98-pr: bias(sim=quantile_98-pr, ref=quantile_98-pr) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "precipitation_flux",
-            "units": "kg m-2 s-1"
+            "units": "mm d-1"
         },
         "quantile_98-tasmax/.zarray": {
             "chunks": [
@@ -763,7 +587,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "quantile_98-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:08:11] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta\nquantile_98-tasmax: [2022-05-28 13:35:23] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:24] quantile_98-tasmax: bias(sim=quantile_98-tasmax, ref=quantile_98-tasmax) - xclim version: 0.36.6-beta",
+            "history": "quantile_98-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:41] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta\nquantile_98-tasmax: [2022-07-05 12:17:17] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:16] quantile_98-tasmax: bias(sim=quantile_98-tasmax, ref=quantile_98-tasmax) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": "K"
@@ -798,7 +622,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "skewness-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:17] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\nskewness-pr: [2022-05-28 13:52:04] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:30] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.36.6-beta",
+            "history": "skewness-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:13] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\nskewness-pr: [2022-07-05 12:42:30] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:16] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "precipitation_flux",
             "units": ""
@@ -833,77 +657,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "skewness-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:08:00] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta\nskewness-tasmax: [2022-05-28 13:34:59] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:23] skewness-tasmax: bias(sim=skewness-tasmax, ref=skewness-tasmax) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "skewness-tasmin/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "skewness-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "skewness-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:06] skewness: skewness(da=tasmin, group='time') - xclim version: 0.36.6-beta\nskewness-tasmin: [2022-05-28 13:41:47] skewness: skewness(da=tasmin, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:28] skewness-tasmin: bias(sim=skewness-tasmin, ref=skewness-tasmin) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "air_temperature",
-            "units": ""
-        },
-        "summer_days/.zarray": {
-            "chunks": [
-                106,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f8",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "summer_days/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
-            "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "summer_days: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:21:11] relative frequency: relative_frequency(da=tasmax, op='>=', thresh='25 degC', group='time') - xclim version: 0.36.6-beta\nsummer_days: [2022-05-28 13:41:00] relative frequency: relative_frequency(da=tasmax, op='>=', thresh='25 degC', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:27] summer_days: bias(sim=summer_days, ref=summer_days) - xclim version: 0.36.6-beta",
+            "history": "skewness-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:37] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta\nskewness-tasmax: [2022-07-05 12:16:50] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:17] skewness-tasmax: bias(sim=skewness-tasmax, ref=skewness-tasmax) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": ""
@@ -938,7 +692,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "trend-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:21:15] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta\ntrend-tasmax: [2022-05-28 13:41:06] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:27] trend-tasmax: bias(sim=trend-tasmax, ref=trend-tasmax) - xclim version: 0.36.6-beta",
+            "history": "trend-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:59:20] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta\ntrend-tasmax: [2022-07-05 12:24:51] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:17] trend-tasmax: bias(sim=trend-tasmax, ref=trend-tasmax) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "air_temperature",
             "units": "K/year"
@@ -973,10 +727,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "var-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:13] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\nvar-pr: [2022-05-28 13:51:27] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:30] var-pr: bias(sim=var-pr, ref=var-pr) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
+            "history": "var-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:11] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\nvar-pr: [2022-07-05 12:40:58] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:18] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.36.6-beta",
+            "long_name": "Ratio",
             "standard_name": "precipitation_flux",
-            "units": "kg^2 m-4 s-2"
+            "units": ""
         },
         "var-tasmax/.zarray": {
             "chunks": [
@@ -1008,45 +762,10 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "var-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:07:57] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta\nvar-tasmax: [2022-05-28 13:34:42] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:22] var-tasmax: bias(sim=var-tasmax, ref=var-tasmax) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
+            "history": "var-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 13:51:35] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta\nvar-tasmax: [2022-07-05 12:16:26] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:18] var-tasmax: ratio(sim=var-tasmax, ref=var-tasmax) - xclim version: 0.36.6-beta",
+            "long_name": "Ratio",
             "standard_name": "air_temperature",
-            "units": "K^2"
-        },
-        "var-tasmin/.zarray": {
-            "chunks": [
-                211,
-                271
-            ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
-            "dtype": "<f4",
-            "fill_value": "NaN",
-            "filters": null,
-            "order": "C",
-            "shape": [
-                211,
-                271
-            ],
-            "zarr_format": 2
-        },
-        "var-tasmin/.zattrs": {
-            "_ARRAY_DIMENSIONS": [
-                "lat",
-                "lon"
-            ],
-            "cell_measures": "area: areacella",
-            "cell_methods": "area: mean time: minimum (interval: 10 minutes)",
-            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "var-tasmin: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:19:06Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:22:04] variance: var(da=tasmin, group='time') - xclim version: 0.36.6-beta\nvar-tasmin: [2022-05-28 13:41:31] variance: var(da=tasmin, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:28] var-tasmin: bias(sim=var-tasmin, ref=var-tasmin) - xclim version: 0.36.6-beta",
-            "long_name": "Bias",
-            "standard_name": "air_temperature",
-            "units": "K^2"
+            "units": ""
         },
         "wet_days_freq/.zarray": {
             "chunks": [
@@ -1078,7 +797,7 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean (interval: 10 minutes)",
             "comment": "includes both liquid and solid phases",
-            "history": "wet_days_freq: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:43:44] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta\nwet_days_freq: [2022-05-28 14:04:08] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:33] wet_days_freq: bias(sim=wet_days_freq, ref=wet_days_freq) - xclim version: 0.36.6-beta",
+            "history": "wet_days_freq: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:04:39] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta\nwet_days_freq: [2022-07-05 12:56:45] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:19] wet_days_freq: bias(sim=wet_days_freq, ref=wet_days_freq) - xclim version: 0.36.6-beta",
             "long_name": "Bias",
             "standard_name": "precipitation_flux",
             "units": ""

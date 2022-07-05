@@ -6,7 +6,7 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: time: mean (interval: 10 minutes)",
     "comment": "includes both liquid and solid phases",
-    "history": "skewness-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-28 14:29:17] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\nskewness-pr: [2022-05-28 13:52:04] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-05-28 15:07:30] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.36.6-beta",
+    "history": "skewness-pr: 2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:13] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\nskewness-pr: [2022-07-05 12:42:30] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:11:16] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.36.6-beta",
     "long_name": "Bias",
     "standard_name": "precipitation_flux",
     "units": ""

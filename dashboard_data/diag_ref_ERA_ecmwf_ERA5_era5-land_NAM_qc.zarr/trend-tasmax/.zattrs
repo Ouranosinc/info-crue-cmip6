@@ -4,7 +4,7 @@
         "lon"
     ],
     "cell_methods": "time: mean",
-    "history": "[2022-05-28 13:41:06] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-05 12:24:51] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
     "long_name": "slope of the interannual linear trend",
     "original_variable": "t2m",
     "standard_name": "air_temperature",

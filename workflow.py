@@ -89,6 +89,7 @@ if __name__ == '__main__':
                                          
                 #diagnostics
                 if 'diagnostics' in CONFIG['tasks'] :
+                    dref_ref['pr'] = convert_units_to(dref_ref['pr'], 'mm d-1')
                     calculate_properties(ds=dref_ref, pcat=pcat, step='ref')
 
                 # stack
@@ -162,6 +163,7 @@ if __name__ == '__main__':
 
                             # extract
                             dc = cat_sim[sim_id]
+                            region_dict['buffer']=1.5
                             ds_sim = extract_dataset(catalog=dc,
                                                      region=region_dict,
                                                      **CONFIG['extraction']['simulations']['extract_dataset'],
@@ -199,6 +201,7 @@ if __name__ == '__main__':
                             ds_refnl = pcat.search(project=ref_project,
                                                    calendar=calendar,
                                                    domain=region_name).to_dataset_dict().popitem()[1]
+
                             # regrid
                             ds_sim_regrid = regrid(
                                 ds=ds_sim,
@@ -459,9 +462,12 @@ if __name__ == '__main__':
 
 
                             # convert units
-                            ds['pr'] = convert_units_to(ds['pr'], 'mm/d')
-                            ds['tasmax'] = convert_units_to(ds['tasmax'], 'degC')
-                            ds['tasmin'] = convert_units_to(ds['tasmin'], 'degC')
+                            if 'pr' in CONFIG['clean_up']['search_data_catalogs']['variables_and_timedeltas']:
+                                ds['pr'] = convert_units_to(ds['pr'], 'mm/d')
+                            if 'tasmax' in CONFIG['clean_up']['search_data_catalogs']['variables_and_timedeltas']:
+                                ds['tasmax'] = convert_units_to(ds['tasmax'], 'degC')
+                            if 'tasmin' in CONFIG['clean_up']['search_data_catalogs']['variables_and_timedeltas']:
+                                ds['tasmin'] = convert_units_to(ds['tasmin'], 'degC')
 
                             # put back feb 29th
                             with_missing = convert_calendar(ds, 'standard', missing=np.NaN)
@@ -525,7 +531,7 @@ if __name__ == '__main__':
                                     overwrite=True)
 
                             #  move regridded to save it permantly
-                            final_regrid_path =f"{regriddir}/{sim_id}_regridded.zarr"
+                            final_regrid_path =f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
                             shutil.move(f"{workdir}/{sim_id}_regridded.zarr", final_regrid_path )
                             ds_sim=xr.open_zarr(final_regrid_path)
                             pcat.update_from_ds(ds=ds_sim, path = final_regrid_path)
@@ -624,10 +630,10 @@ if __name__ == '__main__':
                     # ---DIAGNOSTICS ---
                     if (
                             "diagnostics" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='scen_diag')
+                            and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='diag_scen_bias')
                     ):
                         with (
-                                Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
+                                Client(n_workers=8, threads_per_worker=5, memory_limit="5GB", **daskkws),
                                 measure_time(name=f'diagnostics', logger=logger)
                         ):
                             #load initial data
@@ -641,8 +647,11 @@ if __name__ == '__main__':
                                                  domain=region_name
                                                  ).to_dataset_dict().popitem()[1].chunk({'time': -1}).sel(time=ref_period)
 
+                            ds_sim['pr'] = convert_units_to(ds_sim.pr, 'mm d-1')
+                            ds_scen['pr'] = convert_units_to(ds_scen.pr, 'mm d-1')
+
                             # properties
-                            sim = calculate_properties(ds=ds_sim, pcat=pcat, step='sim', unstack=True)
+                            sim = calculate_properties(ds=ds_sim, pcat=pcat, step='sim', unstack=CONFIG['custom']['stack_drop_nans'])
                             scen = calculate_properties(ds=ds_scen, pcat=pcat, step='scen')
 
                             #get ref properties calculated earlier in makeref
