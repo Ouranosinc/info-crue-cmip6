@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "description": "Daily Maximum Near-Surface Air Temperature",
+    "history": "none\n[2022-07-05 14:39:42] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "max of spell length when input variable >= quantile 0.9",
+    "online_operation": "maximum",
+    "standard_name": "air_temperature",
+    "units": "day"
+}

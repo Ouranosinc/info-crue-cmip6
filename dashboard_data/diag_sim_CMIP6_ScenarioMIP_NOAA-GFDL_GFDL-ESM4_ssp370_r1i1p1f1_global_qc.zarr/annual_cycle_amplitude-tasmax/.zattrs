@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "history": "[2022-07-05 18:13:44] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+    "interp_method": "conserve_order2",
+    "long_name": "absolute amplitude of the annual cycle",
+    "original_name": "tasmax",
+    "standard_name": "air_temperature",
+    "units": "delta_degC"
+}

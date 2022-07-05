@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
+    "history": "20mm_freq: none\n[2022-07-05 14:50:55] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta\n20mm_freq: [2022-07-05 12:57:31] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:58:47] 20mm_freq: bias(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.36.6-beta",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "Bias",
+    "online_operation": "average",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

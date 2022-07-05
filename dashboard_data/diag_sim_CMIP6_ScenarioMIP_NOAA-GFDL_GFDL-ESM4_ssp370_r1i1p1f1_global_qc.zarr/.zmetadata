@@ -1,0 +1,825 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "Conventions": "CF-1.7 CMIP-6.0 UGRID-1.0",
+            "activity_id": "CMIP",
+            "branch_method": "standard",
+            "branch_time_in_child": 0.0,
+            "branch_time_in_parent": 36500.0,
+            "cat/_data_format_": "zarr",
+            "cat/activity": "ScenarioMIP",
+            "cat/bias_adjust_institution": NaN,
+            "cat/bias_adjust_project": NaN,
+            "cat/calendar": NaN,
+            "cat/date_end": "2100-12-31 00:00:00",
+            "cat/date_start": "1956-01-01 00:00:00",
+            "cat/domain": "qc",
+            "cat/driving_institution": NaN,
+            "cat/driving_model": NaN,
+            "cat/experiment": "ssp370",
+            "cat/frequency": "day",
+            "cat/id": "CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_ssp370_r1i1p1f1_global",
+            "cat/institution": "NOAA-GFDL",
+            "cat/member": "r1i1p1f1",
+            "cat/mip_era": "CMIP6",
+            "cat/path": "/crue/jlavoie/info-crue-cmip6/regridded/CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_ssp370_r1i1p1f1_global_regridded.zarr",
+            "cat/processing_level": "regridded",
+            "cat/project": NaN,
+            "cat/source": "GFDL-ESM4",
+            "cat/timedelta": "1 days 00:00:00",
+            "cat/type": "simulations",
+            "cat/variable": [
+                "pr",
+                "tasmin",
+                "tasmax"
+            ],
+            "cat/version": NaN,
+            "comment": "<null ref>",
+            "contact": "gfdl.climate.model.info@noaa.gov",
+            "creation_date": "2019-07-27T03:52:40Z",
+            "data_specs_version": "01.00.27",
+            "experiment": "all-forcing simulation of the recent past",
+            "experiment_id": "historical",
+            "external_variables": "areacella",
+            "forcing_index": "1",
+            "frequency": "day",
+            "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.NOAA-GFDL.GFDL-ESM4.historical.none.r1i1p1f1",
+            "grid": "atmos data regridded from Cubed-sphere (c96) to 180,288; interpolation method: conserve_order1",
+            "grid_label": "gr1",
+            "history": "File was processed by fremetar (GFDL analog of CMOR). TripleID: [exper_id_MFLg3OOf97,realiz_id_6UiFuoEKMa,run_id_eWiWnwFCM2]",
+            "initialization_index": "1",
+            "institution": "National Oceanic and Atmospheric Administration, Geophysical Fluid Dynamics Laboratory, Princeton, NJ 08540, USA",
+            "institution_id": "NOAA-GFDL",
+            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_ssp370_r1i1p1f1_global.qc.regridded.day",
+            "intake_esm_vars": [
+                "pr",
+                "tasmin",
+                "tasmax"
+            ],
+            "license": "CMIP6 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+            "mip_era": "CMIP6",
+            "nominal_resolution": "100 km",
+            "parent_activity_id": "CMIP",
+            "parent_experiment_id": "piControl",
+            "parent_mip_era": "CMIP6",
+            "parent_source_id": "GFDL-ESM4",
+            "parent_time_units": "days since 0001-1-1",
+            "parent_variant_label": "r1i1p1f1",
+            "physics_index": "1",
+            "product": "model-output",
+            "realization_index": "1",
+            "realm": "atmos",
+            "references": "see further_info_url attribute",
+            "regrid_method": "bilinear",
+            "source": "GFDL-ESM4 (2018):\natmos: GFDL-AM4.1 (Cubed-sphere (c96) - 1 degree nominal horizontal resolution; 360 x 180 longitude/latitude; 49 levels; top level 1 Pa)\nocean: GFDL-OM4p5 (GFDL-MOM6, tripolar - nominal 0.5 deg; 720 x 576 longitude/latitude; 75 levels; top grid cell 0-2 m)\nseaIce: GFDL-SIM4p5 (GFDL-SIS2.0, tripolar - nominal 0.5 deg; 720 x 576 longitude/latitude; 5 layers; 5 thickness categories)\nland: GFDL-LM4.1\naerosol: interactive\natmosChem: GFDL-ATMCHEM4.1 (full atmospheric chemistry)\nocnBgchem: GFDL-COBALTv2\nlandIce: GFDL-LM4.1\n(GFDL ID: 2019_0334)",
+            "source_id": "GFDL-ESM4",
+            "source_type": "AOGCM AER CHEM BGC",
+            "sub_experiment": "none",
+            "sub_experiment_id": "none",
+            "table_id": "day",
+            "title": "NOAA GFDL GFDL-ESM4 model output prepared for CMIP6 all-forcing simulation of the recent past",
+            "tracking_id": "hdl:21.14100/fc9d6bda-4932-469c-9d06-bf17794c3169",
+            "variable_id": "pr",
+            "variant_info": "N/A",
+            "variant_label": "r1i1p1f1"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "20mm_freq/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "20mm_freq/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:24:30] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": ""
+        },
+        "acf-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "acf-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:07:36] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "lag-1 autocorrelation",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "annual_cycle_amplitude-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_amplitude-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "history": "[2022-07-05 18:21:04] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+            "long_name": "relative amplitude of the annual cycle",
+            "units": "%"
+        },
+        "annual_cycle_amplitude-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_amplitude-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:13:44] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "absolute amplitude of the annual cycle",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": "delta_degC"
+        },
+        "annual_cycle_phase-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_phase-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:15:34] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "is_dayofyear": 1,
+            "long_name": "Phase of the annual cycle",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "frost_days/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "frost_days/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: minimum",
+            "history": "[2022-07-05 18:17:35] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "Relative frequency of days with input variable >= 0 degC",
+            "original_name": "tasmin",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "lat/.zarray": {
+            "chunks": [
+                211
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211
+            ],
+            "zarr_format": 2
+        },
+        "lat/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat"
+            ],
+            "long_name": "latitude",
+            "units": "degrees_north"
+        },
+        "lon/.zarray": {
+            "chunks": [
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                271
+            ],
+            "zarr_format": 2
+        },
+        "lon/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon"
+            ],
+            "long_name": "longitude",
+            "units": "degrees_east"
+        },
+        "maximum_length_of_dry_spell/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "maximum_length_of_dry_spell/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:19:01] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "max of spell length when input variable < amount 1.0",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": "day"
+        },
+        "maximum_length_of_warm_spell/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "maximum_length_of_warm_spell/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:11:44] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "max of spell length when input variable >= quantile 0.9",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": "day"
+        },
+        "mean-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "mean-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:17:38] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "Mean",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": "mm d-1"
+        },
+        "mean-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "mean-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:06:15] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "Mean",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": "K"
+        },
+        "quantile_02-tasmin/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_02-tasmin/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: minimum",
+            "history": "[2022-07-05 18:17:27] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "Quantile 0.02",
+            "original_name": "tasmin",
+            "standard_name": "air_temperature",
+            "units": "K"
+        },
+        "quantile_98-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_98-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:17:51] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "Quantile 0.98",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": "mm d-1"
+        },
+        "quantile_98-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_98-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:06:28] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "Quantile 0.98",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": "K"
+        },
+        "skewness-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "skewness-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:17:47] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "Skewness",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": ""
+        },
+        "skewness-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "skewness-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:06:24] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "Skewness",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "trend-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "trend-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:16:43] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "slope of the interannual linear trend",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": "K/year"
+        },
+        "var-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "var-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:17:46] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "Variance",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": "mm^2 d-2"
+        },
+        "var-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "var-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: maximum",
+            "history": "[2022-07-05 18:06:22] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order2",
+            "long_name": "Variance",
+            "original_name": "tasmax",
+            "standard_name": "air_temperature",
+            "units": "K^2"
+        },
+        "wet_days_freq/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "wet_days_freq/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: time: mean",
+            "history": "[2022-07-05 18:24:22] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "interp_method": "conserve_order1",
+            "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
+            "original_name": "pr",
+            "standard_name": "precipitation_flux",
+            "units": ""
+        }
+    },
+    "zarr_consolidated_format": 1
+}

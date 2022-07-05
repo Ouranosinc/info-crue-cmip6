@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
+    "cell_methods": "time: maximum within days",
+    "history": "2019-08-30T08:07:03Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-30T08:07:03Z altered by CMOR: replaced missing value flag (-999) with standard missing value (1e+20). 2019-08-30T08:07:03Z altered by CMOR: Inverted axis: lat.\n[2022-05-29 17:34:52] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 16:40:39] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+    "is_dayofyear": 1,
+    "long_name": "Phase of the annual cycle",
+    "standard_name": "air_temperature",
+    "units": ""
+}

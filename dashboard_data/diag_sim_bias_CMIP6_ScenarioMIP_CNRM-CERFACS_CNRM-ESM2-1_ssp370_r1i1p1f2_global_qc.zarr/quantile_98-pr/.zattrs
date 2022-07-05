@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
+    "history": "quantile_98-pr: none\n[2022-07-05 14:45:21] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\nquantile_98-pr: [2022-07-05 12:43:44] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:58:55] quantile_98-pr: bias(sim=quantile_98-pr, ref=quantile_98-pr) - xclim version: 0.36.6-beta",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "Bias",
+    "online_operation": "average",
+    "standard_name": "precipitation_flux",
+    "units": "mm d-1"
+}

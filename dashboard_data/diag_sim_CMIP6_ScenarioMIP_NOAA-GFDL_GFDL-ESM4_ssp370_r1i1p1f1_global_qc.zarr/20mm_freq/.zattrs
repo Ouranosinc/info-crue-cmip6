@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "history": "[2022-07-05 18:24:30] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+    "interp_method": "conserve_order1",
+    "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
+    "cell_methods": "time: minimum within days",
+    "history": "none\n[2022-05-28 21:46:44] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:55:56] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+    "long_name": "Quantile 0.02",
+    "standard_name": "air_temperature",
+    "units": "K"
+}

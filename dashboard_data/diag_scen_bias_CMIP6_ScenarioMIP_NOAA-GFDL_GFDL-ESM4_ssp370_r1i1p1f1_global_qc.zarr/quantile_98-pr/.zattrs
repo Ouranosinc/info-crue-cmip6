@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "quantile_98-pr: [2022-05-30 14:10:02] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 18:29:52] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\nquantile_98-pr: [2022-07-05 12:43:44] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 18:31:39] quantile_98-pr: bias(sim=quantile_98-pr, ref=quantile_98-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "standard_name": "precipitation_flux",
+    "units": "mm d-1"
+}

@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "description": "Daily Maximum Near-Surface Air Temperature",
+    "history": "maximum_length_of_warm_spell: none\n[2022-07-05 14:39:42] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_length_of_warm_spell: [2022-07-05 12:22:49] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 14:58:54] maximum_length_of_warm_spell: bias(sim=maximum_length_of_warm_spell, ref=maximum_length_of_warm_spell) - xclim version: 0.36.6-beta",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "Bias",
+    "online_operation": "maximum",
+    "standard_name": "air_temperature",
+    "units": "day"
+}

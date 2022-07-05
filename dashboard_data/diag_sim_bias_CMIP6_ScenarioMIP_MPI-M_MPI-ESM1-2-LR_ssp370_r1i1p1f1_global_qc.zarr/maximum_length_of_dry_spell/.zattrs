@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "maximum_length_of_dry_spell: 2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:57:47] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta\nmaximum_length_of_dry_spell: [2022-07-05 12:50:45] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 17:09:48] maximum_length_of_dry_spell: bias(sim=maximum_length_of_dry_spell, ref=maximum_length_of_dry_spell) - xclim version: 0.36.6-beta",
+    "long_name": "Bias",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": "day"
+}

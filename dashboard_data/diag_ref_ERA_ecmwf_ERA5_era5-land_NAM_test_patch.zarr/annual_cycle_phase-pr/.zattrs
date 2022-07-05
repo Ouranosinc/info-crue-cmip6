@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_methods": "time: mean (interval: 1 hour)",
+    "comments": "Converted from Total Precipitation using a density of 1000 kg/m\u00b3.",
+    "history": "[2022-07-05 10:11:33] annual_cycle_phase: annual_cycle_phase(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "is_dayofyear": 1,
+    "long_name": "Phase of the annual cycle",
+    "original_long_name": "Total Precipitation",
+    "original_variable": "tp",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

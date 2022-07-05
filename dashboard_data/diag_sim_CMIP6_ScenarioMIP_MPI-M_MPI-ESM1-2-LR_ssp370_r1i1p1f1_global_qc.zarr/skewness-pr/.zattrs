@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:43] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "long_name": "Skewness",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

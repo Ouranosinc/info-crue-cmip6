@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "var-pr: 2019-05-10T01:24:54Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\n[2022-07-05 17:22:47] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\nvar-pr: [2022-07-05 12:40:58] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta\n[2022-07-05 17:37:14] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.36.6-beta",
+    "long_name": "Ratio",
+    "original_name": "PRECIPI",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}
