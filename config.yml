@@ -5,26 +5,22 @@ project:
     id: ic6
 
 tasks:
-#  #- initialize_pcat
-#  - makeref
-#  - cut
-#  - regrid
-#  #- simproperties
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
-#  - clean_up
-#  - final_zarr
-#  #- scenproperties
-#  #- check_up
+  #- initialize_pcat
+  - makeref
+  - cut
+  - regrid
+  - train_qm
+  - adjust_qm
+  - train_ex
+  - adjust_ex
+  - clean_up
+  - final_zarr
   - diagnostics
-
 
 ids:
   # in the TCR likely range #https://zenodo.org/record/6476375#.YnVQNNPMJhE (14) #chunking
   # 'CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_global', # remove because missing a file #None
-  - CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
+  #- CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
   - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_global # [1, 192, 288]
   - CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_global # [1, 128, 256]
   - CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_global #  [1, 145, 192]
@@ -38,53 +34,12 @@ ids:
   #- CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] # monthly files need to be removed
   - CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_global #[1, 180, 288]
 
-
 experiments: &experiments
-    #- ssp245
-    - ssp370
-
-dask:
-    client:
-        dashboard_address: 6785
-        #silence_logs: False
-    array.slicing.split_large_chunks: False
-
-logging:
-    formatters:
-        default:
-            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
-            datefmt: '%Y-%m-%d %H:%M:%S'
-    handlers:
-        console:
-            class : logging.StreamHandler
-            formatter: default
-            level : INFO
-        file:
-            class: logging.FileHandler
-            formatter: default
-            level : DEBUG
-    loggers:
-        xscen:
-            level: INFO
-            handlers: [file]
-
-
+    - ssp245
+    #- ssp370
 
 custom:
-    encoding:
-        tasmax:
-            dtype: float32
-        tasmin:
-            dtype: float32
-        pr:
-            dtype: float32
     regions:
-#       test1:
-#            name: test1
-#            method: bbox
-#            bbox:
-#                lon_bnds: [ -81, -74 ]
-#                lat_bnds: [ 42, 48 ]
         qc:
             name: qc
             method: bbox
@@ -94,42 +49,38 @@ custom:
     stack_drop_nans: &stack
         True
     chunks:
-#        lat: 2 # test
-#        lon: 2 # test
-#        loc: 10 # test
         lat: 15
         lon: 15
         loc: 50
         time: -1
     out_chunks:
-#        lat: 2 # test
-#        lon: 2 # test
         lat: 30
         lon: 30
         time: 4year
-    future_period:
-        - '2071'
-        - '2100'
     ref_period : &ref_period
         - '1991'
         - '2020'
     sim_period: &sim_period
         - '1956'
         - '2100'
-    check_period:
-      - '2001'
-      - '2002'
     calendar: noleap
+    encoding:
+      tasmax:
+        dtype: float32
+      tasmin:
+        dtype: float32
+      pr:
+        dtype: float32
 
 
 extraction:
     reference:
         search_data_catalogs:
-            variables_and_timedeltas:
+            variables_and_timedeltas: &var_and_time
                 tasmax: 1D
                 tasmin: 1D
                 pr: 1D
-#            variables_and_freqs:
+#            variables_and_freqs:  # TODO: chang to this with new xscen
 #                tasmax: D
 #                tasmin: D
 #                pr: D
@@ -144,20 +95,14 @@ extraction:
     simulations:
         search_data_catalogs:
             variables_and_timedeltas:
-                tasmax: 1D
-                tasmin: 1D
-                pr: 1D
-#            variables_and_freqs:
+                *var_and_time
+#            variables_and_freqs: # TODO: chang to this with new xscen
 #              tasmax: D
 #              tasmin: D
 #              pr: D
             match_hist_and_fut: True
             allow_conversion: False
             allow_resampling: False
-            #other_search_criteria:
-            #    processing_level: "raw"
-            #    mip_era: 'CMIP6'
-            #    experiment: *experiments
         extract_dataset:
             periods : *sim_period
             xr_combine_kwargs:
@@ -235,17 +180,13 @@ biasadjust_ex:
                 xclim_train_args:
                     cluster_thresh: 1 mm d-1
                     q_thresh: 0.95
-
             adjusting_args:
                 simulation_period: *sim_period
-
 
 clean_up:
     search_data_catalogs:
       variables_and_timedeltas:
-        tasmax: 1D
-        tasmin: 1D
-        pr: 1D
+        *var_and_time
       allow_conversion: False
       allow_resampling: False
     final_attrs_names:
@@ -256,6 +197,10 @@ clean_up:
         - long_name
         - standard_name
         - units
+    units:
+      tasmax: degC
+      tasmin: degC
+      pr: mm d-1
     attrs:
         global:
             Conventions: CF-1.9
@@ -286,8 +231,6 @@ rechunk:
     worker_mem: 2GB
 
 diagnostics:
-  show_maps:
-    False
   properties:
     'mean-tasmax': {'func':sdba.properties.mean, 'var': 'tasmax', 'args': {}}
     'var-tasmax': {'func':sdba.properties.var, 'var': 'tasmax', 'args': {}, 'measure':'ratio'}
@@ -295,35 +238,17 @@ diagnostics:
     'quantile_98-tasmax': {'func':sdba.properties.quantile, 'var': 'tasmax', 'args': {'q':0.98} }
     'acf-tasmax': {'func':sdba.properties.acf, 'var': 'tasmax', 'args': {}}
     'maximum_length_of_warm_spell': {'func':sdba.properties.spell_length_distribution,'var': 'tasmax', 'args':{'method': 'quantile', 'op': '>=', 'thresh':0.9, 'stat': 'max'}}
-    #'mean_length_of_warm_spell': {'func':sdba.properties.spell_length_distribution,'var': 'tasmax', 'args': {'method': 'quantile', 'op': '>=', 'thresh':0.9, 'stat': 'mean'}}
     'annual_cycle_amplitude-tasmax': {'func':sdba.properties.annual_cycle_amplitude, 'var': 'tasmax', 'args':  {}}
     'annual_cycle_phase-tasmax': {'func':sdba.properties.annual_cycle_phase, 'var': 'tasmax', 'args': {}, 'measure':'circular_bias' }
-    #'ice_days': {'func':sdba.properties.relative_frequency, 'var': 'tasmax', 'args': {'op':'>=', 'thresh': '0 degC'} }
-    #'summer_days': {'func':sdba.properties.relative_frequency, 'var': 'tasmax', 'args':  {'op':'>=', 'thresh': '25 degC'}}
     'trend-tasmax': {'func':sdba.properties.trend, 'var': 'tasmax', 'args': {} }
-    #'mean-tasmin': {'func':sdba.properties.mean, 'var': 'tasmin', 'args': {}}
-    #'var-tasmin': {'func':sdba.properties.var, 'var': 'tasmin', 'args':  {}, 'measure':'ratio'}
-    #'skewness-tasmin': {'func':sdba.properties.skewness, 'var': 'tasmin', 'args':  {}}
     'quantile_02-tasmin': {'func':sdba.properties.quantile, 'var': 'tasmin', 'args': {'q':0.02} }
-    #'acf-tasmin': {'func':sdba.properties.acf, 'var': 'tasmin', 'args': {}}
-    #'maximum_length_of_cold_spell': {'func':sdba.properties.spell_length_distribution,'var': 'tasmin', 'args':{'method': 'quantile', 'op': '<', 'thresh': 0.1, 'stat': 'max'}}
-    #'mean_length_of_cold_spell': {'func':sdba.properties.spell_length_distribution,'var': 'tasmin', 'args':{'method': 'quantile', 'op': '<', 'thresh': 0.1, 'stat': 'mean'}}
-    #'annual_cycle_amplitude-tasmin': {'func':sdba.properties.annual_cycle_amplitude, 'var': 'tasmin', 'args':  {}}
-    #'annual_cycle_phase-tasmin': {'func':sdba.properties.annual_cycle_phase, 'var': 'tasmin', 'args': {} }
     'frost_days': {'func':sdba.properties.relative_frequency, 'var': 'tasmin', 'args': {'op':'>=', 'thresh': '0 degC'} }
-    #'tropical_nights': {'func':sdba.properties.relative_frequency, 'var': 'tasmin', 'args':  {'op':'>', 'thresh': '20 degC'}}
-    #'trend-tasmin': {'func':sdba.properties.trend, 'var': 'tasmin', 'args': {} }
     'mean-pr': {'func':sdba.properties.mean, 'var': 'pr', 'args': {}}
     'var-pr': {'func':sdba.properties.var, 'var': 'pr', 'args':  {}, 'measure':'ratio'}
     'skewness-pr': {'func':sdba.properties.skewness, 'var': 'pr', 'args':  {}}
     'quantile_98-pr': {'func':sdba.properties.quantile, 'var': 'pr', 'args': {'q':0.98} }
-    #'acf-pr': {'func':sdba.properties.acf, 'var': 'pr', 'args': {}}
     'maximum_length_of_dry_spell': {'func':sdba.properties.spell_length_distribution,'var': 'pr', 'args':{'method': 'amount', 'op': '<', 'thresh':'1 mm d-1', 'stat': 'max'}}
-    #'mean_length_of_dry_spell': {'func':sdba.properties.spell_length_distribution,'var': 'pr', 'args': {'method': 'amount', 'op': '<', 'thresh':'1 mm d-1', 'stat': 'mean'}}
-    #'maximum_length_of_wet_spell': {'func':sdba.properties.spell_length_distribution, 'var': 'pr', 'args':{'method': 'amount', 'op': '>=', 'thresh':'1 mm d-1', 'stat': 'max'}}
-    #'mean_length_of_wet_spell': {'func':sdba.properties.spell_length_distribution,'var': 'pr', 'args':{'method': 'amount', 'op': '>=', 'thresh':'1 mm d-1', 'stat': 'mean'} }
     'annual_cycle_amplitude-pr': {'func':sdba.properties.annual_cycle_amplitude, 'var': 'pr', 'args':  {'amplitude_type':'relative'}, 'measure':'ratio'}
-    #'annual_cycle_phase-pr': {'func':sdba.properties.annual_cycle_phase, 'var': 'pr', 'args': {} , 'measure':'circular_bias' }
     'wet_days_freq': {'func':sdba.properties.relative_frequency, 'var': 'pr', 'args': {'op':'>=', 'thresh': '1 mm d-1'} }
     '20mm_freq': {'func':sdba.properties.relative_frequency, 'var': 'pr', 'args':  {'op':'>=', 'thresh': '20 mm d-1'}}
 
@@ -337,3 +262,27 @@ scr_utils:
         msg_ok: Toutes les étapes demandées ont été complétées.
         msg_err: Une erreur est survenue durant le traitement.
         on_error_only: True
+
+dask:
+    client:
+        dashboard_address: 6785
+    array.slicing.split_large_chunks: False
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : INFO
+        file:
+            class: logging.FileHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        xscen:
+            level: INFO
+            handlers: [file]
