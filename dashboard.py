@@ -12,7 +12,7 @@ import hvplot.xarray
 from matplotlib import colors
 
 
-useCat=True
+useCat=False
 
 
 
