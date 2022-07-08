@@ -12,7 +12,7 @@ import hvplot.xarray
 from matplotlib import colors
 
 
-useCat=False
+useCat=True
 
 
 
@@ -37,8 +37,8 @@ if useCat:
     sim = pcat.search(id= option_id, processing_level='diag_sim', domain=option_domain).to_dataset_dict().popitem()[1]
     scen = pcat.search(id= option_id, processing_level='diag_scen', domain=option_domain).to_dataset_dict().popitem()[1]
     #get bias
-    bias_sim = pcat.search(id=option_id, processing_level='diag_sim_bias', domain=option_domain).to_dataset_dict().popitem()[1]
-    bias_scen = pcat.search(id=option_id, processing_level='diag_scen_bias', domain=option_domain).to_dataset_dict().popitem()[1]
+    bias_sim = pcat.search(id=option_id, processing_level='diag_sim_meas', domain=option_domain).to_dataset_dict().popitem()[1]
+    bias_scen = pcat.search(id=option_id, processing_level='diag_scen_meas', domain=option_domain).to_dataset_dict().popitem()[1]
 
     # load hmap
     path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
@@ -52,8 +52,9 @@ else:
     #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
     ids = [x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')]
     models = [y.split('_')[3] for y in ids ]
+    exps = [y.split('_')[4] for y in ids]
     option_model = cols[0].selectbox('Models',models)
-    option_ssp = cols[1].selectbox('Experiments',['ssp370'])
+    option_ssp = cols[1].selectbox('Experiments',exps)
 
     option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
 
@@ -108,11 +109,28 @@ else: # center around 0 for bias
     mini, maxi = -maxi_bias, maxi_bias
 
 col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=600, height=616, cmap=cmap, clim=(mini_prop,maxi_prop))))
-col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
 col2.write(hv.render(prop_sim.hvplot(width=w, height=h, title=f'SIM', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
+col2.write(hv.render(prop_scen.hvplot(width=w, height=h, title=f'SCEN', cmap=cmap, clim=(mini_prop,maxi_prop)).opts(colorbar=False)))
 col3.write(hv.render(bias_sim_prop.hvplot(width=wb, height=hb, title=f'SIM {measure_name}', cmap=cmap_bias,clim=(mini, maxi))))
 col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN {measure_name}', cmap=cmap_bias,clim=(mini,maxi))))
 
+
+# test panel
+# https://github.com/holoviz/panel/issues/1074
+# https://github.com/streamlit/streamlit/issues/927
+# import panel as pn
+# import hvplot.xarray
+#
+# hvplot_plot = scen['mean-pr'].hvplot()
+# hvplot_pane = pn.pane.HoloViews(hvplot_plot, name="Holoviews Plot")
+# tabs = pn.Tabs(hvplot_pane)
+# st.bokeh_chart(tabs.get_root())
+#
+# def plot_var(variable):
+#     return scen[variable].hvplot()
+#
+# pan = pn.interact(plot_var, variable=list(scen.data_vars))
+# st.write(hv.render(pan).get_root(), backend='bokeh')
 
 # TODO: fix hmap before putting it back
 #plot hmap
