@@ -4,14 +4,11 @@ import atexit
 from pathlib import Path
 import xarray as xr
 import shutil
-import numpy as np
 import logging
 from matplotlib import pyplot as plt
 import os
-import logging
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+import xesmf
 
-from xclim import atmos, sdba
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
 from xclim.core.units import convert_units_to
 from xclim.sdba import properties, measures, construct_moving_yearly_window, unpack_moving_yearly_window
@@ -24,7 +21,7 @@ from xscen.config import CONFIG, load_config
 from xscen.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
 from xscen.regridding import regrid
 from xscen.biasadjust import train, adjust
-from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout
+from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout, TimeoutException
 
 from utils import compute_properties,calculate_properties, measures_and_heatmap,email_nan_count
 
@@ -48,8 +45,7 @@ if __name__ == '__main__':
     ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
     sim_period = slice(*map(str, CONFIG['custom']['sim_period']))
     calendar = CONFIG['custom']['calendar']
-    # TODO: with new catalog change preoject for source
-    ref_project = CONFIG['extraction']['ref_project']
+    ref_source = CONFIG['extraction']['ref_source']
 
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
@@ -62,7 +58,7 @@ if __name__ == '__main__':
     for region_name, region_dict in CONFIG['custom']['regions'].items():
         if (
                 "makeref" in CONFIG["tasks"]
-                and not pcat.exists_in_cat(domain=region_name, processing_level='extracted', project=ref_project)
+                and not pcat.exists_in_cat(domain=region_name, processing_level='extracted', source=ref_source)
         ):
             with (
                     Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws),
@@ -76,16 +72,17 @@ if __name__ == '__main__':
                 ds_ref = extract_dataset(catalog=dc,
                                          region=region_dict,
                                          **CONFIG['extraction']['reference']['extract_dataset']
-                                         )
+                                         )['D']
 
 
-
-                                         
                 #diagnostics
                 if 'diagnostics' in CONFIG['tasks'] :
+                    # drop to make faster
+                    dref_ref = ds_ref.drop_vars('dtr')
+
                     dref_ref = ds_ref.chunk({'time': -1})  # to help diag and nan_count
 
-                    ds_ref_prop = calculate_properties(ds=dref_ref, pcat=pcat, step='ref',
+                    ds_ref_prop = calculate_properties(ds=dref_ref,
                                                        diag_dict=CONFIG['diagnostics']['properties'],
                                                        unit_conversion=CONFIG['clean_up']['units'])
 
@@ -112,7 +109,7 @@ if __name__ == '__main__':
                 # stack
                 if CONFIG['custom']['stack_drop_nans']:
                     variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
-                                         'variables_and_timedeltas'].keys())
+                                         'variables_and_freqs'].keys())
                     ds_ref = stack_drop_nans(
                         ds_ref,
                         ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
@@ -122,7 +119,7 @@ if __name__ == '__main__':
                 ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
 
                 # convert calendars
-                ds_refnl = convert_calendar(ds_ref, calendar, align_on='date')
+                ds_refnl = convert_calendar(ds_ref, calendar)
 
                 #save
                 save_to_zarr(ds_refnl, f"{workdir}/ref_{region_name}_{calendar}.zarr",
@@ -140,26 +137,25 @@ if __name__ == '__main__':
         for exp in CONFIG['experiments']:
             sim_id = sim_id.replace('EXPERIMENT',exp)
             for region_name, region_dict in CONFIG['custom']['regions'].items():
+                fmtkws = {'region_name': region_name, 'sim_id': sim_id}
+                print(fmtkws)
                 #depending on the final tasks, check that the final file doesn't already exists
                 final = {'check_up': dict(domain=region_name, processing_level='final', id=sim_id),
                          'diagnostics': dict(domain=region_name, processing_level='diag_scen_meas', id=sim_id)}
                 if not pcat.exists_in_cat(**final[CONFIG["tasks"][-1]]):
-
-                    fmtkws = {'region_name': region_name,'sim_id': sim_id}
-                    print(fmtkws)
-
                     # ---EXTRACT---
                     if (
                             "extract" in CONFIG["tasks"]
                             and not pcat.exists_in_cat(domain=region_name, processing_level='extracted', id=sim_id)
                     ):
                         with (
-                                Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
-                                measure_time(name='extract', logger=logger)
+                                Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws),
+                                measure_time(name='extract', logger=logger),
+                                timeout(3600, task='extract')
                         ):
                             # search the data that we need
                             cat_sim = search_data_catalogs(**CONFIG['extraction']['simulations']['search_data_catalogs'],
-                                                           other_search_criteria={'id': sim_id})
+                                                            other_search_criteria={'id': sim_id})
 
                             # extract
                             dc = cat_sim[sim_id]
@@ -169,12 +165,12 @@ if __name__ == '__main__':
                             ds_sim = extract_dataset(catalog=dc,
                                                      region=region_dict,
                                                      **CONFIG['extraction']['simulations']['extract_dataset'],
-                                                     )
-                            ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be neede when data is cleaned
+                                                     )['D']
+                            ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
                             ds_sim = convert_calendar(ds_sim, calendar)
 
                             # need lat and lon -1 for the regrid
-                            ds_sim = ds_sim.chunk({'time': 365, 'lat':-1, 'lon':-1})
+                            ds_sim = ds_sim.chunk(CONFIG['extract']['chunks'])
 
                             # save to zarr
                             path_cut = f"{workdir}/{sim_id}_extracted.zarr"
@@ -196,17 +192,49 @@ if __name__ == '__main__':
                         ):
                             #get sim
                             ds_sim = pcat.search(id=sim_id,
-                                                 processing_level='cut',
-                                                 domain=region_name).to_dataset_dict().popitem()[1]
+                                                 processing_level='extracted',
+                                                 domain=region_name).to_dask()
 
                             # get reference
-                            ds_refnl = pcat.search(project=ref_project,
+                            ds_refnl = pcat.search(source=ref_source,
                                                    calendar=calendar,
-                                                   domain=region_name).to_dataset_dict().popitem()[1]
+                                                   domain=region_name).to_dask()
+
+                            # # regrid
+                            # ds_sim_regrid = regrid(
+                            #     ds=ds_sim,
+                            #     ds_grid=ds_refnl,
+                            #     **CONFIG['regrid']
+                            # )
+
+                            #regrid in many steps by passing through 2 other grids
+                            # create temporary grid
+                            ds_grid_1 = xesmf.util.cf_grid_2d(lon0_b=274.75, lon1_b=305.2, d_lon=1, lat0_b=39.75, lat1_b=64,
+                                                         d_lat=1)
+                            ds_grid_1.attrs['cat/domain']='grid_1'
+                            ds_grid_2 = xesmf.util.cf_grid_2d(lon0_b=274.74, lon1_b=305.2, d_lon=0.5, lat0_b=39.74,
+                                                         lat1_b=64, d_lat=0.5)
+                            ds_grid_2.attrs['cat/domain'] = 'grid_2'
+
+                            tmp_regrid = CONFIG['regrid'].copy()
+                            # no locstream for the middle grids
+                            tmp_regrid['regridder_kwargs']['locstream_out']= False
 
                             # regrid
-                            ds_sim_regrid = regrid(
+                            ds_regrid_1 = regrid(
                                 ds=ds_sim,
+                                ds_grid=ds_grid_1,
+                                **tmp_regrid
+                            )
+
+                            ds_regrid_2 = regrid(
+                                ds=ds_regrid_1,
+                                ds_grid=ds_grid_2,
+                                **tmp_regrid
+                            )
+
+                            ds_sim_regrid = regrid(
+                                ds=ds_regrid_2,
                                 ds_grid=ds_refnl,
                                 **CONFIG['regrid']
                             )
@@ -237,15 +265,17 @@ if __name__ == '__main__':
                                     measure_time(name=f'train_qm {var}', logger=logger)
                             ):
                                 # load hist ds (simulation)
-                                ds_hist = pcat.search(id=sim_id,processing_level='regridded',domain=region_name).to_dataset_dict().popitem()[1]
+                                ds_hist = pcat.search(id=sim_id,
+                                                      processing_level='regridded',
+                                                      domain=region_name).to_dask()
 
                                 # load ref ds
                                 # choose right calendar
                                 simcal = get_calendar(ds_hist)
                                 refcal = minimum_calendar(simcal, CONFIG['custom']['calendar'])
-                                ds_ref = pcat.search(project = ref_project,
+                                ds_ref = pcat.search(source=ref_source,
                                                      calendar=refcal,
-                                                     domain=region_name).to_dataset_dict().popitem()[1]
+                                                     domain=region_name).to_dask()
 
                                 # training
                                 ds_tr = train(dref=ds_ref,
@@ -262,7 +292,8 @@ if __name__ == '__main__':
                                                     info_dict={'id': f"{sim_id}_training_qm_{var}",
                                                                'domain': region_name,
                                                                'processing_level': "training",
-                                                               'frequency': ds_hist.attrs['cat/frequency']
+                                                               'frequency': ds_hist.attrs['cat/frequency'],
+                                                               'xrfreq': ds_hist.attrs['cat/xrfreq']
                                                                 },
                                                     path=path_tr)
 
@@ -280,8 +311,8 @@ if __name__ == '__main__':
                                 # load sim ds and training dataset
                                 ds_sim = pcat.search(id=sim_id,
                                                      processing_level = 'regridded',
-                                                     domain=region_name).to_dataset_dict().popitem()[1]
-                                ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}', domain=region_name).to_dataset_dict().popitem()[1]
+                                                     domain=region_name).to_dask()
+                                ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}', domain=region_name).to_dask()
 
                                 #if more adjusting needed (pr), the level must reflect that
                                 plevel = 'half_biasadjusted' if (var in CONFIG['biasadjust_ex']['variables'])\
@@ -312,11 +343,11 @@ if __name__ == '__main__':
                             ):
                                 # load hist and ref
                                 ds_hist = pcat.search(id=sim_id, domain=region_name,
-                                                     processing_level='regridded').to_dataset_dict().popitem()[1]
+                                                     processing_level='regridded').to_dask()
                                 ds_ref = pcat.search(domain=region_name,
-                                                     project=ref_project,
+                                                     source=ref_source,
                                                      calendar=calendar
-                                                     ).to_dataset_dict().popitem()[1]
+                                                     ).to_dask()
 
                                 # training
                                 ds_tr = train(dref=ds_ref,
@@ -333,7 +364,8 @@ if __name__ == '__main__':
                                                     info_dict={'id': f"{sim_id}_training_ex_{var}",
                                                                'domain': region_name,
                                                                'processing_level': "training",
-                                                               'frequency': ds_hist.attrs['cat/frequency']
+                                                               'frequency': ds_hist.attrs['cat/frequency'],
+                                                               'xrfreq': ds_hist.attrs['cat/xrfreq']
                                                                },
                                                     path=path_tr)
 
@@ -350,12 +382,12 @@ if __name__ == '__main__':
                             ):
                                 # load scen from quantile mapping
                                 ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
-                                                     processing_level='half_biasadjusted').to_dataset_dict().popitem()[1]
+                                                     processing_level='half_biasadjusted').to_dask()
                                 # load sim and extreme training dataset
                                 ds_sim = pcat.search(id=sim_id, domain=region_name,
-                                                     processing_level='regridded').to_dataset_dict().popitem()[1]
+                                                     processing_level='regridded').to_dask()
 
-                                ds_tr = pcat.search(id=f'{sim_id}_training_ex_{var}', domain=region_name).to_dataset_dict().popitem()[1]
+                                ds_tr = pcat.search(id=f'{sim_id}_training_ex_{var}', domain=region_name).to_dask()
 
 
                                 # adjustement on moving window
@@ -403,7 +435,7 @@ if __name__ == '__main__':
                             ds = extract_dataset(catalog=dc,
                                                  to_level='cleaned_up',
                                                  periods= CONFIG['custom']['sim_period']
-                                                      )
+                                                      )['D']
 
                             # convert units
                             for var, unit in CONFIG['clean_up']['units'].items():
@@ -420,28 +452,23 @@ if __name__ == '__main__':
                                 ds = unstack_fill_nan(ds, coords=f"{refdir}/coords_{region_name}.nc")
                                 ds = ds.chunk({d: CONFIG['custom']['chunks'][d] for d in ds.dims})
 
-                            # fix attrs
-                            ds.attrs['cat/id'] = sim_id
-                            #ds.attrs.pop('cat/path')
                             # remove all global attrs that don't come from the catalogue
                             for attr in list(ds.attrs.keys()):
                                 if attr[:4] != 'cat/':
                                     del ds.attrs[attr]
+
                             # add final attrs
                             for var, attrs in CONFIG['clean_up']['attrs'].items():
                                 obj = ds if var == 'global' else ds[var]
                                 for attrname, attrtmpl in attrs.items():
                                     obj.attrs[attrname] = attrtmpl.format( **fmtkws)
+
                             # only keep specific var attrs
                             for var in ds.data_vars.values():
                                 for attr in list(var.attrs.keys()):
                                     if attr not in CONFIG['clean_up']['final_attrs_names']:
                                         del var.attrs[attr]
 
-                            # remove attrs of pr because too long with ExtremeValues
-                            # This was fix with a new version of xclim, but that version is incompatible with streamlit
-                            # del ds.pr.attrs['bias_adjustment']
-                            # del ds.pr.attrs['history']
 
                             #save and update
                             path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
@@ -504,42 +531,42 @@ if __name__ == '__main__':
                             ds_scen = pcat.search(processing_level='final',
                                                   id=sim_id,
                                                   domain=region_name
-                                                  ).to_dataset_dict().popitem()[1].chunk({'time': -1}).sel(time=ref_period)
+                                                  ).to_dask().chunk({'time': -1}).sel(time=ref_period)
 
                             ds_sim = pcat.search(processing_level='regridded',
                                                  id=sim_id,
                                                  domain=region_name
-                                                 ).to_dataset_dict().popitem()[1].chunk({'time': -1}).sel(time=ref_period)
-
+                                                 ).to_dask().chunk({'time': -1}).sel(time=ref_period)
 
                             # properties
-                            sim = calculate_properties(ds=ds_sim, step='sim',
+                            sim = calculate_properties(ds=ds_sim,
                                                        diag_dict=CONFIG['diagnostics']['properties'],
                                                        unstack=CONFIG['custom']['stack_drop_nans'],
+                                                       path_coords=refdir / f'coords_{region_name}.nc',
                                                        unit_conversion=CONFIG['clean_up']['units'])
-                            scen = calculate_properties(ds=ds_scen, step='scen',
+                            scen = calculate_properties(ds=ds_scen,
                                                         diag_dict=CONFIG['diagnostics']['properties'],
                                                         unit_conversion=CONFIG['clean_up']['units'])
 
                             #get ref properties calculated earlier in makeref
-                            ref = pcat.search(project=ref_project,
+                            ref = pcat.search(source=ref_source,
                                                processing_level='diag_ref',
-                                               domain=region_name).to_dataset_dict().popitem()[1]
+                                               domain=region_name).to_dask()
 
                             # calculate measures and diagnostic heat map
-                            [meas_sim, meas_scen], hmap = measures_and_heatmap(ref=ref,sims=[sim, scen])
+                            [meas_sim, meas_scen], hmap = measures_and_heatmap(ref=ref, sims=[sim, scen])
 
-                            #save hmap
-                            path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
-                                                                                   sim_id=scen.attrs['cat/id'],
-                                                                                   step='hmap'))
-                            path_diag = path_diag.with_suffix('.npy') # replace zarr by npy
+                            # save hmap
+                            path_diag = Path(
+                                CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
+                                                                      sim_id=scen.attrs['cat/id'],
+                                                                      step='hmap'))
+                            path_diag = path_diag.with_suffix('.npy')  # replace zarr by npy
                             np.save(path_diag, hmap)
-
 
                             # save and update properties and biases/measures
                             for ds, step in zip([sim, scen, meas_sim, meas_scen],
-                                                ["sim", "scen", 'sim_meas','scen_meas']):
+                                                ["sim", "scen", 'sim_meas', 'scen_meas']):
                                 path_diag = Path(
                                     CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                           sim_id=sim_id,

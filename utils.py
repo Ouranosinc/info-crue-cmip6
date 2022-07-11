@@ -11,16 +11,12 @@ from xclim.sdba.measures import rmse
 from xclim import atmos, sdba
 from xclim.core.units import convert_units_to
 
-
-from xscen.config import CONFIG, load_config
 from xscen.io import save_to_zarr
 from xscen.common import  maybe_unstack,unstack_fill_nan
 from xscen.scr_utils import measure_time, send_mail
 
 
-load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
-workdir = Path(CONFIG['paths']['workdir'])
-refdir = Path(CONFIG['paths']['refdir'])
+
 logger = logging.getLogger('xscen')
 
 def compute_properties(sim, ref, period):
@@ -44,13 +40,12 @@ def compute_properties(sim, ref, period):
     return out
 
 
-def calculate_properties(ds, step, diag_dict, unstack=False, unit_conversion={}):
+def calculate_properties(ds, diag_dict, unstack=False, path_coords=None, unit_conversion={}):
     """
     Calculate properties in the dictionary.
     If the property is monthly or seasonal, we only keep the first month/season.
 
     :param ds: Input dataset (with tasmin, tasmax, pr) and the attrs we want to be passed to the final dataset
-    :param step: Type of input (ref, sim or scen)
     :param diag_dict: Dictionary of properties to calculate. needs key func, var and args
     :param unit_conversion: Dictionary {variable: units to convert to}
     :return: A dataset with all properties
@@ -64,7 +59,7 @@ def calculate_properties(ds, step, diag_dict, unstack=False, unit_conversion={})
 
     region_name=ds.attrs["cat/domain"]
     for i, (name, prop_dict) in enumerate(diag_dict.items()):
-        logger.info(f"Calculating {step} diagnostic {name}")
+        logger.info(f"Calculating diagnostic {name}")
         prop = eval(prop_dict['func'])(da=ds[prop_dict['var']], **prop_dict['args']).load()
 
         # TODO: create something more general that keeps all months/seasons
@@ -78,7 +73,7 @@ def calculate_properties(ds, step, diag_dict, unstack=False, unit_conversion={})
         if unstack:
             prop = unstack_fill_nan(
                 prop,
-                coords=refdir / f'coords_{region_name}.nc',
+                coords=path_coords,
             )
             prop=prop.transpose("lat", "lon")
 

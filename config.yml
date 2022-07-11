@@ -7,7 +7,7 @@ project:
 tasks:
   #- initialize_pcat
   - makeref
-  - cut
+  - extract
   - regrid
   - train_qm
   - adjust_qm
@@ -20,23 +20,23 @@ tasks:
 ids:
   # in the TCR likely range #https://zenodo.org/record/6476375#.YnVQNNPMJhE (14) #chunking
   # 'CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_global', # remove because missing a file #None
-  #- CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
+  - CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
   - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_global # [1, 192, 288]
   - CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_global # [1, 128, 256]
   - CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_global #  [1, 145, 192]
   - CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_global # [1, 96, 144]
-  #- CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_global # [1, 192, 384] # need to be match with historical from other institution
+  - CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_global # [1, 192, 384] # need to be match with historical from other institution
   - CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_global # [1, 120, 180]
   - CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_global # [1, 96, 192]
   - CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_global #[1, 96, 192]
   - CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_global #[1, 160, 320]
   - CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_global #[1, 96, 144]
-  #- CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] # monthly files need to be removed
+  - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] # monthly files need to be removed
   - CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_global #[1, 180, 288]
 
 experiments: &experiments
     - ssp245
-    #- ssp370
+    - ssp370
 
 custom:
     regions:
@@ -63,45 +63,44 @@ custom:
     sim_period: &sim_period
         - '1956'
         - '2100'
-    calendar: noleap
+    calendar: noleap # need noleap for ExtremeValues
     encoding:
       tasmax:
         dtype: float32
       tasmin:
         dtype: float32
+      dtr:
+        dtype: float32
       pr:
         dtype: float32
 
 
+
+extract:
+    chunks: {'time': 365, 'lat':-1, 'lon':-1}
+
 extraction:
     reference:
         search_data_catalogs:
-            variables_and_timedeltas: &var_and_time
-                tasmax: 1D
-                tasmin: 1D
-                pr: 1D
-#            variables_and_freqs:  # TODO: chang to this with new xscen
-#                tasmax: D
-#                tasmin: D
-#                pr: D
+            variables_and_freqs: &var_and_time
+                tasmax: D
+                tasmin: D
+                pr: D
+                dtr: D
             allow_resampling: False
-            allow_conversion: False
+            allow_conversion: True
             periods : *ref_period
             other_search_criteria:
-                project: &ref_project
+                source: &ref_source
                     "era5-land"
                 processing_level: ["raw"]
         extract_dataset: {}
     simulations:
         search_data_catalogs:
-            variables_and_timedeltas:
+            variables_and_freqs:
                 *var_and_time
-#            variables_and_freqs: # TODO: chang to this with new xscen
-#              tasmax: D
-#              tasmin: D
-#              pr: D
             match_hist_and_fut: True
-            allow_conversion: False
+            allow_conversion: True
             allow_resampling: False
         extract_dataset:
             periods : *sim_period
@@ -110,17 +109,18 @@ extraction:
             xr_open_kwargs:
               drop_variables:
                 - height
-    ref_project: *ref_project
+    ref_source: *ref_source
 
 regrid:
     regridder_kwargs:
+        method: bilinear
         extrap_method: inverse_dist
         locstream_out: *stack
         reuse_weights: False
 
 biasadjust_qm:
     variables:
-        tasmin:
+        dtr:
             training_args:
                 reference_period: *ref_period
                 method: DetrendedQuantileMapping
@@ -128,12 +128,16 @@ biasadjust_qm:
                     group: time.dayofyear
                     window: 31
                 xclim_train_args:
-                    kind: "+"
+                    kind: "*"
                     nquantiles: 50
             adjusting_args:
                 simulation_period: *sim_period
                 xclim_adjust_args:
                     detrend: 3
+                bias_adjust_institution: &b_a_inst
+                  Ouranos
+                bias_adjust_project: &b_a_pro
+                  info-crue CMIP6
         tasmax:
             training_args:
                 reference_period: *ref_period
@@ -148,6 +152,8 @@ biasadjust_qm:
                 simulation_period: *sim_period
                 xclim_adjust_args:
                     detrend: 3
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
         pr:
             training_args:
                 reference_period: *ref_period
@@ -164,6 +170,8 @@ biasadjust_qm:
                 simulation_period: *sim_period
                 xclim_adjust_args:
                     detrend: 3
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
 
 biasadjust_ex:
     moving_yearly_window:
@@ -182,12 +190,16 @@ biasadjust_ex:
                     q_thresh: 0.95
             adjusting_args:
                 simulation_period: *sim_period
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
 
 clean_up:
     search_data_catalogs:
-      variables_and_timedeltas:
-        *var_and_time
-      allow_conversion: False
+      variables_and_freqs:
+        tasmax: D
+        tasmin: D
+        pr: D
+      allow_conversion: True
       allow_resampling: False
     final_attrs_names:
         - bias_adjustment
@@ -211,6 +223,8 @@ clean_up:
                 quantile mapping on a day-of-year basis with a window of 31 days,
                 3rd degree polynomial detrending and 50 quantiles.
                 There is a second bias adjustement for pr's extreme values.
+                Tasmax, dtr and pr were adjusted, tasmin was computed
+                from tasmax and dtr after the adjustment.
                 The reference was ERA5-Land over the 1991-2010 period.
             redistribution: Redistribution prohibited. For internal use only.
             version: "1.0.0"
@@ -274,15 +288,15 @@ logging:
             format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
             datefmt: '%Y-%m-%d %H:%M:%S'
     handlers:
-        console:
-            class : logging.StreamHandler
-            formatter: default
-            level : INFO
+#        console:
+#            class : logging.StreamHandler
+#            formatter: default
+#            level : INFO
         file:
             class: logging.FileHandler
             formatter: default
             level : DEBUG
     loggers:
         xscen:
-            level: INFO
-            handlers: [file]
+            level: DEBUG
+            handlers: [ file ]
