@@ -133,7 +133,14 @@ biasadjust_qm:
             adjusting_args:
                 simulation_period: *sim_period
                 xclim_adjust_args:
-                    detrend: 3
+                    detrend:
+                        LoessDetrend:
+                          f: 0.2
+                          niter: 1
+                          d: 0
+                          weights: tricube
+                    interp: nearest
+                    extrapolation: constant
                 bias_adjust_institution: &b_a_inst
                   Ouranos
                 bias_adjust_project: &b_a_pro
@@ -151,7 +158,14 @@ biasadjust_qm:
             adjusting_args:
                 simulation_period: *sim_period
                 xclim_adjust_args:
-                    detrend: 3
+                  detrend:
+                    LoessDetrend:
+                      f: 0.2
+                      niter: 1
+                      d: 0
+                      weights: tricube
+                  interp: nearest
+                  extrapolation: constant
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
         pr:
@@ -169,7 +183,14 @@ biasadjust_qm:
             adjusting_args:
                 simulation_period: *sim_period
                 xclim_adjust_args:
-                    detrend: 3
+                  detrend:
+                    LoessDetrend:
+                      f: 0.2
+                      niter: 1
+                      d: 0
+                      weights: tricube
+                  interp: nearest
+                  extrapolation: constant
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
 
@@ -288,15 +309,16 @@ logging:
             format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
             datefmt: '%Y-%m-%d %H:%M:%S'
     handlers:
-#        console:
-#            class : logging.StreamHandler
-#            formatter: default
-#            level : INFO
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : INFO
         file:
             class: logging.FileHandler
             formatter: default
             level : DEBUG
     loggers:
         xscen:
-            level: DEBUG
-            handlers: [ file ]
+            propagate: False
+            level: INFO
+            handlers: [file, console]

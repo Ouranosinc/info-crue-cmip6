@@ -8,6 +8,7 @@ import logging
 from matplotlib import pyplot as plt
 import os
 import xesmf
+import numpy as np
 
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
 from xclim.core.units import convert_units_to
@@ -79,15 +80,15 @@ if __name__ == '__main__':
                 if 'diagnostics' in CONFIG['tasks'] :
                     # drop to make faster
                     dref_ref = ds_ref.drop_vars('dtr')
-
-                    dref_ref = ds_ref.chunk({'time': -1})  # to help diag and nan_count
+                    dref_ref = dref_ref.chunk({'time': -1})  # to help diag and nan_count
 
                     ds_ref_prop = calculate_properties(ds=dref_ref,
                                                        diag_dict=CONFIG['diagnostics']['properties'],
                                                        unit_conversion=CONFIG['clean_up']['units'])
 
                     path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                                           sim_id=ds_ref.attrs['cat/id'],
+                                                                           sim_id=ds_ref.attrs['cat/id'], # TODO CHANGE BACK
+                                                                           #sim_id=ds_ref.attrs['intake_esm_attrs/id'],
                                                                            step='ref'))
                     path_diag_exec = f"{workdir}/{path_diag.name}"
                     save_to_zarr(ds=ds_ref_prop, filename=path_diag_exec, mode='o', itervar=True)
@@ -200,12 +201,6 @@ if __name__ == '__main__':
                                                    calendar=calendar,
                                                    domain=region_name).to_dask()
 
-                            # # regrid
-                            # ds_sim_regrid = regrid(
-                            #     ds=ds_sim,
-                            #     ds_grid=ds_refnl,
-                            #     **CONFIG['regrid']
-                            # )
 
                             #regrid in many steps by passing through 2 other grids
                             # create temporary grid
@@ -292,9 +287,8 @@ if __name__ == '__main__':
                                                     info_dict={'id': f"{sim_id}_training_qm_{var}",
                                                                'domain': region_name,
                                                                'processing_level': "training",
-                                                               'frequency': ds_hist.attrs['cat/frequency'],
                                                                'xrfreq': ds_hist.attrs['cat/xrfreq']
-                                                                },
+                                                                },# info_dict needed to reopen correctly in next step
                                                     path=path_tr)
 
                         # ---ADJUST QM---
@@ -364,9 +358,8 @@ if __name__ == '__main__':
                                                     info_dict={'id': f"{sim_id}_training_ex_{var}",
                                                                'domain': region_name,
                                                                'processing_level': "training",
-                                                               'frequency': ds_hist.attrs['cat/frequency'],
                                                                'xrfreq': ds_hist.attrs['cat/xrfreq']
-                                                               },
+                                                               },# info_dict needed to reopen correctly in next step
                                                     path=path_tr)
 
                         # ---ADJUST EXTREME---
@@ -508,8 +501,8 @@ if __name__ == '__main__':
                             path_log = CONFIG['logging']['handlers']['file']['filename']
                             shutil.move(path_log, CONFIG['paths']['logging'].format(**fmtkws) )
 
-                            # erase workdir content
-                            if workdir.exists() and workdir.is_dir():
+                            # erase workdir content if this is the last step
+                            if workdir.exists() and workdir.is_dir() and CONFIG["tasks"][-1] == 'final_zarr':
                                 shutil.rmtree(workdir)
                                 os.mkdir(workdir)
 
@@ -577,6 +570,11 @@ if __name__ == '__main__':
                                 pcat.update_from_ds(ds=ds,
                                                     info_dict={'processing_level': f'diag_{step}'},
                                                     path=str(path_diag))
+
+                                # erase workdir content if this is the last step
+                            if workdir.exists() and workdir.is_dir() and CONFIG["tasks"][-1] == 'diagnostics':
+                                shutil.rmtree(workdir)
+                                os.mkdir(workdir)
 
                             send_mail(
                                 subject=f"{sim_id}/{region_name} - Succès",
