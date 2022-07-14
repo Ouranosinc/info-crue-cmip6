@@ -5,6 +5,7 @@ import shutil
 from matplotlib import pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import os
 
 
 from xclim.sdba.measures import rmse
@@ -19,25 +20,7 @@ from xscen.scr_utils import measure_time, send_mail
 
 logger = logging.getLogger('xscen')
 
-def compute_properties(sim, ref, period):
-    # TODO add more diagnostics, xclim.sdba and from Yannick (R2?)
-    nan_count = sim.to_array().isnull().sum('time').mean('variable')
-    hist = sim.sel(time=period)
-    ref = ref.sel(time=period)
 
-    # Je load deux des variables pour essayer d'éviter les KilledWorker et Timeout
-    out = xr.Dataset(data_vars={
-
-        'tx_mean_rmse': rmse(atmos.tx_mean(hist.tasmax, freq='MS').chunk({'time': -1}),
-                             atmos.tx_mean(ref.tasmax, freq='MS').chunk({'time': -1})),
-        'tn_mean_rmse': rmse(atmos.tn_mean(tasmin=hist.tasmin, freq='MS').chunk({'time': -1}),
-                             atmos.tn_mean(tasmin=ref.tasmin, freq='MS').chunk({'time': -1})),
-        'prcptot_rmse': rmse(atmos.precip_accumulation(hist.pr, freq='MS').chunk({'time': -1}),
-                             atmos.precip_accumulation(ref.pr, freq='MS').chunk({'time': -1})),
-        'nan_count': nan_count,
-    })
-
-    return out
 
 
 def calculate_properties(ds, diag_dict, unstack=False, path_coords=None, unit_conversion={}):
@@ -166,3 +149,25 @@ def email_nan_count(path, region_name):
         attachments=[fig]
     )
 
+def move_then_delete(dirs_to_delete, moving_files, pcat):
+    """
+    First, move the moving_files. If they are zarr, update catalog
+    with new path.
+    Then, delete everything in dir_to_delete
+    :param dirs_to_delete: list of directory where all content will be deleted
+    :param moving_files: list of lists of path of files to move with format: [[source 1, destination1], [source 2, destination2],...]
+    :param pcat: project catalog to update
+    """
+
+    for files in zip(moving_files):
+        source, dest = files[0], files[1]
+        shutil.move(source, dest)
+        if dest[-5:] =='.zarr':
+            ds = xr.open_zarr(dest)
+            pcat.update_from_ds(ds=ds, path=dest)
+
+    # erase workdir content if this is the last step
+    for dir_to_delete in dirs_to_delete:
+        if dir_to_delete.exists() and dir_to_delete.is_dir():
+            shutil.rmtree(dir_to_delete)
+            os.mkdir(dir_to_delete)

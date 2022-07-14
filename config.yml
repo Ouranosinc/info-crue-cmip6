@@ -63,11 +63,10 @@ custom:
     sim_period: &sim_period
         - '1956'
         - '2100'
-    calendar: noleap # need noleap for ExtremeValues
+    calendar: &calendar
+      noleap  # need noleap for ExtremeValues
     encoding:
       tasmax:
-        dtype: float32
-      tasmin:
         dtype: float32
       dtr:
         dtype: float32
@@ -82,7 +81,7 @@ extract:
 extraction:
     reference:
         search_data_catalogs:
-            variables_and_freqs: &var_and_time
+            variables_and_freqs:
                 tasmax: D
                 tasmin: D
                 pr: D
@@ -98,7 +97,9 @@ extraction:
     simulations:
         search_data_catalogs:
             variables_and_freqs:
-                *var_and_time
+                tasmax: D
+                pr: D
+                dtr: D
             match_hist_and_fut: True
             allow_conversion: True
             allow_resampling: False
@@ -112,7 +113,49 @@ extraction:
     ref_source: *ref_source
 
 regrid:
-    regridder_kwargs:
+  reg1:
+    input:
+      cur_sim
+    target:
+      cf_grid_2d:
+        lon0_b: 274.75
+        lon1_b: 305.2
+        d_lon: 1
+        lat0_b: 39.75
+        lat1_b: 64
+        d_lat: 1
+    xscen_regrid:
+      regridder_kwargs:
+          method: bilinear
+          extrap_method: inverse_dist
+          locstream_out: False
+          reuse_weights: False
+  reg2:
+    input:
+      previous
+    target:
+      cf_grid_2d:
+        lon0_b: 274.74
+        lon1_b: 305.2
+        d_lon: 0.5
+        lat0_b: 39.74
+        lat1_b: 64
+        d_lat: 0.5
+    xscen_regrid:
+      regridder_kwargs:
+        method: bilinear
+        extrap_method: inverse_dist
+        locstream_out: False
+        reuse_weights: False
+  reg3:
+    input:
+      previous
+    target:
+      search:
+        source: *ref_source
+        calendar: *calendar
+    xscen_regrid:
+      regridder_kwargs:
         method: bilinear
         extrap_method: inverse_dist
         locstream_out: *stack
