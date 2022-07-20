@@ -159,7 +159,7 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
     :param pcat: project catalog to update
     """
 
-    for files in zip(moving_files):
+    for files in moving_files:
         source, dest = files[0], files[1]
         shutil.move(source, dest)
         if dest[-5:] =='.zarr':
@@ -171,3 +171,11 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
         if dir_to_delete.exists() and dir_to_delete.is_dir():
             shutil.rmtree(dir_to_delete)
             os.mkdir(dir_to_delete)
+
+
+def save_move_update(ds,pcat, init_path, final_path,info_dict=None,
+                     encoding=None, mode='o', itervar=False):
+    encoding = encoding or {var: {'dtype':'float32'} for var in ds.data_vars}
+    save_to_zarr(ds, init_path, encoding=encoding, mode=mode,itervar=itervar)
+    shutil.move(init_path,final_path)
+    pcat.update_from_ds(ds=ds, path=str(final_path),info_dict=info_dict)

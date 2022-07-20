@@ -20,19 +20,19 @@ tasks:
 ids:
   # in the TCR likely range #https://zenodo.org/record/6476375#.YnVQNNPMJhE (14) #chunking
   # 'CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_global', # remove because missing a file #None
-  - CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
-  - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_global # [1, 192, 288]
-  - CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_global # [1, 128, 256]
-  - CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_global #  [1, 145, 192]
-  - CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_global # [1, 96, 144]
-  - CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_global # [1, 192, 384] # need to be match with historical from other institution
-  - CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_global # [1, 120, 180]
-  - CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_global # [1, 96, 192]
-  - CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_global #[1, 96, 192]
-  - CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_global #[1, 160, 320]
-  - CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_global #[1, 96, 144]
-  - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] # monthly files need to be removed
-  - CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_global #[1, 180, 288]
+#  - CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
+#  - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_global # [1, 192, 288]
+#  - CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_global # [1, 128, 256]
+#  - CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_global #  [1, 145, 192]
+#  - CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_global # [1, 96, 144]
+#  - CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_global # [1, 192, 384] # need to be match with historical from other institution
+#  - CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_global # [1, 120, 180]
+#  - CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_global # [1, 96, 192]
+#  - CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_global #[1, 96, 192]
+#  - CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_global #[1, 160, 320]
+#  - CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_global #[1, 96, 144]
+  - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] #  TODO: change calendar for 360 days
+  - CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_global #[1, 180, 288] #
 
 experiments: &experiments
     - ssp245
@@ -63,15 +63,18 @@ custom:
     sim_period: &sim_period
         - '1956'
         - '2100'
-    calendar: &calendar
-      noleap  # need noleap for ExtremeValues
     encoding:
       tasmax:
+        dtype: float32
+      tasmin:
         dtype: float32
       dtr:
         dtype: float32
       pr:
         dtype: float32
+    maximal_calendar: &mcal
+      noleap
+
 
 
 
@@ -81,7 +84,7 @@ extract:
 extraction:
     reference:
         search_data_catalogs:
-            variables_and_freqs:
+            variables_and_freqs: &var_and_freq
                 tasmax: D
                 tasmin: D
                 pr: D
@@ -91,15 +94,11 @@ extraction:
             periods : *ref_period
             other_search_criteria:
                 source: &ref_source
-                    "era5-land"
-                processing_level: ["raw"]
+                    "ERA5-Land"
         extract_dataset: {}
     simulations:
         search_data_catalogs:
-            variables_and_freqs:
-                tasmax: D
-                pr: D
-                dtr: D
+            variables_and_freqs: *var_and_freq
             match_hist_and_fut: True
             allow_conversion: True
             allow_resampling: False
@@ -153,7 +152,7 @@ regrid:
     target:
       search:
         source: *ref_source
-        calendar: *calendar
+        calendar: noleap
     xscen_regrid:
       regridder_kwargs:
         method: bilinear
@@ -187,7 +186,7 @@ biasadjust_qm:
                 bias_adjust_institution: &b_a_inst
                   Ouranos
                 bias_adjust_project: &b_a_pro
-                  info-crue CMIP6
+                  info-crue-CMIP6
         tasmax:
             training_args:
                 reference_period: *ref_period
@@ -265,6 +264,56 @@ clean_up:
         pr: D
       allow_conversion: True
       allow_resampling: False
+    xscen_clean_up:
+      variables_and_units:
+        tasmax: degC
+        tasmin: degC
+        pr: mm d-1
+      convert_calendar_kwargs:
+        target: standard
+        align_on: random
+      missing_by_var:
+        tasmax: interpolate
+        tasmin: interpolate
+        pr: [0]
+      remove_all_attrs_except:
+        global:
+          - ^cat/
+        tasmax: &attrs_to_keep
+          - bias_adjustment
+          - cell_methods
+          - coordinates
+          - history
+          - long_name
+          - standard_name
+          - units
+        tasmin: *attrs_to_keep
+        pr: *attrs_to_keep
+      add_attrs:
+        global:
+          title: Info-Crue CMIP6 - {sim_id}
+          Notes: |
+            Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
+            quantile mapping on a day-of-year basis with a window of 31 days,
+            LOESS detrending and 50 quantiles.
+            There is a second bias adjustement for pr's extreme values.
+            Tasmax, dtr and pr were adjusted, tasmin was computed
+            from tasmax and dtr after the adjustment.
+            The reference was ERA5-Land over the 1991-2010 period.
+          redistribution: Redistribution prohibited. For internal use only.
+          version: "1.0.0"
+        tasmax:
+            standard_name: air_temperature
+            long_name: Maximal daily temperature
+            cell_methods: "time: maximum within days"
+        tasmin:
+            standard_name: air_temperature
+            long_name: Minimal daily temperature
+            cell_methods: "time: minimum within days"
+        pr:
+            standard_name: precipitation_flux
+            long_name: Mean daily precipitation flux
+            cell_methods: "time: mean within days"
     final_attrs_names:
         - bias_adjustment
         - cell_methods
@@ -279,13 +328,11 @@ clean_up:
       pr: mm d-1
     attrs:
         global:
-            Conventions: CF-1.9
             title: Info-Crue CMIP6 - {sim_id}
-            institution: Ouranos
             Notes: |
                 Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
                 quantile mapping on a day-of-year basis with a window of 31 days,
-                3rd degree polynomial detrending and 50 quantiles.
+                LOESS detrending and 50 quantiles.
                 There is a second bias adjustement for pr's extreme values.
                 Tasmax, dtr and pr were adjusted, tasmin was computed
                 from tasmax and dtr after the adjustment.
@@ -365,3 +412,5 @@ logging:
             propagate: False
             level: INFO
             handlers: [file, console]
+
+
