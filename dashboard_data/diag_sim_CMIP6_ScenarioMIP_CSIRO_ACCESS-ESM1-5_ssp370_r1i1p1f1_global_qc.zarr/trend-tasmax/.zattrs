@@ -6,8 +6,9 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: mean time: maximum",
     "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-    "history": "2019-11-15T17:28:16Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-15T17:28:16Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-05 15:38:02] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+    "history": "2019-11-15T17:28:16Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-15T17:28:16Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-18 22:05:03] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
     "long_name": "slope of the interannual linear trend",
+    "measure": "bias",
     "standard_name": "air_temperature",
-    "units": "K/year"
+    "units": "\u00b0C/year"
 }

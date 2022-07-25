@@ -6,10 +6,11 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: time: mean",
     "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-    "history": "none\n[2022-07-05 14:45:06] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "history": "none\n[2022-07-18 12:18:27] mean: mean(da=pr, group='time') - xclim version: 0.37.0",
     "interval_operation": "900 s",
     "interval_write": "1 d",
     "long_name": "Mean",
+    "measure": "bias",
     "online_operation": "average",
     "standard_name": "precipitation_flux",
     "units": "mm d-1"

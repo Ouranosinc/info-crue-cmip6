@@ -1,12 +1,13 @@
 {
     "_ARRAY_DIMENSIONS": [
-        "lat",
-        "lon"
+        "lon",
+        "lat"
     ],
-    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
     "cell_methods": "time: maximum within days",
-    "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-27 17:25:41] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 14:08:28] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-17 23:09:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-21 13:52:27] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.37.0",
     "long_name": "absolute amplitude of the annual cycle",
+    "measure": "bias",
     "standard_name": "air_temperature",
     "units": "delta_degC"
 }

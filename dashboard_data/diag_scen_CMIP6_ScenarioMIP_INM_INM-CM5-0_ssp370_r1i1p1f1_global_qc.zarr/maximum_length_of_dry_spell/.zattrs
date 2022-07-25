@@ -5,8 +5,9 @@
     ],
     "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
     "cell_methods": "time: mean within days",
-    "history": "[2022-05-29 14:12:14] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 16:15:11] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-19 06:40:18] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-25 11:15:54] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0",
     "long_name": "max of spell length when input variable < amount 1.0",
+    "measure": "bias",
     "standard_name": "precipitation_flux",
     "units": "day"
 }

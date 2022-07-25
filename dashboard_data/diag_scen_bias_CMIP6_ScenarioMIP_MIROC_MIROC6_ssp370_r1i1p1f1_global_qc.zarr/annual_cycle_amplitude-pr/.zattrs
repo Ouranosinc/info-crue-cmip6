@@ -1,9 +1,0 @@
-{
-    "_ARRAY_DIMENSIONS": [
-        "lat",
-        "lon"
-    ],
-    "history": "annual_cycle_amplitude-pr: 2019-08-30T09:02:30Z altered by CMOR: Converted units from 'kg/m**2/s' to 'kg m-2 s-1'. 2019-08-30T09:02:30Z altered by CMOR: replaced missing value flag (-999) with standard missing value (1e+20). 2019-08-30T09:02:30Z altered by CMOR: Inverted axis: lat.\n[2022-05-29 19:00:32] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 16:43:09] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\nannual_cycle_amplitude-pr: [2022-07-05 12:53:23] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta\n[2022-07-05 16:43:51] annual_cycle_amplitude-pr: ratio(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.36.6-beta",
-    "long_name": "Ratio",
-    "units": ""
-}

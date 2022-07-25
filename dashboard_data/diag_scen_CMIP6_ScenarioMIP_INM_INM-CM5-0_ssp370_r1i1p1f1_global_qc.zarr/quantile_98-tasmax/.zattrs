@@ -1,12 +1,13 @@
 {
     "_ARRAY_DIMENSIONS": [
-        "lat",
-        "lon"
+        "lon",
+        "lat"
     ],
-    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
     "cell_methods": "time: maximum within days",
-    "history": "2019-06-06T12:50:51Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-05-29 12:48:32] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 16:09:58] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-06-06T12:50:51Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-07-19 04:57:38] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-25 11:10:25] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0",
     "long_name": "Quantile 0.98",
+    "measure": "bias",
     "standard_name": "air_temperature",
-    "units": "K"
+    "units": "\u00b0C"
 }

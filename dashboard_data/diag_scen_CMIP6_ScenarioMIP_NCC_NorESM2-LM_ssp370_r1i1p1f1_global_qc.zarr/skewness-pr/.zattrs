@@ -5,8 +5,9 @@
     ],
     "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
     "cell_methods": "time: mean within days",
-    "history": "2019-08-15T15:44:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-30 09:21:41] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 18:02:34] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-08-15T15:44:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-21 00:58:36] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-25 12:18:23] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0",
     "long_name": "Skewness",
+    "measure": "bias",
     "standard_name": "precipitation_flux",
     "units": ""
 }

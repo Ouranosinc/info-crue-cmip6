@@ -1,6 +1,6 @@
 {
     "chunks": [
-        211,
+        106,
         271
     ],
     "compressor": {
@@ -10,7 +10,7 @@
         "id": "blosc",
         "shuffle": 1
     },
-    "dtype": "<f4",
+    "dtype": "<f8",
     "fill_value": "NaN",
     "filters": null,
     "order": "C",

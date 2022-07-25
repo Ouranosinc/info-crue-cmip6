@@ -1,9 +1,10 @@
 {
     "_ARRAY_DIMENSIONS": [
-        "lat",
-        "lon"
+        "lon",
+        "lat"
     ],
-    "history": "2019-11-15T17:33:19Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-05-29 09:29:01] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 15:50:47] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-11-15T17:33:19Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-18 20:46:18] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-25 10:47:48] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
     "long_name": "relative amplitude of the annual cycle",
+    "measure": "ratio",
     "units": "%"
 }

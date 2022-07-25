@@ -6,8 +6,9 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: time: mean (interval: 10 minutes)",
     "comment": "includes both liquid and solid phases",
-    "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-05 14:00:11] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-08-24T01:47:04Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-18 02:18:12] variance: var(da=pr, group='time') - xclim version: 0.37.0",
     "long_name": "Variance",
+    "measure": "ratio",
     "standard_name": "precipitation_flux",
     "units": "mm^2 d-2"
 }

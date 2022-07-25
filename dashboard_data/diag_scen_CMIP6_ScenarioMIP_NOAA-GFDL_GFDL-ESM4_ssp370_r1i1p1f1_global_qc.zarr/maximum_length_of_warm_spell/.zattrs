@@ -3,10 +3,11 @@
         "lon",
         "lat"
     ],
-    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
     "cell_methods": "time: maximum within days",
-    "history": "[2022-05-30 12:47:12] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 18:27:39] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-21 08:40:29] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-25 12:56:51] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.37.0",
     "long_name": "max of spell length when input variable >= quantile 0.9",
+    "measure": "bias",
     "standard_name": "air_temperature",
     "units": "day"
 }

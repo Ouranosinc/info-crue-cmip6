@@ -12,12 +12,15 @@ import hvplot.xarray
 from matplotlib import colors
 
 
-useCat=False
+
 
 
 
 st.set_page_config(layout="wide")
 st.title('Diagnostiques de Info-Crue CMIP6')
+
+#useCat=True
+useCat= st.checkbox("use catalog (only for local version)")
 
 cols = st.columns(2)
 
@@ -65,6 +68,58 @@ else:
     bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_bias_{option_id}.zarr')
     bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_bias_{option_id}.zarr')
     hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
+
+#plot hmap
+dict_prop = sorted(sim.data_vars)
+labels_row = ['sim', 'scen']
+fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
+cmap=plt.cm.RdYlGn_r
+norm = colors.BoundaryNorm(np.linspace(0,1,len(labels_row)+2), cmap.N)
+im = ax.imshow(hmap, cmap=cmap, norm=norm)
+ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop, rotation=45,
+              ha='right')
+ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
+
+divider = make_axes_locatable(ax)
+cax = divider.new_vertical(size='15%', pad=0.4)
+fig_hmap.add_axes(cax)
+cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
+cbar.ax.set_xticklabels(['best', 'worst'])
+plt.title('Normalised mean bias of properties')
+fig_hmap.tight_layout()
+
+#percentage of grid point that improved
+percent_better=[]
+for var in sorted(bias_scen.data_vars):
+    if bias_sim[var].attrs['measure']=='ratio':
+        diff_bias = abs(bias_sim[var]-1) - abs(bias_scen[var]-1)
+    else:
+        diff_bias = abs(bias_sim[var]) - abs(bias_scen[var])
+    diff_bias=diff_bias.values.ravel()
+    diff_bias= diff_bias[~ np.isnan(diff_bias)]
+
+    total= bias_scen[var].values.ravel()
+    total = total[~ np.isnan(total)]
+
+    improved = diff_bias>=0
+    percent_better.append( np.sum(improved)/len(total)) # we count nan
+
+percent_better=np.reshape(np.array(percent_better), (1, len(bias_scen.data_vars)))
+
+fig_per, ax = plt.subplots(figsize=(1 * len(dict_prop), 1))
+cmap=plt.cm.RdYlGn
+norm = colors.BoundaryNorm(np.linspace(0,1,100), cmap.N)
+im = ax.imshow(percent_better, cmap=cmap, norm=norm)
+ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop, rotation=45,
+              ha='right')
+ax.set_yticks(ticks=np.arange(1), labels=[''])
+
+divider = make_axes_locatable(ax)
+cax = divider.new_vertical(size='15%', pad=0.4)
+fig_per.add_axes(cax)
+cbar = fig_per.colorbar(im, cax=cax, ticks=[0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7,0.8,0.9, 1], orientation='horizontal')
+plt.title('Percentage of grid cells that improved or stayed the same')
+fig_per.tight_layout()
 
 
 cols2=st.columns(2)
@@ -132,49 +187,8 @@ col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN {me
 # pan = pn.interact(plot_var, variable=list(scen.data_vars))
 # st.write(hv.render(pan).get_root(), backend='bokeh')
 
-# TODO: fix hmap before putting it back
-#plot hmap
-dict_prop = sorted(sim.data_vars)
-labels_row = ['sim', 'scen']
-fig_hmap, ax = plt.subplots(figsize=(1 * len(dict_prop), 1 * len(labels_row)))
-cmap=plt.cm.RdYlGn_r
-norm = colors.BoundaryNorm(np.linspace(0,1,len(labels_row)+2), cmap.N)
-im = ax.imshow(hmap, cmap=cmap, norm=norm)
-ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop, rotation=45,
-              ha='right')
-ax.set_yticks(ticks=np.arange(len(labels_row)), labels=labels_row)
 
-divider = make_axes_locatable(ax)
-cax = divider.new_vertical(size='15%', pad=0.4)
-fig_hmap.add_axes(cax)
-cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
-cbar.ax.set_xticklabels(['best', 'worst'])
-plt.title('Normalised mean bias of properties')
-fig_hmap.tight_layout()
+
 
 st.write(fig_hmap)
-
-
-
-
-#plot 5 maps
-# fig, axs = plt.subplots(2, 3, figsize=(15, 7))
-# maxi_prop = max(prop_ref.max().values, prop_scen.max().values, prop_sim.max().values)
-# mini_prop = min(prop_ref.min().values, prop_scen.min().values, prop_sim.min().values)
-# maxi_bias = max(abs(bias_scen_prop).max().values, abs(bias_sim_prop).max().values)
-#
-# prop_ref.plot(ax=axs[0, 0], vmax=maxi_prop, vmin=mini_prop)
-# axs[0, 0].set_title('REF')
-# prop_scen.plot(ax=axs[0, 1], vmax=maxi_prop, vmin=mini_prop)
-# axs[0, 1].set_title('SCEN')
-# bias_scen_prop.plot(ax=axs[0, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
-# axs[0, 2].set_title('bias scen')
-#
-# prop_sim.plot(ax=axs[1, 1], vmax=maxi_prop, vmin=mini_prop)
-# axs[1, 1].set_title('SIM')
-# bias_sim_prop.plot(ax=axs[1, 2], vmax=maxi_bias, vmin=-maxi_bias, cmap='bwr')
-# axs[1, 2].set_title('bias sim')
-# fig.delaxes(axs[1][0])
-# fig.suptitle(option_prop, fontsize=20)
-# fig.tight_layout()
-# st.write(fig)
+st.write(fig_per)

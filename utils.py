@@ -161,10 +161,11 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
 
     for files in moving_files:
         source, dest = files[0], files[1]
-        shutil.move(source, dest)
-        if dest[-5:] =='.zarr':
-            ds = xr.open_zarr(dest)
-            pcat.update_from_ds(ds=ds, path=dest)
+        if Path(source).exists():
+            shutil.move(source, dest)
+            if dest[-5:] =='.zarr':
+                ds = xr.open_zarr(dest)
+                pcat.update_from_ds(ds=ds, path=dest)
 
     # erase workdir content if this is the last step
     for dir_to_delete in dirs_to_delete:

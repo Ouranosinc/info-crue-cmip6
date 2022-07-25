@@ -6,8 +6,9 @@
     "cell_measures": "area: areacella",
     "cell_methods": "area: time: mean (interval: 1 day)",
     "comment": "includes both liquid and solid phases",
-    "history": "[2022-07-05 16:03:30] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-19 08:05:37] mean: mean(da=pr, group='time') - xclim version: 0.37.0",
     "long_name": "Mean",
+    "measure": "bias",
     "original_name": "pr",
     "standard_name": "precipitation_flux",
     "units": "mm d-1"

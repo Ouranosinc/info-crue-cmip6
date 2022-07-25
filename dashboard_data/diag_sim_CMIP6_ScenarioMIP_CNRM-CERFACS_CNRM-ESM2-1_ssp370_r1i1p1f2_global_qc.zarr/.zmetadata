@@ -25,18 +25,18 @@
             "cat/institution": "CNRM-CERFACS",
             "cat/member": "r1i1p1f2",
             "cat/mip_era": "CMIP6",
-            "cat/path": "/crue/jlavoie/info-crue-cmip6/regridded/CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_ssp370_r1i1p1f2_global_regridded.zarr",
+            "cat/path": "/exec/jlavoie/info-crue-cmip6_workdir/CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_ssp370_r1i1p1f2_global_regridded.zarr",
             "cat/processing_level": "regridded",
-            "cat/project": NaN,
             "cat/source": "CNRM-ESM2-1",
-            "cat/timedelta": "1 days 00:00:00",
-            "cat/type": "simulations",
+            "cat/type": "simulation",
             "cat/variable": [
+                "tasmax",
                 "pr",
-                "tasmin",
-                "tasmax"
+                "dtr",
+                "tasmin"
             ],
             "cat/version": NaN,
+            "cat/xrfreq": "D",
             "contact": "contact.cmip@meteo.fr",
             "creation_date": "2018-06-10T21:48:38Z",
             "data_specs_version": "01.00.21",
@@ -51,15 +51,16 @@
             "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.CNRM-CERFACS.CNRM-ESM2-1.historical.none.r1i1p1f2",
             "grid": "data regridded to a T127 gaussian grid (128x256 latlon) from a native atmosphere T127l reduced gaussian grid",
             "grid_label": "gr",
-            "history": "none",
+            "history": "[2022-07-18 07:37:15] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': True, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-18 07:37:08] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-18 07:37:08] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-18 07:31:32] bbox spatial subsetting with buffer=1.5, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1 \n none",
             "initialization_index": "1",
             "institution": "CNRM (Centre National de Recherches Meteorologiques, Toulouse 31057, France), CERFACS (Centre Europeen de Recherche et de Formation Avancee en Calcul Scientifique, Toulouse 31057, France)",
             "institution_id": "CNRM-CERFACS",
-            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_ssp370_r1i1p1f2_global.qc.regridded.day",
+            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_ssp370_r1i1p1f2_global.qc.regridded.D",
             "intake_esm_vars": [
+                "tasmax",
                 "pr",
-                "tasmin",
-                "tasmax"
+                "dtr",
+                "tasmin"
             ],
             "license": "CMIP6 model data produced by CNRM-CERFACS is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at http://www.umr-cnrm.fr/cmip6/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
             "mip_era": "CMIP6",
@@ -94,8 +95,8 @@
         },
         "20mm_freq/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -122,18 +123,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:50:55] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:24:59] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
+            "measure": "bias",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": ""
         },
         "acf-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -160,18 +162,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:35:52] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:08:50] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "lag-1 autocorrelation",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
             "units": ""
         },
         "annual_cycle_amplitude-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -195,14 +198,15 @@
                 "lat",
                 "lon"
             ],
-            "history": "none\n[2022-07-05 14:48:22] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:21:09] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
             "long_name": "relative amplitude of the annual cycle",
+            "measure": "ratio",
             "units": "%"
         },
         "annual_cycle_amplitude-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -229,18 +233,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:41:36] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:13:54] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "absolute amplitude of the annual cycle",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
             "units": "delta_degC"
         },
         "annual_cycle_phase-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -267,19 +272,20 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:43:05] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:16:21] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "is_dayofyear": 1,
             "long_name": "Phase of the annual cycle",
+            "measure": "circular_bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
             "units": ""
         },
         "frost_days/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -306,10 +312,11 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum",
             "description": "Daily Minimum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:45:03] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:18:23] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Relative frequency of days with input variable >= 0 degC",
+            "measure": "bias",
             "online_operation": "minimum",
             "standard_name": "air_temperature",
             "units": ""
@@ -370,8 +377,8 @@
         },
         "maximum_length_of_dry_spell/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -398,18 +405,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:46:17] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:19:32] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "max of spell length when input variable < amount 1.0",
+            "measure": "bias",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": "day"
         },
         "maximum_length_of_warm_spell/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -436,18 +444,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:39:42] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:12:17] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "max of spell length when input variable >= quantile 0.9",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
             "units": "day"
         },
         "mean-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -474,18 +483,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:45:06] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:18:27] mean: mean(da=pr, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Mean",
+            "measure": "bias",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": "mm d-1"
         },
         "mean-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -512,18 +522,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:34:49] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:07:53] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Mean",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
-            "units": "K"
+            "units": "\u00b0C"
         },
         "quantile_02-tasmin/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -550,18 +561,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum",
             "description": "Daily Minimum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:44:52] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:18:08] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Quantile 0.02",
+            "measure": "bias",
             "online_operation": "minimum",
             "standard_name": "air_temperature",
-            "units": "K"
+            "units": "\u00b0C"
         },
         "quantile_98-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -588,18 +600,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:45:21] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:18:51] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Quantile 0.98",
+            "measure": "bias",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": "mm d-1"
         },
         "quantile_98-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -626,18 +639,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:35:03] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:08:12] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Quantile 0.98",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
-            "units": "K"
+            "units": "\u00b0C"
         },
         "skewness-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -664,18 +678,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:45:15] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:18:46] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Skewness",
+            "measure": "bias",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": ""
         },
         "skewness-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -702,18 +717,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:34:59] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:08:07] skewness: skewness(da=tasmax, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Skewness",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
             "units": ""
         },
         "trend-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -740,18 +756,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:44:10] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:17:23] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "slope of the interannual linear trend",
+            "measure": "bias",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
-            "units": "K/year"
+            "units": "\u00b0C/year"
         },
         "var-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -778,18 +795,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:45:13] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:18:43] variance: var(da=pr, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Variance",
+            "measure": "ratio",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": "mm^2 d-2"
         },
         "var-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -816,18 +834,19 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "description": "Daily Maximum Near-Surface Air Temperature",
-            "history": "none\n[2022-07-05 14:34:57] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:08:03] variance: var(da=tasmax, group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Variance",
+            "measure": "ratio",
             "online_operation": "maximum",
             "standard_name": "air_temperature",
-            "units": "K^2"
+            "units": "\u00b0C^2"
         },
         "wet_days_freq/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -854,10 +873,11 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
-            "history": "none\n[2022-07-05 14:50:47] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "none\n[2022-07-18 12:24:52] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.37.0",
             "interval_operation": "900 s",
             "interval_write": "1 d",
             "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
+            "measure": "bias",
             "online_operation": "average",
             "standard_name": "precipitation_flux",
             "units": ""

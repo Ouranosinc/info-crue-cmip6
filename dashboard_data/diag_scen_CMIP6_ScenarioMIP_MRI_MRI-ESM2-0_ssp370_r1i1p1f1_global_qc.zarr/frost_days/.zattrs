@@ -3,10 +3,10 @@
         "lat",
         "lon"
     ],
-    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
     "cell_methods": "time: minimum within days",
-    "history": "2019-05-10T00:45:21Z altered by CMOR: Treated scalar dimension: 'height'. 2019-05-10T00:45:21Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\n[2022-05-30 02:20:45] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 17:34:10] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+    "history": "dtr: tasmin: 2019-05-10T00:45:21Z altered by CMOR: Treated scalar dimension: 'height'. 2019-05-10T00:45:21Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\ntasmax: 2019-05-10T00:58:12Z altered by CMOR: Treated scalar dimension: 'height'. 2019-05-10T00:58:12Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\n[2022-07-20 17:19:42] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-20 17:53:21] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: 2019-05-10T00:58:12Z altered by CMOR: Treated scalar dimension: 'height'. 2019-05-10T00:58:12Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\n[2022-07-20 18:47:19] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-20 21:09:02] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-25 11:56:56] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0",
     "long_name": "Relative frequency of days with input variable >= 0 degC",
+    "measure": "bias",
     "standard_name": "air_temperature",
     "units": ""
 }

@@ -1,12 +1,12 @@
 {
     "_ARRAY_DIMENSIONS": [
-        "lat",
-        "lon"
+        "lon",
+        "lat"
     ],
-    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
     "cell_methods": "time: minimum within days",
-    "history": "2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-05-29 02:30:20] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 15:24:51] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+    "history": "dtr: tasmin: 2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\ntasmax: 2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-18 12:35:36] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-18 13:10:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: 2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-18 14:06:56] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-18 16:27:08] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-25 10:32:21] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0",
     "long_name": "Quantile 0.02",
+    "measure": "bias",
     "standard_name": "air_temperature",
-    "units": "K"
+    "units": "\u00b0C"
 }

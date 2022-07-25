@@ -3,10 +3,11 @@
         "lat",
         "lon"
     ],
-    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3)",
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
     "cell_methods": "time: maximum within days",
-    "history": "2019-08-15T16:41:37Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-15T16:41:37Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-05-30 07:59:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=3) - xclim version: 0.36.6-beta\n[2022-07-05 18:01:30] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+    "history": "2019-08-15T16:41:37Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-15T16:41:37Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-20 23:17:14] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-25 12:16:03] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
     "long_name": "slope of the interannual linear trend",
+    "measure": "bias",
     "standard_name": "air_temperature",
-    "units": "K/year"
+    "units": "\u00b0C/year"
 }

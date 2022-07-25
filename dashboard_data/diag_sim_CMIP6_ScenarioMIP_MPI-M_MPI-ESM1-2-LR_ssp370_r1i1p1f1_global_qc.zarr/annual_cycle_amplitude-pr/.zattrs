@@ -3,7 +3,8 @@
         "lat",
         "lon"
     ],
-    "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:59:49] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+    "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:41:29] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
     "long_name": "relative amplitude of the annual cycle",
+    "measure": "ratio",
     "units": "%"
 }

@@ -1,9 +1,10 @@
 {
     "_ARRAY_DIMENSIONS": [
-        "lat",
-        "lon"
+        "lon",
+        "lat"
     ],
-    "history": "[2022-05-28 19:16:42] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.36.6-beta\n[2022-07-05 14:33:05] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+    "history": "[2022-07-18 05:48:40] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-21 14:09:53] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
     "long_name": "relative amplitude of the annual cycle",
+    "measure": "ratio",
     "units": "%"
 }

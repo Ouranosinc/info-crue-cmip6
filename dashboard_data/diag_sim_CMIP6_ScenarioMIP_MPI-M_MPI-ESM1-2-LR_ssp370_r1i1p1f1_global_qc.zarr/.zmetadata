@@ -11,8 +11,8 @@
             "cat/bias_adjust_institution": NaN,
             "cat/bias_adjust_project": NaN,
             "cat/calendar": NaN,
-            "cat/date_end": "2100-12-31 00:00:00",
-            "cat/date_start": "1956-01-01 00:00:00",
+            "cat/date_end": "2100-12-31 00:00",
+            "cat/date_start": "1956-01-01 00:00",
             "cat/domain": "qc",
             "cat/driving_institution": NaN,
             "cat/driving_model": NaN,
@@ -22,18 +22,18 @@
             "cat/institution": "MPI-M",
             "cat/member": "r1i1p1f1",
             "cat/mip_era": "CMIP6",
-            "cat/path": "/crue/jlavoie/info-crue-cmip6/regridded/CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_ssp370_r1i1p1f1_global_regridded.zarr",
+            "cat/path": "/exec/jlavoie/info-crue-cmip6_workdir/CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_ssp370_r1i1p1f1_global_regridded.zarr",
             "cat/processing_level": "regridded",
-            "cat/project": NaN,
             "cat/source": "MPI-ESM1-2-LR",
-            "cat/timedelta": "1 days 00:00:00",
-            "cat/type": "simulations",
+            "cat/type": "simulation",
             "cat/variable": [
-                "pr",
                 "tasmin",
-                "tasmax"
+                "pr",
+                "tasmax",
+                "dtr"
             ],
             "cat/version": NaN,
+            "cat/xrfreq": "D",
             "cmor_version": "3.5.0",
             "contact": "cmip6-mpi-esm@dkrz.de",
             "creation_date": "2019-09-11T14:13:26Z",
@@ -46,15 +46,16 @@
             "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.MPI-M.MPI-ESM1-2-LR.historical.none.r1i1p1f1",
             "grid": "gn",
             "grid_label": "gn",
-            "history": "2019-09-11T14:13:26Z ; CMOR rewrote data to be consistent with CMIP6, CF-1.7 CMIP-6.2 and CF standards.",
+            "history": "[2022-07-19 19:23:37] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': True, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-19 19:23:28] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-19 19:23:28] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-19 19:20:57] bbox spatial subsetting with buffer=1.5, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1 \n 2019-09-11T14:13:26Z ; CMOR rewrote data to be consistent with CMIP6, CF-1.7 CMIP-6.2 and CF standards.",
             "initialization_index": "1",
             "institution": "Max Planck Institute for Meteorology, Hamburg 20146, Germany",
             "institution_id": "MPI-M",
-            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_ssp370_r1i1p1f1_global.qc.regridded.day",
+            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_ssp370_r1i1p1f1_global.qc.regridded.D",
             "intake_esm_vars": [
-                "pr",
                 "tasmin",
-                "tasmax"
+                "pr",
+                "tasmax",
+                "dtr"
             ],
             "license": "CMIP6 model data produced by MPI-M is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
             "mip_era": "CMIP6",
@@ -89,8 +90,8 @@
         },
         "20mm_freq/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -117,16 +118,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 17:02:30] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:46:12] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0",
             "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
+            "measure": "bias",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": ""
         },
         "acf-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -153,15 +155,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:46:36] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:32:33] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0",
             "long_name": "lag-1 autocorrelation",
+            "measure": "bias",
             "standard_name": "air_temperature",
             "units": ""
         },
         "annual_cycle_amplitude-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -185,14 +188,15 @@
                 "lat",
                 "lon"
             ],
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:59:49] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:41:29] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
             "long_name": "relative amplitude of the annual cycle",
+            "measure": "ratio",
             "units": "%"
         },
         "annual_cycle_amplitude-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -219,15 +223,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:52:28] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:34:56] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.37.0",
             "long_name": "absolute amplitude of the annual cycle",
+            "measure": "bias",
             "standard_name": "air_temperature",
             "units": "delta_degC"
         },
         "annual_cycle_phase-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -254,16 +259,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:54:11] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:37:54] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0",
             "is_dayofyear": 1,
             "long_name": "Phase of the annual cycle",
+            "measure": "circular_bias",
             "standard_name": "air_temperature",
             "units": ""
         },
         "frost_days/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -290,8 +296,9 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum",
             "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:26] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:40:26] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0",
             "long_name": "Relative frequency of days with input variable >= 0 degC",
+            "measure": "bias",
             "standard_name": "air_temperature",
             "units": ""
         },
@@ -351,8 +358,8 @@
         },
         "maximum_length_of_dry_spell/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -379,16 +386,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:57:47] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:41:01] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0",
             "long_name": "max of spell length when input variable < amount 1.0",
+            "measure": "bias",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": "day"
         },
         "maximum_length_of_warm_spell/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -415,15 +423,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:50:30] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:34:24] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.37.0",
             "long_name": "max of spell length when input variable >= quantile 0.9",
+            "measure": "bias",
             "standard_name": "air_temperature",
             "units": "day"
         },
         "mean-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -450,16 +459,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:33] mean: mean(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:40:33] mean: mean(da=pr, group='time') - xclim version: 0.37.0",
             "long_name": "Mean",
+            "measure": "bias",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": "mm d-1"
         },
         "mean-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -486,15 +496,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:45:26] mean: mean(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:32:06] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0",
             "long_name": "Mean",
+            "measure": "bias",
             "standard_name": "air_temperature",
-            "units": "K"
+            "units": "\u00b0C"
         },
         "quantile_02-tasmin/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -521,15 +532,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: minimum",
             "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:17] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:40:08] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0",
             "long_name": "Quantile 0.02",
+            "measure": "bias",
             "standard_name": "air_temperature",
-            "units": "K"
+            "units": "\u00b0C"
         },
         "quantile_98-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -556,16 +568,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:47] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:40:56] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.37.0",
             "long_name": "Quantile 0.98",
+            "measure": "bias",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": "mm d-1"
         },
         "quantile_98-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -592,15 +605,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:45:42] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:32:27] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0",
             "long_name": "Quantile 0.98",
+            "measure": "bias",
             "standard_name": "air_temperature",
-            "units": "K"
+            "units": "\u00b0C"
         },
         "skewness-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -627,16 +641,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:43] skewness: skewness(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:40:51] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0",
             "long_name": "Skewness",
+            "measure": "bias",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": ""
         },
         "skewness-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -663,15 +678,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:45:38] skewness: skewness(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:32:22] skewness: skewness(da=tasmax, group='time') - xclim version: 0.37.0",
             "long_name": "Skewness",
+            "measure": "bias",
             "standard_name": "air_temperature",
             "units": ""
         },
         "trend-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -698,15 +714,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:55:32] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:39:14] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
             "long_name": "slope of the interannual linear trend",
+            "measure": "bias",
             "standard_name": "air_temperature",
-            "units": "K/year"
+            "units": "\u00b0C/year"
         },
         "var-pr/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -733,16 +750,17 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:56:40] variance: var(da=pr, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:40:48] variance: var(da=pr, group='time') - xclim version: 0.37.0",
             "long_name": "Variance",
+            "measure": "ratio",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": "mm^2 d-2"
         },
         "var-tasmax/.zarray": {
             "chunks": [
-                30,
-                30
+                211,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -769,15 +787,16 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: mean time: maximum",
             "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
-            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 16:45:32] variance: var(da=tasmax, group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:27Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-11T14:13:27Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:27Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:32:20] variance: var(da=tasmax, group='time') - xclim version: 0.37.0",
             "long_name": "Variance",
+            "measure": "ratio",
             "standard_name": "air_temperature",
-            "units": "K^2"
+            "units": "\u00b0C^2"
         },
         "wet_days_freq/.zarray": {
             "chunks": [
-                30,
-                30
+                106,
+                271
             ],
             "compressor": {
                 "blocksize": 0,
@@ -804,8 +823,9 @@
             "cell_measures": "area: areacella",
             "cell_methods": "area: time: mean",
             "comment": "includes both liquid and solid phases",
-            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-05 17:02:17] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.36.6-beta",
+            "history": "2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 10:45:56] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.37.0",
             "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
+            "measure": "bias",
             "original_name": "pr",
             "standard_name": "precipitation_flux",
             "units": ""
