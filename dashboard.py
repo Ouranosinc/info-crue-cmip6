@@ -124,7 +124,7 @@ fig_per.tight_layout()
 
 cols2=st.columns(2)
 # choose properties
-option_var = cols2[0].selectbox('Input Variables',['Minimum Temperature', 'Maximum Temperature', 'Precipitation'])
+option_var = cols2[0].selectbox('Input Variables',[ 'Maximum Temperature','Minimum Temperature', 'Precipitation'])
 varlong2short = {'Minimum Temperature':'tasmin', 'Maximum Temperature':'tasmax', 'Precipitation':'pr' }
 
 props_of_var= [x for x in scen.data_vars if f'(da={varlong2short[option_var]}' in scen[x].attrs['history'] ]
@@ -132,7 +132,7 @@ props_of_var= [x for x in scen.data_vars if f'(da={varlong2short[option_var]}' i
 def show_long_name(name):
     return f"{scen[name].attrs['long_name']} ({name})"
 
-option_prop = cols2[1].selectbox('Properties of the variable',props_of_var, format_func = show_long_name)
+option_prop = cols2[1].selectbox('Properties of the variable',sorted(props_of_var), format_func = show_long_name)
 prop_sim = sim[option_prop]
 prop_ref = ref[option_prop]
 prop_scen = scen[option_prop]
