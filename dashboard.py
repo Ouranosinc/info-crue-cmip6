@@ -53,7 +53,7 @@ if useCat:
 else:
 
     #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
-    ids = [x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')]
+    ids = [x[30:-5] for x in glob.glob('dashboard_data/diag_scen_meas_*')]
     models = [y.split('_')[3] for y in ids ]
     exps = [y.split('_')[4] for y in ids]
     option_model = cols[0].selectbox('Models',models)
@@ -65,8 +65,8 @@ else:
     ref = xr.open_zarr(f'dashboard_data/diag_ref_ERA_ecmwf_ERA5_era5-land_NAM_qc.zarr')
     sim = xr.open_zarr(f'dashboard_data/diag_sim_{option_id}.zarr')
     scen = xr.open_zarr(f'dashboard_data/diag_scen_{option_id}.zarr')
-    bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_bias_{option_id}.zarr')
-    bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_bias_{option_id}.zarr')
+    bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_meas_{option_id}.zarr')
+    bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_meas_{option_id}.zarr')
     hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
 
 #plot hmap
@@ -85,7 +85,7 @@ cax = divider.new_vertical(size='15%', pad=0.4)
 fig_hmap.add_axes(cax)
 cbar = fig_hmap.colorbar(im, cax=cax, ticks=[0, 1], orientation='horizontal')
 cbar.ax.set_xticklabels(['best', 'worst'])
-plt.title('Normalised mean bias of properties')
+plt.title('Normalised mean measure of properties')
 fig_hmap.tight_layout()
 
 #percentage of grid point that improved
