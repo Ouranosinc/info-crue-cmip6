@@ -1,0 +1,17 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "description": "Daily Maximum Near-Surface Air Temperature",
+    "history": "none\n[2022-07-14 23:23:33] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "slope of the interannual linear trend",
+    "measure": "bias",
+    "online_operation": "maximum",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C/year"
+}

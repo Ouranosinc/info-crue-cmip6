@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "annual_cycle_phase-tasmax: 2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-07-14 02:17:55] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0\nannual_cycle_phase-tasmax: [2022-07-19 18:49:11] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0\n[2022-07-21 14:03:06] annual_cycle_phase-tasmax: circular_bias(sim=annual_cycle_phase-tasmax, ref=annual_cycle_phase-tasmax) - xclim version: 0.37.0",
+    "is_dayofyear": 1,
+    "long_name": "Circular bias",
+    "measure": "circular_bias",
+    "original_name": "TREFHTMX",
+    "standard_name": "air_temperature",
+    "units": ""
+}

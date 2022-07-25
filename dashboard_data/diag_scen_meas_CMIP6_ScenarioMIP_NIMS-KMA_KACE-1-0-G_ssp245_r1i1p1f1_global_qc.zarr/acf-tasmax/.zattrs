@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+    "cell_methods": "time: maximum within days",
+    "history": "acf-tasmax: 2020-03-16T17:33:27Z altered by CMOR: Treated scalar dimension: 'height'. 2020-03-16T17:33:27Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-20 13:07:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-25 12:25:34] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0\nacf-tasmax: [2022-07-19 18:43:44] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0\n[2022-07-25 12:34:53] acf-tasmax: bias(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": ""
+}

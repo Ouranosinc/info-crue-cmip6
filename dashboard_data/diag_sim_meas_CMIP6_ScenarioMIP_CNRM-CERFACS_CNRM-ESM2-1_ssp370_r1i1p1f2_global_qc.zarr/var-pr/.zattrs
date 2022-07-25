@@ -1,0 +1,17 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "description": "at surface; includes both liquid and solid phases from all types of clouds (both large-scale and convective)",
+    "history": "var-pr: none\n[2022-07-18 12:18:43] variance: var(da=pr, group='time') - xclim version: 0.37.0\nvar-pr: [2022-07-19 18:52:49] variance: var(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-21 14:26:42] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.37.0",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "Ratio",
+    "measure": "ratio",
+    "online_operation": "average",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

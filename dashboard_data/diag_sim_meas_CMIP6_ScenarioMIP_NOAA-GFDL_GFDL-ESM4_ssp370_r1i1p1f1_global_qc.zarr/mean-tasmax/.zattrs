@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "history": "mean-tasmax: [2022-07-21 11:18:15] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0\nmean-tasmax: [2022-07-19 18:41:22] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0\n[2022-07-25 13:04:26] mean-tasmax: bias(sim=mean-tasmax, ref=mean-tasmax) - xclim version: 0.37.0",
+    "interp_method": "conserve_order2",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "tasmax",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

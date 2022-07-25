@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: minimum",
+    "history": "frost_days: [2022-07-17 13:20:48] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0\nfrost_days: [2022-07-19 18:51:28] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0\n[2022-07-25 12:53:25] frost_days: bias(sim=frost_days, ref=frost_days) - xclim version: 0.37.0",
+    "interp_method": "conserve_order2",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "tasmin",
+    "standard_name": "air_temperature",
+    "units": ""
+}

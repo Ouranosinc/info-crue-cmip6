@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "mean-pr: 2019-09-11T14:13:26Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-09-11T14:13:26Z altered by CMOR: Inverted axis: lat.\n[2022-07-20 08:15:31] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-25 11:43:17] mean: mean(da=pr, group='time') - xclim version: 0.37.0\nmean-pr: [2022-07-19 18:51:38] mean: mean(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-25 11:45:12] mean-pr: bias(sim=mean-pr, ref=mean-pr) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "precipitation_flux",
+    "units": "mm d-1"
+}

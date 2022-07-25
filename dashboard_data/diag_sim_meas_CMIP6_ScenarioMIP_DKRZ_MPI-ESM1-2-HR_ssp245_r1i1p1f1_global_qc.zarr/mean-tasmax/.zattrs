@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "mean-tasmax: 2019-08-25T06:42:13Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-25T06:42:13Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-08-25T06:42:13Z altered by CMOR: Inverted axis: lat.\n[2022-07-16 03:31:40] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0\nmean-tasmax: [2022-07-19 18:41:22] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0\n[2022-07-25 10:55:06] mean-tasmax: bias(sim=mean-tasmax, ref=mean-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

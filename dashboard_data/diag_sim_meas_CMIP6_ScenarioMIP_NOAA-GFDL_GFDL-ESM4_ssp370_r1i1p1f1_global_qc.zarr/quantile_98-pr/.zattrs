@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "history": "quantile_98-pr: [2022-07-21 11:29:40] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.37.0\nquantile_98-pr: [2022-07-19 18:53:33] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.37.0\n[2022-07-25 13:04:26] quantile_98-pr: bias(sim=quantile_98-pr, ref=quantile_98-pr) - xclim version: 0.37.0",
+    "interp_method": "conserve_order1",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": "mm d-1"
+}

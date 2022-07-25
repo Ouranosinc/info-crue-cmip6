@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "history": "20mm_freq: [2022-07-21 11:36:31] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0\n20mm_freq: [2022-07-19 18:55:10] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0\n[2022-07-25 13:04:23] 20mm_freq: bias(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.37.0",
+    "interp_method": "conserve_order1",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

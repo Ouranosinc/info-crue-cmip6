@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "var-pr: 2019-08-25T06:42:13Z altered by CMOR: replaced missing value flag (-9e+33) and corresponding data with standard missing value (1e+20). 2019-08-25T06:42:13Z altered by CMOR: Inverted axis: lat.\n[2022-07-16 03:42:06] variance: var(da=pr, group='time') - xclim version: 0.37.0\nvar-pr: [2022-07-19 18:52:49] variance: var(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-25 10:55:07] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.37.0",
+    "long_name": "Ratio",
+    "measure": "ratio",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

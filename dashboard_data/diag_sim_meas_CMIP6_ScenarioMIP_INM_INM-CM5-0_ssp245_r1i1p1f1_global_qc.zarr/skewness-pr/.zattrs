@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean (interval: 1 day)",
+    "comment": "includes both liquid and solid phases",
+    "history": "skewness-pr: [2022-07-16 08:40:17] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0\nskewness-pr: [2022-07-19 18:53:07] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-25 11:09:05] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

@@ -1,0 +1,18 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "description": "Daily Maximum Near-Surface Air Temperature",
+    "history": "annual_cycle_phase-tasmax: none\n[2022-07-18 12:16:21] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0\nannual_cycle_phase-tasmax: [2022-07-19 18:49:11] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0\n[2022-07-21 14:26:41] annual_cycle_phase-tasmax: circular_bias(sim=annual_cycle_phase-tasmax, ref=annual_cycle_phase-tasmax) - xclim version: 0.37.0",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "is_dayofyear": 1,
+    "long_name": "Circular bias",
+    "measure": "circular_bias",
+    "online_operation": "maximum",
+    "standard_name": "air_temperature",
+    "units": ""
+}

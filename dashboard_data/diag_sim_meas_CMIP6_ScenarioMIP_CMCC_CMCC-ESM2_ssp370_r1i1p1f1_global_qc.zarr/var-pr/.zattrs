@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "var-pr: [2022-07-18 07:17:01] variance: var(da=pr, group='time') - xclim version: 0.37.0\nvar-pr: [2022-07-19 18:52:49] variance: var(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-21 14:10:19] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.37.0",
+    "long_name": "Ratio",
+    "measure": "ratio",
+    "original_name": "PRECT",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

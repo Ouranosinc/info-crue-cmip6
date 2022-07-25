@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "history": "var-pr: [2022-07-17 13:20:59] variance: var(da=pr, group='time') - xclim version: 0.37.0\nvar-pr: [2022-07-19 18:52:49] variance: var(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-25 12:53:26] var-pr: ratio(sim=var-pr, ref=var-pr) - xclim version: 0.37.0",
+    "interp_method": "conserve_order1",
+    "long_name": "Ratio",
+    "measure": "ratio",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

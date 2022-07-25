@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "cell_methods": "time: minimum within days",
+    "history": "quantile_02-tasmin: dtr: tasmin: 2020-12-21T16:22:35Z altered by CMOR: Treated scalar dimension: 'height'.\ntasmax: 2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-07-13 21:36:24] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-13 22:13:20] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: 2020-12-21T16:22:34Z altered by CMOR: Treated scalar dimension: 'height'.\n[2022-07-13 23:13:21] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-14 01:38:35] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-21 14:00:32] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0\nquantile_02-tasmin: [2022-07-19 18:50:19] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0\n[2022-07-21 14:03:08] quantile_02-tasmin: bias(sim=quantile_02-tasmin, ref=quantile_02-tasmin) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

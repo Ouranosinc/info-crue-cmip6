@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum (interval: 10 minutes)",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "trend-tasmax: 2019-08-24T00:24:51Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-24T04:09:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-18 02:17:04] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0\ntrend-tasmax: [2022-07-19 18:49:46] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0\n[2022-07-21 13:54:58] trend-tasmax: bias(sim=trend-tasmax, ref=trend-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C/year"
+}
