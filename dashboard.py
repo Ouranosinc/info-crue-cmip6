@@ -127,7 +127,7 @@ cols2=st.columns(2)
 option_var = cols2[0].selectbox('Input Variables',['Minimum Temperature', 'Maximum Temperature', 'Precipitation'])
 varlong2short = {'Minimum Temperature':'tasmin', 'Maximum Temperature':'tasmax', 'Precipitation':'pr' }
 
-props_of_var= [x for x in scen.data_vars if varlong2short[option_var] in scen[x].attrs['history'] ]
+props_of_var= [x for x in scen.data_vars if f'(da={varlong2short[option_var]}' in scen[x].attrs['history'] ]
 
 def show_long_name(name):
     return f"{scen[name].attrs['long_name']} ({name})"
