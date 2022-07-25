@@ -62,7 +62,7 @@ else:
     option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
 
 
-    ref = xr.open_zarr(f'dashboard_data/diag_ref_ERA_ecmwf_ERA5_era5-land_NAM_qc.zarr')
+    ref = xr.open_zarr(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.zarr')
     sim = xr.open_zarr(f'dashboard_data/diag_sim_{option_id}.zarr')
     scen = xr.open_zarr(f'dashboard_data/diag_scen_{option_id}.zarr')
     bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_meas_{option_id}.zarr')
