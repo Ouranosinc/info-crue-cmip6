@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean (interval: 1 day)",
+    "comment": "includes both liquid and solid phases",
+    "history": "[2022-07-25 22:43:04] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0",
+    "long_name": "max of spell length when input variable < amount 1.0",
+    "measure": "bias",
+    "original_name": "pr",
+    "standard_name": "precipitation_flux",
+    "units": "day"
+}

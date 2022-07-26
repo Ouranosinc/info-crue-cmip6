@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "cell_methods": "time: minimum within days",
+    "history": "frost_days: dtr: tasmin: 2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\ntasmax: 2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-18 12:35:36] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-18 13:10:27] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: 2019-11-09T02:07:38Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-09T02:07:38Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-18 14:06:56] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-18 16:27:08] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-25 20:52:44] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0\nfrost_days: [2022-07-25 17:02:21] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0\n[2022-07-25 20:54:49] frost_days: bias(sim=frost_days, ref=frost_days) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": ""
+}

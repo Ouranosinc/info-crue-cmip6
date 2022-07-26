@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_methods": "time: point",
+    "history": "[2022-07-25 17:00:29] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
+    "long_name": "slope of the interannual linear trend",
+    "measure": "bias",
+    "original_variable": "t2m",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C/year"
+}

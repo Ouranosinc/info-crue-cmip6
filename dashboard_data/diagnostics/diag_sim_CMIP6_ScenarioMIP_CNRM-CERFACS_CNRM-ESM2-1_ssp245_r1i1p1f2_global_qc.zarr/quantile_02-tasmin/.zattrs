@@ -1,0 +1,17 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: minimum",
+    "description": "Daily Minimum Near-Surface Air Temperature",
+    "history": "none\n[2022-07-25 19:31:27] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "Quantile 0.02",
+    "measure": "bias",
+    "online_operation": "minimum",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

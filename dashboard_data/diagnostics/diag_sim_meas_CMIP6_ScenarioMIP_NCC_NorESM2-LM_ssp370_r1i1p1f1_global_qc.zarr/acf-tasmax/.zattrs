@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "acf-tasmax: 2019-08-15T16:41:37Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-15T16:41:37Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-26 02:05:31] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0\nacf-tasmax: [2022-07-25 16:53:57] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0\n[2022-07-26 02:32:03] acf-tasmax: bias(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "TREFHTMX",
+    "standard_name": "air_temperature",
+    "units": ""
+}

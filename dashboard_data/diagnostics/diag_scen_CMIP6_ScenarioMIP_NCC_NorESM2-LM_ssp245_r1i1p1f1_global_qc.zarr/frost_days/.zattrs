@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "cell_methods": "time: minimum within days",
+    "history": "dtr: tasmin: 2019-08-15T16:47:30Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-15T16:47:30Z altered by CMOR: Converted type from 'd' to 'f'.\ntasmax: 2019-08-15T16:41:37Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-15T16:41:37Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-17 00:07:12] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-17 00:40:30] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: 2019-08-15T16:41:37Z altered by CMOR: Treated scalar dimension: 'height'. 2019-08-15T16:41:37Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-17 01:40:24] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-17 04:06:18] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-07-26 02:01:48] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0",
+    "long_name": "Relative frequency of days with input variable >= 0 degC",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": ""
+}

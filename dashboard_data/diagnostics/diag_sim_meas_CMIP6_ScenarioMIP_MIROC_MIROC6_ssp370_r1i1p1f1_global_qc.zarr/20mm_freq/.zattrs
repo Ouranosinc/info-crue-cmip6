@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "20mm_freq: 2019-08-30T09:02:30Z altered by CMOR: Converted units from 'kg/m**2/s' to 'kg m-2 s-1'. 2019-08-30T09:02:30Z altered by CMOR: replaced missing value flag (-999) with standard missing value (1e+20). 2019-08-30T09:02:30Z altered by CMOR: Inverted axis: lat.\n[2022-07-26 00:01:33] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0\n20mm_freq: [2022-07-25 17:06:18] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0\n[2022-07-26 00:08:06] 20mm_freq: bias(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "PRCP",
+    "original_units": "kg/m**2/s",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum (interval: 1 day)",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "2020-03-16T17:33:27Z altered by CMOR: Treated scalar dimension: 'height'. 2020-03-16T17:33:27Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-26 03:03:14] variance: var(da=tasmax, group='time') - xclim version: 0.37.0",
+    "long_name": "Variance",
+    "measure": "ratio",
+    "original_name": "TASMAX",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C^2"
+}

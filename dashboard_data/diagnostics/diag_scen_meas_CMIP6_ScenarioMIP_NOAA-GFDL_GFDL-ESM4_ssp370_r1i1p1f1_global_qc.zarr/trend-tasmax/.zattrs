@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+    "cell_methods": "time: maximum within days",
+    "history": "trend-tasmax: [2022-07-21 08:40:29] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-26 04:17:45] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0\ntrend-tasmax: [2022-07-25 17:00:29] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0\n[2022-07-26 04:25:43] trend-tasmax: bias(sim=trend-tasmax, ref=trend-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C/year"
+}
