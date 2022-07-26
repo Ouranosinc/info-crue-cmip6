@@ -551,19 +551,17 @@ if __name__ == '__main__':
                                                       domain=region_name
                                                       ).to_dask().chunk({'time': -1}).sel(time=ref_period)
 
-                                # ds_sim = pcat.search(processing_level='regridded',
-                                #                      id=sim_id,
-                                #                      domain=region_name
-                                #                      ).to_dask().chunk({'time': -1}).sel(time=ref_period)
-                                #
-                                # # properties
-                                # sim = calculate_properties(ds=ds_sim,
-                                #                            diag_dict=CONFIG['diagnostics']['properties'],
-                                #                            unstack=CONFIG['custom']['stack_drop_nans'],
-                                #                            path_coords=refdir / f'coords_{region_name}.nc',
-                                #                            unit_conversion=CONFIG['clean_up']['units'])
-                                # TODO: remove this
-                                sim = pcat.search(id = sim_id, domain=region_name, processing_level='diag_sim').to_dask()
+                                ds_sim = pcat.search(processing_level='regridded',
+                                                     id=sim_id,
+                                                     domain=region_name
+                                                     ).to_dask().chunk({'time': -1}).sel(time=ref_period)
+
+                                # properties
+                                sim = calculate_properties(ds=ds_sim,
+                                                           diag_dict=CONFIG['diagnostics']['properties'],
+                                                           unstack=CONFIG['custom']['stack_drop_nans'],
+                                                           path_coords=refdir / f'coords_{region_name}.nc',
+                                                           unit_conversion=CONFIG['clean_up']['units'])
 
                                 scen = calculate_properties(ds=ds_scen,
                                                             diag_dict=CONFIG['diagnostics']['properties'],
@@ -585,10 +583,9 @@ if __name__ == '__main__':
                                 path_diag = path_diag.with_suffix('.npy')  # replace zarr by npy
                                 np.save(path_diag, hmap)
 
-                                # TODO: put back 2 sim
                                 # save and update properties and biases/measures
-                                for ds, step in zip([ scen, meas_sim, meas_scen],
-                                                    [ "scen", 'sim_meas', 'scen_meas']):
+                                for ds, step in zip([sim,  scen, meas_sim, meas_scen],
+                                                    ["sim", "scen", 'sim_meas', 'scen_meas']):
                                     path_diag = Path(
                                         CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                               sim_id=sim_id,
