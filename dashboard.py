@@ -89,37 +89,37 @@ plt.title('Normalised mean measure of properties')
 fig_hmap.tight_layout()
 
 #percentage of grid point that improved
-percent_better=[]
-for var in sorted(bias_scen.data_vars):
-    if bias_sim[var].attrs['measure']=='ratio':
-        diff_bias = abs(bias_sim[var]-1) - abs(bias_scen[var]-1)
-    else:
-        diff_bias = abs(bias_sim[var]) - abs(bias_scen[var])
-    diff_bias=diff_bias.values.ravel()
-    diff_bias= diff_bias[~ np.isnan(diff_bias)]
-
-    total= bias_scen[var].values.ravel()
-    total = total[~ np.isnan(total)]
-
-    improved = diff_bias>=0
-    percent_better.append( np.sum(improved)/len(total)) # we count nan
-
-percent_better=np.reshape(np.array(percent_better), (1, len(bias_scen.data_vars)))
-
-fig_per, ax = plt.subplots(figsize=(1 * len(dict_prop), 1))
-cmap=plt.cm.RdYlGn
-norm = colors.BoundaryNorm(np.linspace(0,1,100), cmap.N)
-im = ax.imshow(percent_better, cmap=cmap, norm=norm)
-ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop, rotation=45,
-              ha='right')
-ax.set_yticks(ticks=np.arange(1), labels=[''])
-
-divider = make_axes_locatable(ax)
-cax = divider.new_vertical(size='15%', pad=0.4)
-fig_per.add_axes(cax)
-cbar = fig_per.colorbar(im, cax=cax, ticks=[0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7,0.8,0.9, 1], orientation='horizontal')
-plt.title('Percentage of grid cells that improved or stayed the same')
-fig_per.tight_layout()
+# percent_better=[]
+# for var in sorted(bias_scen.data_vars):
+#     if bias_sim[var].attrs['measure']=='ratio':
+#         diff_bias = abs(bias_sim[var]-1) - abs(bias_scen[var]-1)
+#     else:
+#         diff_bias = abs(bias_sim[var]) - abs(bias_scen[var])
+#     diff_bias=diff_bias.values.ravel()
+#     diff_bias= diff_bias[~ np.isnan(diff_bias)]
+#
+#     total= bias_scen[var].values.ravel()
+#     total = total[~ np.isnan(total)]
+#
+#     improved = diff_bias>=0
+#     percent_better.append( np.sum(improved)/len(total)) # we count nan
+#
+# percent_better=np.reshape(np.array(percent_better), (1, len(bias_scen.data_vars)))
+#
+# fig_per, ax = plt.subplots(figsize=(1 * len(dict_prop), 1))
+# cmap=plt.cm.RdYlGn
+# norm = colors.BoundaryNorm(np.linspace(0,1,100), cmap.N)
+# im = ax.imshow(percent_better, cmap=cmap, norm=norm)
+# ax.set_xticks(ticks=np.arange(len(dict_prop)), labels=dict_prop, rotation=45,
+#               ha='right')
+# ax.set_yticks(ticks=np.arange(1), labels=[''])
+#
+# divider = make_axes_locatable(ax)
+# cax = divider.new_vertical(size='15%', pad=0.4)
+# fig_per.add_axes(cax)
+# cbar = fig_per.colorbar(im, cax=cax, ticks=[0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7,0.8,0.9, 1], orientation='horizontal')
+# plt.title('Percentage of grid cells that improved or stayed the same')
+# fig_per.tight_layout()
 
 
 cols2=st.columns(2)
@@ -191,4 +191,4 @@ col3.write(hv.render(bias_scen_prop.hvplot(width=wb, height=hb, title=f'SCEN {me
 
 
 st.write(fig_hmap)
-st.write(fig_per)
+#st.write(fig_per)
