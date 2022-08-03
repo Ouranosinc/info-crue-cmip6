@@ -6,37 +6,35 @@ project:
 
 tasks:
   #- initialize_pcat
-#  - makeref
-#  - extract
-#  - regrid
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
-#  - clean_up
-#  - final_zarr
+  - makeref
+  - extract
+  - regrid
+  - train_qm
+  - adjust_qm
+  - train_ex
+  - adjust_ex
+  - clean_up
+  - final_zarr
   - diagnostics
 
 ids:
   # in the TCR likely range #https://zenodo.org/record/6476375#.YnVQNNPMJhE (14) #chunking
   # 'CMIP6_ScenarioMIP_BCC_BCC-CSM2-MR_EXPERIMENT_r1i1p1f1_global', # remove because missing a file #None
-  - CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
-  - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_global # [1, 192, 288]
-  - CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_global # [1, 128, 256]
-  - CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_global #  [1, 145, 192]
-  - CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_global # [1, 96, 144]
-  - CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_global # [1, 192, 384] # need to be match with historical from other institution
-  - CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_global # [1, 120, 180]
-  - CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_global # [1, 96, 192]
-  - CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_global #[1, 96, 192]
-  - CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_global #[1, 160, 320]
-  - CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_global #[1, 96, 144]
-  - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] # 360 days
-  - CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_global #[1, 180, 288] #
+  #- CMIP6_ScenarioMIP_CAS_FGOALS-g3_EXPERIMENT_r1i1p1f1_global # None, but 1 file per year
+ # - CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_EXPERIMENT_r1i1p1f1_global # [1, 192, 288]
+#  - CMIP6_ScenarioMIP_CNRM-CERFACS_CNRM-ESM2-1_EXPERIMENT_r1i1p1f2_global # [1, 128, 256]
+#  - CMIP6_ScenarioMIP_CSIRO-ARCCSS_ACCESS-CM2_EXPERIMENT_r1i1p1f1_global #  [1, 145, 192]
+#  - CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_EXPERIMENT_r1i1p1f1_global # [1, 96, 144]
+#  - CMIP6_ScenarioMIP_DKRZ_MPI-ESM1-2-HR_EXPERIMENT_r1i1p1f1_global # [1, 192, 384] # need to be match with historical from other institution
+#  - CMIP6_ScenarioMIP_INM_INM-CM5-0_EXPERIMENT_r1i1p1f1_global # [1, 120, 180]
+#  - CMIP6_ScenarioMIP_MIROC_MIROC6_EXPERIMENT_r1i1p1f1_global # [1, 96, 192]
+#  - CMIP6_ScenarioMIP_MPI-M_MPI-ESM1-2-LR_EXPERIMENT_r1i1p1f1_global #[1, 96, 192]
+#  - CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_EXPERIMENT_r1i1p1f1_global #[1, 160, 320]
+#  - CMIP6_ScenarioMIP_NCC_NorESM2-LM_EXPERIMENT_r1i1p1f1_global #[1, 96, 144]
+#  - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_EXPERIMENT_r1i1p1f1_global #[1, 144, 192] # 360 days
+#  - CMIP6_ScenarioMIP_NOAA-GFDL_GFDL-ESM4_EXPERIMENT_r1i1p1f1_global #[1, 180, 288] #
 
-experiments: &experiments
-    - ssp245
-    - ssp370
+
 
 custom:
     regions:
@@ -98,10 +96,26 @@ extraction:
         extract_dataset: {}
     simulations:
         search_data_catalogs:
-            variables_and_freqs: *var_and_freq
-            match_hist_and_fut: True
-            allow_conversion: True
-            allow_resampling: False
+          variables_and_freqs: *var_and_freq
+          match_hist_and_fut: True
+          allow_conversion: True
+          allow_resampling: False
+          other_search_criteria:
+            experiment:
+              - ssp245
+              - ssp370
+              - ssp585
+              - ssp126
+            source:
+              - ACCESS-ESM1-5
+              - CanESM5
+              - EC-Earth3
+              - FGOALS-g3
+              - IPSL-CM6A-LR
+              - KACE-1-0-G
+              - MIROC6
+              - MRI-ESM2-0
+            mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
             xr_combine_kwargs:
@@ -236,6 +250,7 @@ biasadjust_qm:
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
 
+
 biasadjust_ex:
     moving_yearly_window:
         window: 40
@@ -279,6 +294,7 @@ clean_up:
       remove_all_attrs_except:
         global:
           - ^cat/
+          - history
         tasmax: &attrs_to_keep
           - bias_adjustment
           - cell_methods
