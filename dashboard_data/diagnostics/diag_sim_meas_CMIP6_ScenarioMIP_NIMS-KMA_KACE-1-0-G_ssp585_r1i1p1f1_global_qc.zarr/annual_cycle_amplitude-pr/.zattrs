@@ -1,0 +1,10 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "history": "annual_cycle_amplitude-pr: 2019-09-11T03:40:51Z altered by CMOR: replaced missing value flag (9.999e+20) with standard missing value (1e+20).\n[2022-08-11 13:23:17] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0\nannual_cycle_amplitude-pr: [2022-07-25 17:06:00] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0\n[2022-08-11 13:36:25] annual_cycle_amplitude-pr: ratio(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.37.0",
+    "long_name": "Ratio",
+    "measure": "ratio",
+    "units": ""
+}

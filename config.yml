@@ -94,12 +94,13 @@ extraction:
                 source: &ref_source
                     "ERA5-Land"
         extract_dataset: {}
-    simulations:
+    simulation:
         search_data_catalogs:
           variables_and_freqs: *var_and_freq
           match_hist_and_fut: True
           allow_conversion: True
           allow_resampling: False
+          periods: *sim_period
           other_search_criteria:
             experiment:
               - ssp245

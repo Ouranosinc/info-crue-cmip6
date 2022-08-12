@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "history": "[2022-07-26 04:01:26] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.37.0",
+    "interp_method": "conserve_order2",
+    "long_name": "max of spell length when input variable >= quantile 0.9",
+    "measure": "bias",
+    "original_name": "tasmax",
+    "standard_name": "air_temperature",
+    "units": "day"
+}

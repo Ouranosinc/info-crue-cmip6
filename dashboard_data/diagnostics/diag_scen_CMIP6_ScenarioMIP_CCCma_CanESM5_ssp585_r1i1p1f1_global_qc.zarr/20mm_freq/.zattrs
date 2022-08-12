@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "2019-05-02T08:01:38Z altered by CMOR: Reordered dimensions, original order: lat lon time. 2019-05-02T08:01:38Z altered by CMOR: replaced missing value flag (1e+38) with standard missing value (1e+20).\n[2022-08-08 21:49:43] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-08 23:12:01] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0",
+    "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
+    "measure": "bias",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

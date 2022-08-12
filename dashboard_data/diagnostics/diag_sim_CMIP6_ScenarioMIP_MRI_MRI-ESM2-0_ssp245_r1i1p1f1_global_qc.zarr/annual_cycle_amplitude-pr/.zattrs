@@ -1,0 +1,10 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "history": "2019-05-10T01:24:54Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\n[2022-07-26 01:06:03] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
+    "long_name": "relative amplitude of the annual cycle",
+    "measure": "ratio",
+    "units": "%"
+}

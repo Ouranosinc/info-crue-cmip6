@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "quantile_98-tasmax: 2019-05-10T01:05:49Z altered by CMOR: Treated scalar dimension: 'height'. 2019-05-10T01:05:49Z altered by CMOR: replaced missing value flag (-9.99e+33) with standard missing value (1e+20).\n[2022-08-11 08:50:28] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0\nquantile_98-tasmax: [2022-07-25 16:53:28] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0\n[2022-08-11 09:11:16] quantile_98-tasmax: bias(sim=quantile_98-tasmax, ref=quantile_98-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "TA",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

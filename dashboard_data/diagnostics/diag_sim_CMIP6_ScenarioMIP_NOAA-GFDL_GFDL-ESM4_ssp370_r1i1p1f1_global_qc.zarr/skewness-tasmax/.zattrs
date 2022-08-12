@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "history": "[2022-07-26 03:57:19] skewness: skewness(da=tasmax, group='time') - xclim version: 0.37.0",
+    "interp_method": "conserve_order2",
+    "long_name": "Skewness",
+    "measure": "bias",
+    "original_name": "tasmax",
+    "standard_name": "air_temperature",
+    "units": ""
+}

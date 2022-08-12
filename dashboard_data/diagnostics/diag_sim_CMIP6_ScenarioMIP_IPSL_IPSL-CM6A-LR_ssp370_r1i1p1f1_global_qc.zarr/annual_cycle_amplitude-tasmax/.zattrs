@@ -1,0 +1,17 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "description": "Daily Maximum Near-Surface Air Temperature",
+    "history": "none\n[2022-08-12 02:44:55] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.37.0",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "absolute amplitude of the annual cycle",
+    "measure": "bias",
+    "online_operation": "maximum",
+    "standard_name": "air_temperature",
+    "units": "delta_degC"
+}

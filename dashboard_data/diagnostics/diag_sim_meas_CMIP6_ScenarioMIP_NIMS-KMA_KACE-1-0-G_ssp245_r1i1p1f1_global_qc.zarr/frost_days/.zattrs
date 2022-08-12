@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: minimum (interval: 1 day)",
+    "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
+    "history": "frost_days: 2020-03-16T15:44:48Z altered by CMOR: Treated scalar dimension: 'height'. 2020-03-16T15:44:48Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-26 02:44:05] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0\nfrost_days: [2022-07-25 17:02:21] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0\n[2022-07-26 03:01:58] frost_days: bias(sim=frost_days, ref=frost_days) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "TASMIN",
+    "standard_name": "air_temperature",
+    "units": ""
+}

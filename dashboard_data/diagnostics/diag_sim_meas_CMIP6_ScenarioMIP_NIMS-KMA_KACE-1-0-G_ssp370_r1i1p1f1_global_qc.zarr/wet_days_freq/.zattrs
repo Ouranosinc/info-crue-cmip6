@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean (interval: 1 day)",
+    "comment": "includes both liquid and solid phases",
+    "history": "wet_days_freq: 2019-09-11T03:40:51Z altered by CMOR: replaced missing value flag (9.999e+20) with standard missing value (1e+20).\n[2022-07-26 03:20:04] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.37.0\nwet_days_freq: [2022-07-25 17:06:09] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.37.0\n[2022-07-26 03:31:57] wet_days_freq: bias(sim=wet_days_freq, ref=wet_days_freq) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "m01s05i216",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

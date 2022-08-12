@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "maximum_length_of_dry_spell: 2019-08-30T09:02:30Z altered by CMOR: Converted units from 'kg/m**2/s' to 'kg m-2 s-1'. 2019-08-30T09:02:30Z altered by CMOR: replaced missing value flag (-999) with standard missing value (1e+20). 2019-08-30T09:02:30Z altered by CMOR: Inverted axis: lat.\n[2022-07-16 12:12:41] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-25 23:43:01] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0\nmaximum_length_of_dry_spell: [2022-07-25 17:05:09] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0\n[2022-07-25 23:43:58] maximum_length_of_dry_spell: bias(sim=maximum_length_of_dry_spell, ref=maximum_length_of_dry_spell) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "precipitation_flux",
+    "units": "day"
+}

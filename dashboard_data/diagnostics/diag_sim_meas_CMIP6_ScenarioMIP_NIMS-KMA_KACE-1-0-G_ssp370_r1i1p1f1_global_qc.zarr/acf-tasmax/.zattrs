@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum (interval: 1 day)",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "acf-tasmax: 2020-03-16T17:33:27Z altered by CMOR: Treated scalar dimension: 'height'. 2020-03-16T17:33:27Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-26 03:03:59] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0\nacf-tasmax: [2022-07-25 16:53:57] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0\n[2022-07-26 03:31:55] acf-tasmax: bias(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "original_name": "TASMAX",
+    "standard_name": "air_temperature",
+    "units": ""
+}

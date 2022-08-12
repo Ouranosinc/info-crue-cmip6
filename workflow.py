@@ -177,7 +177,7 @@ if __name__ == '__main__':
             #sim_id = sim_id_exp.replace('EXPERIMENT',exp)
     #for exp in CONFIG['experiments']:
     cat_sim = search_data_catalogs(
-        **CONFIG['extraction']['simulations']['search_data_catalogs'])
+        **CONFIG['extraction']['simulation']['search_data_catalogs'])
     for sim_id, dc_id in cat_sim.items():
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
@@ -218,7 +218,7 @@ if __name__ == '__main__':
                                 region_dict['buffer']=1.5
                                 ds_sim = extract_dataset(catalog=dc_id,
                                                          region=region_dict,
-                                                         **CONFIG['extraction']['simulations']['extract_dataset'],
+                                                         **CONFIG['extraction']['simulation']['extract_dataset'],
                                                          )['D']
                                 ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
 
@@ -607,14 +607,15 @@ if __name__ == '__main__':
 
 
                         # # if this is the last step, delete workdir, but keep regridded and log
-                        # if CONFIG["tasks"][-1] == 'diagnostics':
-                        #     final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                        #     path_log = CONFIG['logging']['handlers']['file']['filename']
-                        #     move_then_delete(dirs_to_delete= [workdir],
-                        #                      moving_files =
-                        #                      [[f"{workdir}/{sim_id}_regridded.zarr",final_regrid_path],
-                        #                       [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
-                        #                       pcat=pcat)
+                        if CONFIG["tasks"][-1] == 'diagnostics':
+                            final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
+                            path_log = CONFIG['logging']['handlers']['file']['filename']
+                            logger.info('delete workdir')
+                            move_then_delete(dirs_to_delete= [workdir],
+                                             moving_files =
+                                             [[f"{workdir}/{sim_id}_regridded.zarr",final_regrid_path],
+                                              [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
+                                              pcat=pcat)
 
                         send_mail(
                             subject=f"{sim_id}/{region_name} - Succès",

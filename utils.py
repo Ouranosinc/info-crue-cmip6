@@ -169,7 +169,7 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
 
     # erase workdir content if this is the last step
     for dir_to_delete in dirs_to_delete:
-        if dir_to_delete.exists() and dir_to_delete.is_dir():
+        if Path(dir_to_delete).exists() and Path(dir_to_delete).is_dir():
             shutil.rmtree(dir_to_delete)
             os.mkdir(dir_to_delete)
 

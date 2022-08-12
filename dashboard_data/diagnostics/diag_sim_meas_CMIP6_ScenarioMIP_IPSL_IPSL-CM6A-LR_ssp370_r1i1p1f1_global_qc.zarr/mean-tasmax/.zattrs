@@ -1,0 +1,17 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "description": "Daily Maximum Near-Surface Air Temperature",
+    "history": "mean-tasmax: none\n[2022-08-12 02:42:01] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0\nmean-tasmax: [2022-07-25 16:51:16] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0\n[2022-08-12 03:04:54] mean-tasmax: bias(sim=mean-tasmax, ref=mean-tasmax) - xclim version: 0.37.0",
+    "interval_operation": "900 s",
+    "interval_write": "1 d",
+    "long_name": "Bias",
+    "measure": "bias",
+    "online_operation": "maximum",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

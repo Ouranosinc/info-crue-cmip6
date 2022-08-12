@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "history": "[2022-07-26 03:58:02] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0",
+    "interp_method": "conserve_order2",
+    "long_name": "lag-1 autocorrelation",
+    "measure": "bias",
+    "original_name": "tasmax",
+    "standard_name": "air_temperature",
+    "units": ""
+}

@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "20mm_freq: [2022-07-18 05:48:40] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-25 19:20:30] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0\n20mm_freq: [2022-07-25 17:06:18] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0\n[2022-07-25 19:20:40] 20mm_freq: bias(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

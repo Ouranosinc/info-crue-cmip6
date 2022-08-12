@@ -1,0 +1,763 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "Notes": "Regridded on the grid of ERA5-Land, then bias-adjusted with detrended\nquantile mapping on a day-of-year basis with a window of 31 days,\nLOESS detrending and 50 quantiles.\nThere is a second bias adjustement for pr's extreme values.\nTasmax, dtr and pr were adjusted, tasmin was computed\nfrom tasmax and dtr after the adjustment.\nThe reference was ERA5-Land over the 1991-2010 period.\n",
+            "cat/_data_format_": "zarr",
+            "cat/activity": "ScenarioMIP",
+            "cat/bias_adjust_institution": "Ouranos",
+            "cat/bias_adjust_project": "info-crue-CMIP6",
+            "cat/calendar": NaN,
+            "cat/date_end": "2100-12-31 00:00:00",
+            "cat/date_start": "1956-01-01 00:00:00",
+            "cat/domain": "qc",
+            "cat/driving_institution": NaN,
+            "cat/driving_model": NaN,
+            "cat/experiment": "ssp245",
+            "cat/frequency": "day",
+            "cat/id": "CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1_global",
+            "cat/institution": "IPSL",
+            "cat/member": "r1i1p1f1",
+            "cat/mip_era": "CMIP6",
+            "cat/path": "/crue/jlavoie/info-crue-cmip6/FINAL/day_CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1_global_qc.zarr",
+            "cat/processing_level": "final",
+            "cat/source": "IPSL-CM6A-LR",
+            "cat/type": "simulation",
+            "cat/variable": [
+                "pr",
+                "tasmin",
+                "tasmax"
+            ],
+            "cat/version": NaN,
+            "cat/xrfreq": "D",
+            "history": "[2022-08-10 15:20:37] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': True, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-08-10 15:20:30] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-08-10 15:20:30] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-08-10 15:17:58] bbox spatial subsetting with buffer=1.5, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1 \n Sat Dec  1 12:16:31 2018: ncatted -O -a realization_index,global,m,i,1 /ccc/work/cont003/cmip6/cmip6/onhold/CM61-LR-histEXT-03.1910/files+ext/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nSat Dec  1 12:09:56 2018: ncatted -O -a realization_index,global,m,i,1 /ccc/work/cont003/cmip6/cmip6/onhold/CM61-LR-hist-03.1910/files/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nSat Dec  1 11:04:28 2018: ncatted -O -a realization_index,global,m,i,1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nFri Nov 30 16:51:32 2018: ncatted -O -a realization_index,global,m,s,1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nThu Nov 29 16:52:55 2018: ncatted -O -a variant_label,global,m,c,r1i1p1f1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nThu Nov 29 16:52:55 2018: ncatted -O -a further_info_url,global,m,c,https://furtherinfo.es-doc.org/CMIP6.IPSL.IPSL-CM6A-LR.historical.none.r1i1p1f1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nThu Nov 29 16:52:55 2018: ncatted -O -a name,global,m,c,/ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_%start_date%-%end_date% /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nMon Sep  3 14:51:09 2018: ncatted -O -a parent_variant_label,global,m,c,r1i1p1f1 pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nnone",
+            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1_global.qc.final.D",
+            "intake_esm_vars": [
+                "pr",
+                "tasmin",
+                "tasmax"
+            ],
+            "redistribution": "Redistribution prohibited. For internal use only.",
+            "title": "Info-Crue CMIP6 - {sim_id}",
+            "version": "1.0.0"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "20mm_freq/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "20mm_freq/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:43:41] relative frequency: relative_frequency(da=pr, op='>=', thresh='20 mm d-1', group='time') - xclim version: 0.37.0",
+            "long_name": "Relative frequency of days with input variable >= 20 mm d-1",
+            "measure": "bias",
+            "standard_name": "precipitation_flux",
+            "units": ""
+        },
+        "acf-tasmax/.zarray": {
+            "chunks": [
+                136,
+                211
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                271,
+                211
+            ],
+            "zarr_format": 2
+        },
+        "acf-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon",
+                "lat"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:35:12] acf: acf(da=tasmax, lag=1, group='time.season') - xclim version: 0.37.0",
+            "long_name": "lag-1 autocorrelation",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "annual_cycle_amplitude-pr/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_amplitude-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:42:18] annual_cycle_amplitude: annual_cycle_amplitude(da=pr, amplitude_type='relative', group='time') - xclim version: 0.37.0",
+            "long_name": "relative amplitude of the annual cycle",
+            "measure": "ratio",
+            "units": "%"
+        },
+        "annual_cycle_amplitude-tasmax/.zarray": {
+            "chunks": [
+                211,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_amplitude-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:37:45] annual_cycle_amplitude: annual_cycle_amplitude(da=tasmax, amplitude_type='absolute', group='time') - xclim version: 0.37.0",
+            "long_name": "absolute amplitude of the annual cycle",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": "delta_degC"
+        },
+        "annual_cycle_phase-tasmax/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_phase-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:38:06] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0",
+            "is_dayofyear": 1,
+            "long_name": "Phase of the annual cycle",
+            "measure": "circular_bias",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "frost_days/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "frost_days/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "time: minimum within days",
+            "history": "dtr: tasmin: none\ntasmax: none\n[2022-08-10 15:17:58] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-08-10 15:50:43] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:12:10] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-08-10 19:38:38] relative frequency: relative_frequency(da=tasmin, op='>=', thresh='0 degC', group='time') - xclim version: 0.37.0",
+            "long_name": "Relative frequency of days with input variable >= 0 degC",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "lat/.zarray": {
+            "chunks": [
+                211
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211
+            ],
+            "zarr_format": 2
+        },
+        "lat/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat"
+            ],
+            "long_name": "latitude",
+            "units": "degrees_north"
+        },
+        "lon/.zarray": {
+            "chunks": [
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                271
+            ],
+            "zarr_format": 2
+        },
+        "lon/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon"
+            ],
+            "long_name": "longitude",
+            "units": "degrees_east"
+        },
+        "maximum_length_of_dry_spell/.zarray": {
+            "chunks": [
+                136,
+                211
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                271,
+                211
+            ],
+            "zarr_format": 2
+        },
+        "maximum_length_of_dry_spell/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon",
+                "lat"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:41:29] spell_length_distribution: spell_length_distribution(da=pr, method='amount', op='<', thresh='1 mm d-1', stat='max', group='time') - xclim version: 0.37.0",
+            "long_name": "max of spell length when input variable < amount 1.0",
+            "measure": "bias",
+            "standard_name": "precipitation_flux",
+            "units": "day"
+        },
+        "maximum_length_of_warm_spell/.zarray": {
+            "chunks": [
+                136,
+                211
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                271,
+                211
+            ],
+            "zarr_format": 2
+        },
+        "maximum_length_of_warm_spell/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon",
+                "lat"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:37:18] spell_length_distribution: spell_length_distribution(da=tasmax, method='quantile', op='>=', thresh=0.9, stat='max', group='time') - xclim version: 0.37.0",
+            "long_name": "max of spell length when input variable >= quantile 0.9",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": "day"
+        },
+        "mean-pr/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "mean-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:38:42] mean: mean(da=pr, group='time') - xclim version: 0.37.0",
+            "long_name": "Mean",
+            "measure": "bias",
+            "standard_name": "precipitation_flux",
+            "units": "mm d-1"
+        },
+        "mean-tasmax/.zarray": {
+            "chunks": [
+                211,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "mean-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:34:45] mean: mean(da=tasmax, group='time') - xclim version: 0.37.0",
+            "long_name": "Mean",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": "\u00b0C"
+        },
+        "quantile_02-tasmin/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_02-tasmin/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "time: minimum within days",
+            "history": "dtr: tasmin: none\ntasmax: none\n[2022-08-10 15:17:58] dtr: conversions.DTR(tasmin=tasmin, tasmax=tasmax) - xclim version: 0.37.0\n[2022-08-10 15:50:43] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='*').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\ntasmax: none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:12:10] tasmin: conversions.TASMIN_FROM_DTR(dtr=dtr, tasmax=tasmax) - xclim version: 0.37.0\n[2022-08-10 19:38:32] quantile: quantile(da=tasmin, q=0.02, group='time') - xclim version: 0.37.0",
+            "long_name": "Quantile 0.02",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": "\u00b0C"
+        },
+        "quantile_98-pr/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_98-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:41:16] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.37.0",
+            "long_name": "Quantile 0.98",
+            "measure": "bias",
+            "standard_name": "precipitation_flux",
+            "units": "mm d-1"
+        },
+        "quantile_98-tasmax/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_98-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:35:06] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0",
+            "long_name": "Quantile 0.98",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": "\u00b0C"
+        },
+        "skewness-pr/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "skewness-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:40:47] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0",
+            "long_name": "Skewness",
+            "measure": "bias",
+            "standard_name": "precipitation_flux",
+            "units": ""
+        },
+        "skewness-tasmax/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "skewness-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:34:57] skewness: skewness(da=tasmax, group='time') - xclim version: 0.37.0",
+            "long_name": "Skewness",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": ""
+        },
+        "trend-tasmax/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "trend-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:38:22] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
+            "long_name": "slope of the interannual linear trend",
+            "measure": "bias",
+            "standard_name": "air_temperature",
+            "units": "\u00b0C/year"
+        },
+        "var-pr/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "var-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:39:53] variance: var(da=pr, group='time') - xclim version: 0.37.0",
+            "long_name": "Variance",
+            "measure": "ratio",
+            "standard_name": "precipitation_flux",
+            "units": "mm^2 d-2"
+        },
+        "var-tasmax/.zarray": {
+            "chunks": [
+                211,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "var-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+            "cell_methods": "time: maximum within days",
+            "history": "none\n[2022-08-10 16:48:55] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-10 19:34:51] variance: var(da=tasmax, group='time') - xclim version: 0.37.0",
+            "long_name": "Variance",
+            "measure": "ratio",
+            "standard_name": "air_temperature",
+            "units": "\u00b0C^2"
+        },
+        "wet_days_freq/.zarray": {
+            "chunks": [
+                106,
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "wet_days_freq/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+            "cell_methods": "time: mean within days",
+            "history": "none\n[2022-08-10 18:24:57] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-08-10 19:42:44] relative frequency: relative_frequency(da=pr, op='>=', thresh='1 mm d-1', group='time') - xclim version: 0.37.0",
+            "long_name": "Relative frequency of days with input variable >= 1 mm d-1",
+            "measure": "bias",
+            "standard_name": "precipitation_flux",
+            "units": ""
+        }
+    },
+    "zarr_consolidated_format": 1
+}

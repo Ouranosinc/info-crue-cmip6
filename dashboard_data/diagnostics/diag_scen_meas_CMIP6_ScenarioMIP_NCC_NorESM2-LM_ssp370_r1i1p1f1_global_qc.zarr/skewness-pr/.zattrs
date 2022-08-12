@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25), ref and hist were prepared with jitter_under_thresh(ref, hist, <dict>)",
+    "cell_methods": "time: mean within days",
+    "history": "skewness-pr: 2019-08-15T15:44:08Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-07-21 00:58:36] : Bias-adjusted with ExtremeValues(cluster_thresh=1.1574074074074072e-05).adjust(sim, scen=pr, frac=0.25) - xclim version: 0.37.0\n[2022-07-26 02:27:25] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0\nskewness-pr: [2022-07-25 17:04:11] skewness: skewness(da=pr, group='time') - xclim version: 0.37.0\n[2022-07-26 02:32:05] skewness-pr: bias(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.37.0",
+    "long_name": "Bias",
+    "measure": "bias",
+    "standard_name": "precipitation_flux",
+    "units": ""
+}

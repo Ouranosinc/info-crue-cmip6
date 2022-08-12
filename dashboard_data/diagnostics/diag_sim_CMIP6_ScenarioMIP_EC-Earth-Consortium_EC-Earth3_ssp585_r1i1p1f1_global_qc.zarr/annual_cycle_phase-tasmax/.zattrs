@@ -1,0 +1,15 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: maximum",
+    "comment": "maximum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: max')",
+    "history": "2019-09-26T03:58:22Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-26T03:58:22Z altered by CMOR: Reordered dimensions, original order: lat lon time.\n[2022-08-10 14:55:06] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0",
+    "is_dayofyear": 1,
+    "long_name": "Phase of the annual cycle",
+    "measure": "circular_bias",
+    "standard_name": "air_temperature",
+    "units": ""
+}

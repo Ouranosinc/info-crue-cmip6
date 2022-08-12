@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "lat"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+    "cell_methods": "time: maximum within days",
+    "history": "2019-11-15T17:28:16Z altered by CMOR: Treated scalar dimension: 'height'. 2019-11-15T17:28:16Z altered by CMOR: replaced missing value flag (-1.07374e+09) with standard missing value (1e+20).\n[2022-07-15 19:45:06] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-07-25 21:16:09] trend: trend(da=tasmax, group='time', output='slope') - xclim version: 0.37.0",
+    "long_name": "slope of the interannual linear trend",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C/year"
+}

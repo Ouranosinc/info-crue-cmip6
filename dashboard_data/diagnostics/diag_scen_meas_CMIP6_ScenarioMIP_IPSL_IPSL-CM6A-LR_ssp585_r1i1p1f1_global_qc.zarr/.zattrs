@@ -1,0 +1,40 @@
+{
+    "Notes": "Regridded on the grid of ERA5-Land, then bias-adjusted with detrended\nquantile mapping on a day-of-year basis with a window of 31 days,\nLOESS detrending and 50 quantiles.\nThere is a second bias adjustement for pr's extreme values.\nTasmax, dtr and pr were adjusted, tasmin was computed\nfrom tasmax and dtr after the adjustment.\nThe reference was ERA5-Land over the 1991-2010 period.\n",
+    "cat/_data_format_": "zarr",
+    "cat/activity": "ScenarioMIP",
+    "cat/bias_adjust_institution": "Ouranos",
+    "cat/bias_adjust_project": "info-crue-CMIP6",
+    "cat/calendar": NaN,
+    "cat/date_end": "2100-12-31 00:00:00",
+    "cat/date_start": "1956-01-01 00:00:00",
+    "cat/domain": "qc",
+    "cat/driving_institution": NaN,
+    "cat/driving_model": NaN,
+    "cat/experiment": "ssp585",
+    "cat/frequency": "day",
+    "cat/id": "CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1_global",
+    "cat/institution": "IPSL",
+    "cat/member": "r1i1p1f1",
+    "cat/mip_era": "CMIP6",
+    "cat/path": "/crue/jlavoie/info-crue-cmip6/FINAL/day_CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1_global_qc.zarr",
+    "cat/processing_level": "final",
+    "cat/source": "IPSL-CM6A-LR",
+    "cat/type": "simulation",
+    "cat/variable": [
+        "pr",
+        "tasmin",
+        "tasmax"
+    ],
+    "cat/version": NaN,
+    "cat/xrfreq": "D",
+    "history": "[2022-08-10 19:50:00] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': True, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-08-10 19:49:52] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-08-10 19:49:52] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-08-10 19:46:54] bbox spatial subsetting with buffer=1.5, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1 \n Sat Dec  1 12:16:31 2018: ncatted -O -a realization_index,global,m,i,1 /ccc/work/cont003/cmip6/cmip6/onhold/CM61-LR-histEXT-03.1910/files+ext/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nSat Dec  1 12:09:56 2018: ncatted -O -a realization_index,global,m,i,1 /ccc/work/cont003/cmip6/cmip6/onhold/CM61-LR-hist-03.1910/files/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nSat Dec  1 11:04:28 2018: ncatted -O -a realization_index,global,m,i,1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nFri Nov 30 16:51:32 2018: ncatted -O -a realization_index,global,m,s,1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_18500101-20141231.nc\nThu Nov 29 16:52:55 2018: ncatted -O -a variant_label,global,m,c,r1i1p1f1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nThu Nov 29 16:52:55 2018: ncatted -O -a further_info_url,global,m,c,https://furtherinfo.es-doc.org/CMIP6.IPSL.IPSL-CM6A-LR.historical.none.r1i1p1f1 /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nThu Nov 29 16:52:55 2018: ncatted -O -a name,global,m,c,/ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r1i1p1f1_gr_%start_date%-%end_date% /ccc/work/cont003/gencmip6/p86caub/IGCM_OUT/IPSLCM6/PROD/historical/CM61-LR-hist-03.1910/CMIP6/ATM/pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nMon Sep  3 14:51:09 2018: ncatted -O -a parent_variant_label,global,m,c,r1i1p1f1 pr_day_IPSL-CM6A-LR_historical_r3i1p1f1_gr_18500101-20141231.nc\nnone",
+    "intake_esm_dataset_key": "CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1_global.qc.final.D",
+    "intake_esm_vars": [
+        "pr",
+        "tasmin",
+        "tasmax"
+    ],
+    "redistribution": "Redistribution prohibited. For internal use only.",
+    "title": "Info-Crue CMIP6 - {sim_id}",
+    "version": "1.0.0"
+}

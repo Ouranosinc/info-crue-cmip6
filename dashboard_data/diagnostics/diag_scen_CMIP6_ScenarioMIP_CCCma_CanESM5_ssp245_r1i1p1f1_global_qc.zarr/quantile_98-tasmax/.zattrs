@@ -1,0 +1,13 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+    "cell_methods": "time: maximum within days",
+    "history": "2019-05-02T08:02:01Z altered by CMOR: Treated scalar dimension: 'height'. 2019-05-02T08:02:01Z altered by CMOR: Reordered dimensions, original order: lat lon time. 2019-05-02T08:02:01Z altered by CMOR: replaced missing value flag (1e+38) with standard missing value (1e+20).\n[2022-08-08 15:27:54] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-08 18:23:25] quantile: quantile(da=tasmax, q=0.98, group='time') - xclim version: 0.37.0",
+    "long_name": "Quantile 0.98",
+    "measure": "bias",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}

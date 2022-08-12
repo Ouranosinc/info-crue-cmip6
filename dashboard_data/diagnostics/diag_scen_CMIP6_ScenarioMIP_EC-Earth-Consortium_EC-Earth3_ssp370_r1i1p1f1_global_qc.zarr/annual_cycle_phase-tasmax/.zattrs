@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "bias_adjustment": "DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant')",
+    "cell_methods": "time: maximum within days",
+    "history": "2019-09-26T03:58:22Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-26T03:58:22Z altered by CMOR: Reordered dimensions, original order: lat lon time.\n[2022-08-11 19:40:05] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-08-11 22:40:21] annual_cycle_phase: annual_cycle_phase(da=tasmax, group='time') - xclim version: 0.37.0",
+    "is_dayofyear": 1,
+    "long_name": "Phase of the annual cycle",
+    "measure": "circular_bias",
+    "standard_name": "air_temperature",
+    "units": ""
+}

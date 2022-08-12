@@ -1,0 +1,16 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: time: mean",
+    "comment": "includes both liquid and solid phases",
+    "history": "2019-08-30T09:02:30Z altered by CMOR: Converted units from 'kg/m**2/s' to 'kg m-2 s-1'. 2019-08-30T09:02:30Z altered by CMOR: replaced missing value flag (-999) with standard missing value (1e+20). 2019-08-30T09:02:30Z altered by CMOR: Inverted axis: lat.\n[2022-07-25 23:31:34] quantile: quantile(da=pr, q=0.98, group='time') - xclim version: 0.37.0",
+    "long_name": "Quantile 0.98",
+    "measure": "bias",
+    "original_name": "PRCP",
+    "original_units": "kg/m**2/s",
+    "standard_name": "precipitation_flux",
+    "units": "mm d-1"
+}
