@@ -14,18 +14,37 @@ from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
 from xclim.core.units import convert_units_to
 from xclim.sdba import properties, measures, construct_moving_yearly_window, unpack_moving_yearly_window
 
-from xscen.checkups import fig_compare_and_diff, fig_bias_compare_and_diff
-from xscen.catalog import ProjectCatalog, parse_directory, parse_from_ds, DataCatalog
-from xscen.extraction import search_data_catalogs, extract_dataset
-from xscen.io import save_to_zarr, rechunk
-from xscen.config import CONFIG, load_config
-from xscen.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
-from xscen.regridding import regrid
-from xscen.biasadjust import train, adjust
-from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout, TimeoutException
-from xscen.finalize import clean_up
+# from xscen.checkups import fig_compare_and_diff, fig_bias_compare_and_diff
+# from xscen.catalog import ProjectCatalog, parse_directory, parse_from_ds, DataCatalog
+# from xscen.extraction import search_data_catalogs, extract_dataset
+# from xscen.io import save_to_zarr, rechunk
+# from xscen.config import CONFIG, load_config
+# from xscen.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
+# from xscen.regridding import regrid
+# from xscen.biasadjust import train, adjust
+# from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout, TimeoutException
+# from xscen.finalize import clean_up
+
+
+from xscen.utils import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
+from xscen.io import rechunk
+from xscen import (
+    ProjectCatalog,
+    search_data_catalogs,
+    extract_dataset,
+    save_to_zarr,
+    load_config,
+    CONFIG,
+    regrid_dataset,
+    train, adjust,
+    measure_time, send_mail, send_mail_on_exit, timeout, TimeoutException,
+    clean_up
+)
+
 
 from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update
+
+
 
 # Load configuration
 load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
@@ -265,7 +284,7 @@ if __name__ == '__main__':
                                 ds_target = pcat.search(**reg_dict['target']['search'],
                                                         domain=region_name).to_dask()
 
-                            ds_regrid = regrid(
+                            ds_regrid = regrid_dataset(
                                 ds=ds_in,
                                 ds_grid=ds_target,
                                 **reg_dict['xscen_regrid']
