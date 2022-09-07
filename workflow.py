@@ -61,7 +61,7 @@ mode = 'o'
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
-    atexit.register(send_mail_on_exit, subject=CONFIG['scr_utils']['subject'])
+    atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
 
     # defining variables
     ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
@@ -234,7 +234,7 @@ if __name__ == '__main__':
                                 #dc = cat_sim[sim_id]
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
                                 # domain will be cut to the right shape during the regrid
-                                region_dict['buffer']=1.5
+                                region_dict['buffer']=3
                                 ds_sim = extract_dataset(catalog=dc_id,
                                                          region=region_dict,
                                                          **CONFIG['extraction']['simulation']['extract_dataset'],
@@ -266,30 +266,18 @@ if __name__ == '__main__':
                             Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
                             measure_time(name='regrid', logger=logger)
                     ):
-                        # iter over all regriddings
-                        for reg_name, reg_dict in CONFIG['regrid'].items():
-                            # choose input
-                            if reg_dict['input'] == 'cur_sim': # get current extracted simulation
-                                ds_in = pcat.search(id=sim_id,
-                                                    processing_level='extracted',
-                                                    domain=region_name).to_dask()
-                            elif reg_dict['input'] == 'previous':  # get results of previous regridding in the loop
-                                ds_in = ds_regrid
+                        ds_input = pcat.search(id=sim_id,
+                                               processing_level='extracted',
+                                               domain=region_name).to_dask()
 
-                            # choose target grid
-                            if 'cf_grid_2d' in reg_dict['target']:  # create a regular 2d grid
-                                ds_target = xesmf.util.cf_grid_2d(**reg_dict['target']['cf_grid_2d'])
-                                ds_target.attrs['cat/domain'] = reg_name  # need this in xscen regrid
-                            elif 'search' in reg_dict['target']:  # search a grid in the catalog
-                                ds_target = pcat.search(**reg_dict['target']['search'],
-                                                        domain=region_name).to_dask()
+                        ds_target = pcat.search(**CONFIG['regrid']['target'],
+                                                domain=region_name).to_dask()
 
-                            ds_regrid = regrid_dataset(
-                                ds=ds_in,
-                                ds_grid=ds_target,
-                                **reg_dict['xscen_regrid']
-                            )
-
+                        ds_regrid = regrid_dataset(
+                            ds=ds_input,
+                            ds_grid=ds_target,
+                            **CONFIG['regrid']['regrid_dataset']
+                        )
                         # chunk time dim
                         ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
 
@@ -344,7 +332,7 @@ if __name__ == '__main__':
                                                 info_dict={'id': f"{sim_id}_training_qm_{var}",
                                                            'domain': region_name,
                                                            'processing_level': "training",
-                                                           'xrfreq': ds_hist.attrs['cat/xrfreq']
+                                                           'xrfreq': ds_hist.attrs['cat:xrfreq']
                                                             },# info_dict needed to reopen correctly in next step
                                                 path=path_tr)
 
@@ -421,7 +409,7 @@ if __name__ == '__main__':
                                                 info_dict={'id': f"{sim_id}_training_ex_{var}",
                                                            'domain': region_name,
                                                            'processing_level': "training",
-                                                           'xrfreq': ds_hist.attrs['cat/xrfreq']
+                                                           'xrfreq': ds_hist.attrs['cat:xrfreq']
                                                            },# info_dict needed to reopen correctly in next step
                                                 path=path_tr)
 
@@ -604,8 +592,8 @@ if __name__ == '__main__':
 
                         # save hmap
                         path_diag = Path(
-                            CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
-                                                                  sim_id=scen.attrs['cat/id'],
+                            CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat:domain'],
+                                                                  sim_id=scen.attrs['cat:id'],
                                                                   step='hmap'))
                         path_diag = path_diag.with_suffix('.npy')  # replace zarr by npy
                         np.save(path_diag, hmap)

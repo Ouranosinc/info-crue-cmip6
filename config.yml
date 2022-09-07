@@ -127,53 +127,43 @@ extraction:
     ref_source: *ref_source
 
 regrid:
-  reg1:
-    input:
-      cur_sim
-    target:
-      cf_grid_2d:
-        lon0_b: 274.75
-        lon1_b: 305.2
-        d_lon: 1
-        lat0_b: 39.75
-        lat1_b: 64
-        d_lat: 1
-    xscen_regrid:
-      regridder_kwargs:
+  target:
+    source: *ref_source
+    calendar: noleap
+  regrid_dataset:
+    regridder_kwargs:
+      method: bilinear
+      extrap_method: inverse_dist
+      locstream_out: *stack
+      reuse_weights: False
+    intermediate_reg_grids:
+      reg1:
+        cf_grid_2d:
+          lon0_b: 274.75
+          lon1_b: 305.2
+          d_lon: 1
+          lat0_b: 39.75
+          lat1_b: 64
+          d_lat: 1
+        regridder_kwargs:
           method: bilinear
           extrap_method: inverse_dist
           locstream_out: False
           reuse_weights: False
-  reg2:
-    input:
-      previous
-    target:
-      cf_grid_2d:
-        lon0_b: 274.74
-        lon1_b: 305.2
-        d_lon: 0.5
-        lat0_b: 39.74
-        lat1_b: 64
-        d_lat: 0.5
-    xscen_regrid:
-      regridder_kwargs:
-        method: bilinear
-        extrap_method: inverse_dist
-        locstream_out: False
-        reuse_weights: False
-  reg3:
-    input:
-      previous
-    target:
-      search:
-        source: *ref_source
-        calendar: noleap
-    xscen_regrid:
-      regridder_kwargs:
-        method: bilinear
-        extrap_method: inverse_dist
-        locstream_out: *stack
-        reuse_weights: False
+      reg2:
+        cf_grid_2d:
+          lon0_b: 274.74
+          lon1_b: 305.2
+          d_lon: 0.5
+          lat0_b: 39.74
+          lat1_b: 64
+          d_lat: 0.5
+        regridder_kwargs:
+          method: bilinear
+          extrap_method: inverse_dist
+          locstream_out: False
+          reuse_weights: False
+
 
 biasadjust_qm:
     variables:
@@ -294,7 +284,7 @@ clean_up:
         pr: [0]
       remove_all_attrs_except:
         global:
-          - ^cat/
+          - '^cat:'
           - history
         tasmax: &attrs_to_keep
           - bias_adjustment
@@ -308,7 +298,6 @@ clean_up:
         pr: *attrs_to_keep
       add_attrs:
         global:
-          title: Info-Crue CMIP6 - {sim_id}
           Notes: |
             Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
             quantile mapping on a day-of-year basis with a window of 31 days,
@@ -317,45 +306,7 @@ clean_up:
             Tasmax, dtr and pr were adjusted, tasmin was computed
             from tasmax and dtr after the adjustment.
             The reference was ERA5-Land over the 1991-2010 period.
-          redistribution: Redistribution prohibited. For internal use only.
           version: "1.0.0"
-        tasmax:
-            standard_name: air_temperature
-            long_name: Maximal daily temperature
-            cell_methods: "time: maximum within days"
-        tasmin:
-            standard_name: air_temperature
-            long_name: Minimal daily temperature
-            cell_methods: "time: minimum within days"
-        pr:
-            standard_name: precipitation_flux
-            long_name: Mean daily precipitation flux
-            cell_methods: "time: mean within days"
-    final_attrs_names:
-        - bias_adjustment
-        - cell_methods
-        - coordinates
-        - history
-        - long_name
-        - standard_name
-        - units
-    units:
-      tasmax: degC
-      tasmin: degC
-      pr: mm d-1
-    attrs:
-        global:
-            title: Info-Crue CMIP6 - {sim_id}
-            Notes: |
-                Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
-                quantile mapping on a day-of-year basis with a window of 31 days,
-                LOESS detrending and 50 quantiles.
-                There is a second bias adjustement for pr's extreme values.
-                Tasmax, dtr and pr were adjusted, tasmin was computed
-                from tasmax and dtr after the adjustment.
-                The reference was ERA5-Land over the 1991-2010 period.
-            redistribution: Redistribution prohibited. For internal use only.
-            version: "1.0.0"
         tasmax:
             standard_name: air_temperature
             long_name: Maximal daily temperature
@@ -394,7 +345,7 @@ diagnostics:
     'wet_days_freq': {'func':sdba.properties.relative_frequency, 'var': 'pr', 'args': {'op':'>=', 'thresh': '1 mm d-1'} }
     '20mm_freq': {'func':sdba.properties.relative_frequency, 'var': 'pr', 'args':  {'op':'>=', 'thresh': '20 mm d-1'}}
 
-scr_utils:
+scripting:
     measure_time:
         cpu: True
     send_mail:

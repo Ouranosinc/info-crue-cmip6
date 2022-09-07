@@ -44,9 +44,15 @@ if useCat:
     bias_scen = pcat.search(id=option_id, processing_level='diag_scen_meas', domain=option_domain).to_dataset_dict().popitem()[1]
 
     # load hmap
-    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
-                                                           sim_id=scen.attrs['cat/id'],
-                                                           step='hmap'))
+    if 'cat/domain' in scen.attrs:
+        path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
+                                                                sim_id=scen.attrs['cat/id'],
+                                                                step='hmap'))
+    else:
+        path_diag = Path(
+            CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat:domain'],
+                                                  sim_id=scen.attrs['cat:id'],
+                                                  step='hmap'))
     # replace .zarr by .npy
     path_diag = path_diag.with_suffix('.npy')
     hmap = np.load(path_diag)
