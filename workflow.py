@@ -42,12 +42,16 @@ from xscen import (
 )
 
 
-from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update
+from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update, python_scp
 
+server ='neree'
 
 
 # Load configuration
-load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+if server == 'neree':
+    load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+else:
+    load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
 
 workdir = Path(CONFIG['paths']['workdir'])
@@ -191,10 +195,6 @@ if __name__ == '__main__':
                     # plot nan_count and email
                     email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
-    #for sim_id_exp in CONFIG['ids']:
-        #for exp in CONFIG['experiments']:
-            #sim_id = sim_id_exp.replace('EXPERIMENT',exp)
-    #for exp in CONFIG['experiments']:
     cat_sim = search_data_catalogs(
         **CONFIG['extraction']['simulation']['search_data_catalogs'])
     for sim_id, dc_id in cat_sim.items():
@@ -226,12 +226,7 @@ if __name__ == '__main__':
                                     measure_time(name='extract', logger=logger),
                                     timeout(3600, task='extract')
                             ):
-                                # search the data that we need
-                                # cat_sim = search_data_catalogs(**CONFIG['extraction']['simulations']['search_data_catalogs'],
-                                #                                 other_search_criteria={'id': sim_id})
 
-                                # extract
-                                #dc = cat_sim[sim_id]
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
                                 # domain will be cut to the right shape during the regrid
                                 region_dict['buffer']=3
@@ -266,6 +261,8 @@ if __name__ == '__main__':
                             Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
                             measure_time(name='regrid', logger=logger)
                     ):
+
+
                         ds_input = pcat.search(id=sim_id,
                                                processing_level='extracted',
                                                domain=region_name).to_dask()
@@ -538,13 +535,23 @@ if __name__ == '__main__':
 
                         # if this is last step, delete workdir, but save log and regridded
                         if CONFIG["tasks"][-1] == 'final_zarr':
-                            final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                            path_log = CONFIG['logging']['handlers']['file']['filename']
-                            move_then_delete(dirs_to_delete=[workdir],
-                                             moving_files=
-                                             [[f"{workdir}/{sim_id}_regridded.zarr", final_regrid_path],
-                                              [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
-                                             pcat=pcat)
+
+                            if server == 'neree':
+                                for name, paths in CONFIG['scp_list'].items():
+                                    python_scp(source_path=paths['source'],
+                                            destination_path=paths['dest'],
+                                            **CONFIG['scp'])
+                                move_then_delete(dirs_to_delete=[workdir],
+                                                 moving_files=[],
+                                                 pcat=pcat)
+                            else:
+                                final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
+                                path_log = CONFIG['logging']['handlers']['file']['filename']
+                                move_then_delete(dirs_to_delete=[workdir],
+                                                 moving_files=
+                                                 [[f"{workdir}/{sim_id}_regridded.zarr", final_regrid_path],
+                                                  [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
+                                                 pcat=pcat)
 
                         # add final file to catalog
                         ds = xr.open_zarr(fi_path)
@@ -576,11 +583,11 @@ if __name__ == '__main__':
                                                    diag_dict=CONFIG['diagnostics']['properties'],
                                                    unstack=CONFIG['custom']['stack_drop_nans'],
                                                    path_coords=refdir / f'coords_{region_name}.nc',
-                                                   unit_conversion=CONFIG['clean_up']['units'])
+                                                   unit_conversion=CONFIG['clean_up']['xscen_clean_up']['variables_and_units'])
 
                         scen = calculate_properties(ds=ds_scen,
                                                     diag_dict=CONFIG['diagnostics']['properties'],
-                                                    unit_conversion=CONFIG['clean_up']['units'])
+                                                    unit_conversion=CONFIG['clean_up']['xscen_clean_up']['variables_and_units'])
 
                         #get ref properties calculated earlier in makeref
                         ref = pcat.search(source=ref_source,
@@ -596,6 +603,8 @@ if __name__ == '__main__':
                                                                   sim_id=scen.attrs['cat:id'],
                                                                   step='hmap'))
                         path_diag = path_diag.with_suffix('.npy')  # replace zarr by npy
+                        if server == 'neree':
+                            path_diag = f"{workdir}/{path_diag.name}"
                         np.save(path_diag, hmap)
 
                         # save and update properties and biases/measures
@@ -607,10 +616,16 @@ if __name__ == '__main__':
                                                                       step=step))
                             path_diag_exec = f"{workdir}/{path_diag.name}"
                             save_to_zarr(ds=ds, filename=path_diag_exec, mode='o', itervar=True)
-                            shutil.move(path_diag_exec, path_diag)
-                            pcat.update_from_ds(ds=ds,
-                                                info_dict={'processing_level': f'diag_{step}'},
-                                                path=str(path_diag))
+                            if server == 'neree':
+                                pcat.update_from_ds(ds=ds,
+                                                    info_dict={
+                                                        'processing_level': f'diag_{step}'},
+                                                    path=str(path_diag_exec))
+                            else:
+                                shutil.move(path_diag_exec, path_diag)
+                                pcat.update_from_ds(ds=ds,
+                                                    info_dict={'processing_level': f'diag_{step}'},
+                                                    path=str(path_diag))
 
 
                         # # if this is the last step, delete workdir, but keep regridded and log
@@ -618,11 +633,22 @@ if __name__ == '__main__':
                             final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
                             path_log = CONFIG['logging']['handlers']['file']['filename']
                             logger.info('delete workdir')
-                            move_then_delete(dirs_to_delete= [workdir],
-                                             moving_files =
-                                             [[f"{workdir}/{sim_id}_regridded.zarr",final_regrid_path],
-                                              [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
-                                              pcat=pcat)
+
+                            if server == 'neree':
+                                for name, paths in CONFIG['scp_list'].items():
+                                    python_scp(source_path=paths['source'],
+                                            destination_path=paths['dest'],
+                                            **CONFIG['scp'])
+
+                                move_then_delete(dirs_to_delete=[workdir],
+                                                 moving_files=[],
+                                                 pcat=pcat)
+                            else:
+                                move_then_delete(dirs_to_delete= [workdir],
+                                                 moving_files =
+                                                 [[f"{workdir}/{sim_id}_regridded.zarr",final_regrid_path],
+                                                  [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
+                                                  pcat=pcat)
 
                         send_mail(
                             subject=f"{sim_id}/{region_name} - Succès",

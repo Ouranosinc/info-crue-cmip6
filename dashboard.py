@@ -42,7 +42,6 @@ if useCat:
     #get bias
     bias_sim = pcat.search(id=option_id, processing_level='diag_sim_meas', domain=option_domain).to_dataset_dict().popitem()[1]
     bias_scen = pcat.search(id=option_id, processing_level='diag_scen_meas', domain=option_domain).to_dataset_dict().popitem()[1]
-
     # load hmap
     if 'cat/domain' in scen.attrs:
         path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat/domain'],
@@ -132,7 +131,6 @@ cols2=st.columns(2)
 # choose properties
 option_var = cols2[0].selectbox('Input Variables',[ 'Maximum Temperature','Minimum Temperature', 'Precipitation'])
 varlong2short = {'Minimum Temperature':'tasmin', 'Maximum Temperature':'tasmax', 'Precipitation':'pr' }
-
 props_of_var= [x for x in scen.data_vars if f'(da={varlong2short[option_var]}' in scen[x].attrs['history'] ]
 
 def show_long_name(name):
