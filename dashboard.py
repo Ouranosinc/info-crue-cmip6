@@ -27,7 +27,7 @@ cols = st.columns(2)
 if useCat:
     from xscen.config import CONFIG, load_config
     from xscen.catalog import ProjectCatalog
-    load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+    load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
     pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
     # choose id

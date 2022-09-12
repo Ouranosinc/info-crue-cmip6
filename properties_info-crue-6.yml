@@ -1,0 +1,105 @@
+realm: generic
+indicators:
+    mean-tasmax:
+      base: xclim.sdba.properties.mean
+      input:
+        da: tasmax
+    var-tasmax:
+      base: xclim.sdba.properties.var
+      input:
+        da: tasmax
+    skewness-tasmax:
+      base: xclim.sdba.properties.skewness
+      input:
+        da: tasmax
+    quantile_98-tasmax:
+      base: xclim.sdba.properties.quantile
+      input:
+        da: tasmax
+      parameters:
+        q: 0.98
+    acf-tasmax:
+      base: xclim.sdba.properties.acf
+      input:
+        da: tasmax
+    maximum_length_of_warm_spell:
+      base: xclim.sdba.properties.spell_length_distribution
+      input:
+        da: tasmax
+      parameters:
+        method: quantile
+        op: '>='
+        thresh: 0.9
+        stat: max
+    annual_cycle_amplitude-tasmax:
+      base: xclim.sdba.properties.annual_cycle_amplitude
+      input:
+        da: tasmax
+    annual_cycle_phase-tasmax:
+      base: xclim.sdba.properties.annual_cycle_phase
+      input:
+        da: tasmax
+    trend-tasmax:
+      base: xclim.sdba.properties.trend
+      input:
+        da: tasmax
+    quantile_02-tasmin:
+      base: xclim.sdba.properties.quantile
+      input:
+        da: tasmin
+      parameters:
+        q: 0.02
+    frost_days:
+      base: xclim.sdba.properties.relative_frequency
+      input:
+        da: tasmin
+      parameters:
+        op: '<'
+        thresh: 0 degC
+    mean-pr:
+      base: xclim.sdba.properties.mean
+      input:
+        da: pr
+    var-pr:
+      base: xclim.sdba.properties.var
+      input:
+        da: pr
+    skewness-pr:
+      base: xclim.sdba.properties.skewness
+      input:
+        da: pr
+    quantile_98-pr:
+      base: xclim.sdba.properties.quantile
+      input:
+        da: pr
+      parameters:
+        q: 0.98
+    maximum_length_of_dry_spell:
+      base: xclim.sdba.properties.spell_length_distribution
+      input:
+        da: pr
+      parameters:
+        method: amount
+        op: '<'
+        thresh: 1 mm d-1
+        stat: max
+    annual_cycle_amplitude-pr:
+      base: xclim.sdba.properties.annual_cycle_amplitude
+      input:
+        da: pr
+      parameters:
+        amplitude_type: relative
+    wet_days_freq:
+      base: xclim.sdba.properties.relative_frequency
+      input:
+        da: pr
+      parameters:
+        op: '>='
+        thresh: 1 mm d-1
+    20mm_freq:
+      base: xclim.sdba.properties.relative_frequency
+      input:
+        da: pr
+      parameters:
+        op: '>='
+        thresh: 20 mm d-1

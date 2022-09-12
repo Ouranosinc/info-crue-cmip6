@@ -182,10 +182,13 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
 
 
 def save_move_update(ds,pcat, init_path, final_path,info_dict=None,
-                     encoding=None, mode='o', itervar=False):
+                     encoding=None, mode='o', itervar=False, server='doris'):
     encoding = encoding or {var: {'dtype':'float32'} for var in ds.data_vars}
     save_to_zarr(ds, init_path, encoding=encoding, mode=mode,itervar=itervar)
-    shutil.move(init_path,final_path)
+    if server == 'neree':
+        python_scp(init_path, Path(final_path).parent, 'doris.ouranos.ca')
+    else:
+        shutil.move(init_path,final_path)
     pcat.update_from_ds(ds=ds, path=str(final_path),info_dict=info_dict)
 
 
@@ -232,5 +235,6 @@ def python_scp(source_path, destination_path, server_address):
 
             with SCPClient(ssh.get_transport(), socket_timeout=30.0) as scp:
                 scp.put(my_folder, recursive=True, remote_path=destination_path)
+            logging.info(f"{my_folder} transfered to {destination_path}.")
     else:
         logging.info(f"{my_folder} doesn't exist.")
