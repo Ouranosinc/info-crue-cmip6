@@ -7,14 +7,14 @@ project:
 tasks:
   #- initialize_pcat
   - makeref
-#  - extract
-#  - regrid
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
-#  - clean_up
-#  - final_zarr
+  - extract
+  - regrid
+  - train_qm
+  - adjust_qm
+  - train_ex
+  - adjust_ex
+  - clean_up
+  - final_zarr
   - diagnostics
 
 
@@ -92,10 +92,10 @@ extraction:
           allow_conversion: True
           allow_resampling: False
           periods: *sim_period
-          exclusions:
-            source:
-              - FGOALS-g3
-              - EC-Earth3
+#          exclusions:
+#            source:
+#              - FGOALS-g3
+#              - EC-Earth3
           other_search_criteria:
             experiment:
               - ssp245
@@ -104,7 +104,7 @@ extraction:
               - ssp126
             source:
               - ACCESS-ESM1-5
-              - CanESM5
+            - CanESM5
               - EC-Earth3
               - FGOALS-g3
               - IPSL-CM6A-LR
@@ -319,27 +319,29 @@ clean_up:
 rechunk:
     worker_mem: 2GB
 
+
 diagnostics:
-  properties:
-    'mean-tasmax': {'func':sdba.properties.mean, 'var': 'tasmax', 'args': {}}
-    'var-tasmax': {'func':sdba.properties.var, 'var': 'tasmax', 'args': {}, 'measure':'ratio'}
-    'skewness-tasmax': {'func':sdba.properties.skewness, 'var': 'tasmax', 'args': {}}
-    'quantile_98-tasmax': {'func':sdba.properties.quantile, 'var': 'tasmax', 'args': {'q':0.98} }
-    'acf-tasmax': {'func':sdba.properties.acf, 'var': 'tasmax', 'args': {}}
-    'maximum_length_of_warm_spell': {'func':sdba.properties.spell_length_distribution,'var': 'tasmax', 'args':{'method': 'quantile', 'op': '>=', 'thresh':0.9, 'stat': 'max'}}
-    'annual_cycle_amplitude-tasmax': {'func':sdba.properties.annual_cycle_amplitude, 'var': 'tasmax', 'args':  {}}
-    'annual_cycle_phase-tasmax': {'func':sdba.properties.annual_cycle_phase, 'var': 'tasmax', 'args': {}, 'measure':'circular_bias' }
-    'trend-tasmax': {'func':sdba.properties.trend, 'var': 'tasmax', 'args': {} }
-    'quantile_02-tasmin': {'func':sdba.properties.quantile, 'var': 'tasmin', 'args': {'q':0.02} }
-    'frost_days': {'func':sdba.properties.relative_frequency, 'var': 'tasmin', 'args': {'op':'<', 'thresh': '0 degC'} }
-    'mean-pr': {'func':sdba.properties.mean, 'var': 'pr', 'args': {}}
-    'var-pr': {'func':sdba.properties.var, 'var': 'pr', 'args':  {}, 'measure':'ratio'}
-    'skewness-pr': {'func':sdba.properties.skewness, 'var': 'pr', 'args':  {}}
-    'quantile_98-pr': {'func':sdba.properties.quantile, 'var': 'pr', 'args': {'q':0.98} }
-    'maximum_length_of_dry_spell': {'func':sdba.properties.spell_length_distribution,'var': 'pr', 'args':{'method': 'amount', 'op': '<', 'thresh':'1 mm d-1', 'stat': 'max'}}
-    'annual_cycle_amplitude-pr': {'func':sdba.properties.annual_cycle_amplitude, 'var': 'pr', 'args':  {'amplitude_type':'relative'}, 'measure':'ratio'}
-    'wet_days_freq': {'func':sdba.properties.relative_frequency, 'var': 'pr', 'args': {'op':'>=', 'thresh': '1 mm d-1'} }
-    '20mm_freq': {'func':sdba.properties.relative_frequency, 'var': 'pr', 'args':  {'op':'>=', 'thresh': '20 mm d-1'}}
+  sim:
+    input:
+      processing_level:  regridded
+    dref_for_measure:
+      processing_level: diag-ref-prop
+    properties_and_measures:
+      period: *ref_period
+      unstack: *stack
+      change_units_arg:
+        tasmax: degC
+        tasmin: degC
+        pr: mm d-1
+  scen:
+    input:
+      processing_level: final
+    dref_for_measure:
+      processing_level: diag-ref-prop
+    properties_and_measures:
+      period: *ref_period
+      unstack: False
+
 
 scripting:
     measure_time:

@@ -236,5 +236,6 @@ def python_scp(source_path, destination_path, server_address):
             with SCPClient(ssh.get_transport(), socket_timeout=30.0) as scp:
                 scp.put(my_folder, recursive=True, remote_path=destination_path)
             logging.info(f"{my_folder} transfered to {destination_path}.")
+
     else:
         logging.info(f"{my_folder} doesn't exist.")

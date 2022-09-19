@@ -159,17 +159,14 @@ if __name__ == '__main__':
                                              **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
 
+                    print(ds_ref.chunks)
                     # drop to make faster
                     dref_ref = ds_ref.drop_vars('dtr')
 
-                    dref_ref = dref_ref.chunk({'time': -1})
+                    dref_ref = dref_ref.chunk({'time': -1,'lat':30, 'lon':30})
 
                     # diagnostics
                     if 'diagnostics' in CONFIG['tasks']:
-                        # ds_ref_prop = calculate_properties(ds=dref_ref,
-                        #                                    diag_dict=CONFIG['diagnostics']['properties'],
-                        #                                    unit_conversion=CONFIG['clean_up']['units']
-                        #                                    )
 
                         # diagnostics
                         ds_ref_prop, _ = xs.properties_and_measures(
@@ -178,7 +175,7 @@ if __name__ == '__main__':
                                 'properties_and_measures']
                         )
 
-                        ds_ref_prop = ds_ref_prop.chunk({'lat':50, 'lon':50})
+                        ds_ref_prop = ds_ref_prop.chunk({'lat':30, 'lon':30})
 
                         path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                                sim_id=ds_ref.attrs['cat:id'],
@@ -212,13 +209,12 @@ if __name__ == '__main__':
                     email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
     cat_sim = search_data_catalogs(
-        **CONFIG['extraction']['simulation']['search_data_catalogs'])
+       **CONFIG['extraction']['simulation']['search_data_catalogs'])
     for sim_id, dc_id in cat_sim.items():
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
-                     'diagnostics': dict(domain=region_name, processing_level='diag_scen_meas', id=sim_id)}
-
+                     'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id)}
             if not pcat.exists_in_cat(**final[CONFIG["tasks"][-1]]):
                 fmtkws = {'region_name': region_name, 'sim_id': sim_id}
                 logger.info('Adding config to log file')
@@ -577,71 +573,12 @@ if __name__ == '__main__':
                 # ---DIAGNOSTICS ---
                 if (
                         "diagnostics" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='diag_scen_meas')
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='diag-improved')
                 ):
                     with (
                             Client(n_workers=8, threads_per_worker=5, memory_limit="5GB", **daskkws),
                             measure_time(name=f'diagnostics', logger=logger)
                     ):
-                        # # #load initial data
-                        # ds_scen = pcat.search(processing_level='final',
-                        #                       id=sim_id,
-                        #                       domain=region_name
-                        #                       ).to_dask().chunk({'time': -1}).sel(time=ref_period)
-                        #
-                        # ds_sim = pcat.search(processing_level='regridded',
-                        #                      id=sim_id,
-                        #                      domain=region_name
-                        #                      ).to_dask().chunk({'time': -1}).sel(time=ref_period)
-                        #
-                        # # properties
-                        # sim = calculate_properties(ds=ds_sim,
-                        #                            diag_dict=CONFIG['diagnostics']['properties'],
-                        #                            unstack=CONFIG['custom']['stack_drop_nans'],
-                        #                            path_coords=refdir / f'coords_{region_name}.nc',
-                        #                            unit_conversion=CONFIG['clean_up']['xscen_clean_up']['variables_and_units'])
-                        #
-                        # scen = calculate_properties(ds=ds_scen,
-                        #                             diag_dict=CONFIG['diagnostics']['properties'],
-                        #                             unit_conversion=CONFIG['clean_up']['xscen_clean_up']['variables_and_units'])
-                        #
-                        # #get ref properties calculated earlier in makeref
-                        # ref = pcat.search(source=ref_source,
-                        #                    processing_level='diag_ref',
-                        #                    domain=region_name).to_dask()
-                        #
-                        # # calculate measures and diagnostic heat map
-                        # [meas_sim, meas_scen], hmap = measures_and_heatmap(ref=ref, sims=[sim, scen])
-                        #
-                        # # save hmap
-                        # path_diag = Path(
-                        #     CONFIG['paths']['diagnostics'].format(region_name=scen.attrs['cat:domain'],
-                        #                                           sim_id=scen.attrs['cat:id'],
-                        #                                           step='hmap'))
-                        # path_diag = path_diag.with_suffix('.npy')  # replace zarr by npy
-                        # if server == 'neree':
-                        #     path_diag = f"{workdir}/{path_diag.name}"
-                        # np.save(path_diag, hmap)
-                        #
-                        # # save and update properties and biases/measures
-                        # for ds, step in zip([sim,  scen, meas_sim, meas_scen],
-                        #                     ["sim", "scen", 'sim_meas', 'scen_meas']):
-                        #     path_diag = Path(
-                        #         CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                        #                                               sim_id=sim_id,
-                        #                                               step=step))
-                        #     path_diag_exec = f"{workdir}/{path_diag.name}"
-                        #     save_to_zarr(ds=ds, filename=path_diag_exec, mode='o', itervar=True)
-                        #     if server == 'neree':
-                        #         pcat.update_from_ds(ds=ds,
-                        #                             info_dict={
-                        #                                 'processing_level': f'diag_{step}'},
-                        #                             path=str(path_diag_exec))
-                        #     else:
-                        #         shutil.move(path_diag_exec, path_diag)
-                        #         pcat.update_from_ds(ds=ds,
-                        #                             info_dict={'processing_level': f'diag_{step}'},
-                        #                             path=str(path_diag))
 
                         for step, step_dict in CONFIG['diagnostics'].items():
                             ds_input = pcat.search(
@@ -661,31 +598,36 @@ if __name__ == '__main__':
                                 dref_for_measure=dref_for_measure,
                                 to_level_prop=f'diag-{step}-prop',
                                 to_level_meas=f'diag-{step}-meas',
+                                rechunk = {'lat':30, 'lon':30, 'time':-1},
                                 **step_dict['properties_and_measures']
                             )
+
                             for ds in [prop, meas]:
                                 path_diag = Path(
-                                    CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                                          sim_id=sim_id,
-                                                                          step=step))
+                                    CONFIG['paths']['diagnostics'].format(
+                                        region_name=region_name,
+                                        sim_id=sim_id,
+                                        level= ds.attrs['cat:processing_level']))
                                 path_diag_exec = f"{workdir}/{path_diag.name}"
-                                save_to_zarr(ds=ds, filename=path_diag_exec, mode='o', itervar=True)
+
+                                save_to_zarr(ds=ds,
+                                             filename=path_diag_exec,
+                                             mode='o',
+                                             itervar=True,
+                                             rechunk={'lat':30, 'lon':30})
                                 if server == 'neree':
                                     pcat.update_from_ds(ds=ds,
-                                                        info_dict={
-                                                            'processing_level': f'diag_{step}'},
                                                         path=str(path_diag_exec))
                                 else:
                                     shutil.move(path_diag_exec, path_diag)
                                     pcat.update_from_ds(ds=ds,
-                                                        info_dict={'processing_level': f'diag_{step}'},
                                                         path=str(path_diag))
 
                         meas_datasets = pcat.search(
                             processing_level=['diag-sim-meas',
                                               'diag-scen-meas'],
                             id=sim_id,
-                            domain=region_name).to_dataset_dict()
+                            domain=region_name).to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
 
                         # make sur sim is first (for improved)
                         order_keys = [f'{sim_id}.{region_name}.diag-sim-meas.fx',
@@ -704,29 +646,34 @@ if __name__ == '__main__':
                                     level=ds.attrs['cat:processing_level']))
                             if server == 'neree':
                                 path_diag = f"{workdir}/{path_diag.name}"
-                            save_to_zarr(ds=ds, filename=path_diag, mode='o')
+                            save_to_zarr(ds=ds, filename=path_diag, mode='o',rechunk={'lat':100, 'lon':100})
                             pcat.update_from_ds(ds=ds, path=path_diag)
 
                         # # if this is the last step, delete workdir, but keep regridded and log
                         if CONFIG["tasks"][-1] == 'diagnostics':
-                            final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                            path_log = CONFIG['logging']['handlers']['file']['filename']
+
                             logger.info('Move files and delete workdir.')
 
                             if server == 'neree':
                                 for name, paths in CONFIG['scp_list'].items():
-                                    python_scp(source_path=paths['source'].format(**fmtkws),
-                                            destination_path=paths['dest'].format(**fmtkws),
+                                    source_path = Path(paths['source'].format(**fmtkws))
+                                    dest = Path(paths['dest'].format(**fmtkws))
+                                    python_scp(source_path= source_path,
+                                            destination_path=dest,
                                             **CONFIG['scp'])
-                                    dest = Path(paths['dest']) / Path(paths['source'].format(**fmtkws)).name
-                                    if dest.suffix == 'zarr':
-                                        ds = pcat.search(path=paths['source'].format(**fmtkws)).to_dask()
-                                        pcat.update_from_ds(ds, dest )
+
+                                    dest = dest / source_path.name
+                                    if dest.suffix == '.zarr' and source_path.exists():
+                                        ds = pcat.search(path=str(source_path)).to_dask()
+                                        pcat.update_from_ds(ds, str(dest ))
 
                                 move_then_delete(dirs_to_delete=[workdir],
                                                  moving_files=[],
                                                  pcat=pcat)
                             else:
+                                final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
+                                path_log = CONFIG['logging']['handlers']['file'][
+                                    'filename']
                                 move_then_delete(dirs_to_delete= [workdir],
                                                  moving_files =
                                                  [[f"{workdir}/{sim_id}_regridded.zarr",final_regrid_path],
