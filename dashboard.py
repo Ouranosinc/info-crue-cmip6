@@ -54,7 +54,7 @@ with tab1:
     else:
 
         #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
-        ids = [x[30:-3] for x in glob.glob('dashboard_data/diag-scen-meas_*')]
+        ids = [x[30:-6] for x in glob.glob('dashboard_data/diag-scen-meas_*')]
         st.write(ids)
         models = sorted(set([y.split('_')[3] for y in ids ]))
         exps = sorted(set([y.split('_')[4] for y in ids]))
