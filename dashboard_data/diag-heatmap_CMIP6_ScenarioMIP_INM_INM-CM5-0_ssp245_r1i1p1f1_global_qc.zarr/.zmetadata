@@ -1,0 +1,191 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "Notes": "Regridded on the grid of ERA5-Land, then bias-adjusted with detrended\nquantile mapping on a day-of-year basis with a window of 31 days,\nLOESS detrending and 50 quantiles.\nThere is a second bias adjustement for pr's extreme values.\nTasmax, dtr and pr were adjusted, tasmin was computed\nfrom tasmax and dtr after the adjustment.\nThe reference was ERA5-Land over the 1991-2010 period.\n",
+            "activity_id": "CMIP",
+            "branch_method": "standard",
+            "branch_time_in_child": 0.0,
+            "branch_time_in_parent": 90885.0,
+            "cat/_data_format_": "zarr",
+            "cat/activity": "ScenarioMIP",
+            "cat/calendar": NaN,
+            "cat/domain": "qc",
+            "cat/driving_institution": NaN,
+            "cat/driving_model": NaN,
+            "cat/experiment": "ssp245",
+            "cat/frequency": "day",
+            "cat/id": "CMIP6_ScenarioMIP_INM_INM-CM5-0_ssp245_r1i1p1f1_global",
+            "cat/institution": "INM",
+            "cat/member": "r1i1p1f1",
+            "cat/mip_era": "CMIP6",
+            "cat/path": "/exec/jlavoie/info-crue-cmip6_workdir/CMIP6_ScenarioMIP_INM_INM-CM5-0_ssp245_r1i1p1f1_global_extracted.zarr",
+            "cat/source": "INM-CM5-0",
+            "cat/type": "simulation",
+            "cat/version": NaN,
+            "cat/xrfreq": "D",
+            "cat:_data_format_": "zarr",
+            "cat:activity": "ScenarioMIP",
+            "cat:bias_adjust_institution": "Ouranos",
+            "cat:bias_adjust_project": "info-crue CMIP6",
+            "cat:date_end": "2100-12-31 00:00",
+            "cat:date_start": "1956-01-01 00:00",
+            "cat:domain": "qc",
+            "cat:experiment": "ssp245",
+            "cat:frequency": "fx",
+            "cat:id": "CMIP6_ScenarioMIP_INM_INM-CM5-0_ssp245_r1i1p1f1_global",
+            "cat:institution": "INM",
+            "cat:member": "r1i1p1f1",
+            "cat:mip_era": "CMIP6",
+            "cat:processing_level": "diag-heatmap",
+            "cat:source": "INM-CM5-0",
+            "cat:type": "simulation",
+            "cat:xrfreq": "fx",
+            "cmor_version": "3.4.0",
+            "contact": "Evgeny Volodin (volodinev@gmail.com)",
+            "creation_date": "2019-06-06T12:50:51Z",
+            "data_specs_version": "01.00.29",
+            "experiment": "all-forcing simulation of the recent past",
+            "experiment_id": "historical",
+            "external_variables": "areacella",
+            "forcing_index": "1",
+            "frequency": "day",
+            "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.INM.INM-CM5-0.historical.none.r1i1p1f1",
+            "grid": "gs2x1.5",
+            "grid_label": "gr1",
+            "history": "[2022-07-16 03:58:03] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': True, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-16 03:57:56] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-16 03:57:56] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} - xESMF v0.6.2 \n [2022-07-16 03:55:47] bbox spatial subsetting with buffer=1.5, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1 \n 2019-06-06T12:50:51Z ;rewrote data to be consistent with CMIP for variable clt found in table day.",
+            "initialization_index": "1",
+            "institution_id": "INM",
+            "intake_esm_vars": [
+                "var-tasmax",
+                "quantile_98-tasmax",
+                "annual_cycle_phase-tasmax",
+                "trend-tasmax",
+                "maximum_length_of_warm_spell",
+                "skewness-pr",
+                "maximum_length_of_dry_spell",
+                "wet_days_freq",
+                "skewness-tasmax",
+                "var-pr",
+                "mean-pr",
+                "quantile_98-pr",
+                "annual_cycle_amplitude-pr",
+                "mean-tasmax",
+                "quantile_02-tasmin",
+                "acf-tasmax",
+                "frost_days",
+                "annual_cycle_amplitude-tasmax",
+                "20mm_freq"
+            ],
+            "license": "CMIP6 model data produced by Lawrence Livermore PCMDI is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at https:///pcmdi.llnl.gov/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+            "mip_era": "CMIP6",
+            "nominal_resolution": "100 km",
+            "parent_activity_id": "CMIP",
+            "parent_experiment_id": "piControl",
+            "parent_mip_era": "CMIP6",
+            "parent_source_id": "INM-CM5-0",
+            "parent_time_units": "days since 1850-01-01",
+            "parent_variant_label": "r1i1p1f1",
+            "physics_index": "1",
+            "product": "model-output",
+            "realization_index": "1",
+            "realm": "atmos",
+            "redistribution": "Redistribution prohibited. For internal use only.",
+            "references": "RJNAMM 2018, 367-374. DOI: 10.1515/rnam-2018-0032",
+            "regrid_method": "bilinear",
+            "run_variant": "standard",
+            "source": "INM-CM5-0 (2016): \naerosol: INM-AER1\natmos: INM-AM5-0 (2x1.5; 180 x 120 longitude/latitude; 73 levels; top level sigma = 0.0002)\natmosChem: none\nland: INM-LND1\nlandIce: none\nocean: INM-OM5 (North Pole shifted to 60N, 90E. 0.5x0.25; 720 x 720 longitude/latitude; 40 levels; vertical sigma coordinate)\nocnBgchem: none\nseaIce: INM-ICE1",
+            "source_id": "INM-CM5-0",
+            "source_type": "AOGCM AER",
+            "sub_experiment": "none",
+            "sub_experiment_id": "none",
+            "table_id": "day",
+            "table_info": "Creation Date:(20 February 2019) MD5:951084b632bd52c3f6224e495b1cb65e",
+            "tracking_id": "hdl:21.14100/b15f8131-2f61-46de-bf81-cb652d04a1b6",
+            "variable_id": "pr",
+            "variant_label": "r1i1p1f1",
+            "version": "1.0.0"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "datasets/.zarray": {
+            "chunks": [
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U75",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                2
+            ],
+            "zarr_format": 2
+        },
+        "datasets/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "datasets"
+            ]
+        },
+        "heatmap/.zarray": {
+            "chunks": [
+                2,
+                19
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                2,
+                19
+            ],
+            "zarr_format": 2
+        },
+        "heatmap/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "datasets",
+                "properties"
+            ]
+        },
+        "properties/.zarray": {
+            "chunks": [
+                19
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U29",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                19
+            ],
+            "zarr_format": 2
+        },
+        "properties/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "properties"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}
