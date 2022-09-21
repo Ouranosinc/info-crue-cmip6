@@ -62,7 +62,7 @@ with tab1:
 
         option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
 
-        ref = xr.open_dataset(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.nc',
+        ref = xr.open_dataset(f'dashboard_data/diag-ref-ECMWF_ERA5-Land_NAM_qc.nc',
                               decode_timedelta=False)
         sim = xr.open_dataset(f'dashboard_data/diag-sim-prop_{option_id}.nc',
                               decode_timedelta=False)
