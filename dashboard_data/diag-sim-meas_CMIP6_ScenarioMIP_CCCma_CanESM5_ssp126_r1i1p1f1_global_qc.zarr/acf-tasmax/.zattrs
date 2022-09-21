@@ -1,0 +1,11 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon",
+        "season"
+    ],
+    "cell_methods": "sim: area: mean time: maximum ref: time: point",
+    "history": "sim: 2019-03-14T04:58:36Z altered by CMOR: Treated scalar dimension: 'height'. 2019-03-14T04:58:36Z altered by CMOR: Reordered dimensions, original order: lat lon time.\n[2022-09-13 07:59:46] acf-tasmax: properties_info-crue-6.ACF-TASMAX(tasmax=tasmax, lag=1, group=Grouper(name='time.season')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] acf-tasmax: properties_info-crue-6.ACF-TASMAX(tasmax=tasmax, lag=1, group=Grouper(name='time.season')) - xclim version: 0.38.1-beta\n[2022-09-13 07:59:46] bias: xclim.sdba.measures.BIAS(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.38.1-beta",
+    "long_name": "Lag-1 autocorrelation of the variable over a season and averaged over all years absolute bias",
+    "units": ""
+}
