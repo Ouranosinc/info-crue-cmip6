@@ -104,7 +104,7 @@ extraction:
               - ssp126
             source:
               - ACCESS-ESM1-5
-            - CanESM5
+              - CanESM5
               - EC-Earth3
               - FGOALS-g3
               - IPSL-CM6A-LR
