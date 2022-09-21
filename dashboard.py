@@ -57,7 +57,8 @@ with tab1:
         ids = [x[30:-6] for x in glob.glob('dashboard_data/diag-scen-meas_*')]
         st.write(ids)
         models = sorted(set([y.split('_')[3] for y in ids ]))
-        exps = sorted(set([y.split('_')[4] for y in ids]))
+        ids_of_model = [x for x in ids if option_model in x]
+        exps = sorted(set([y.split('_')[4] for y in ids_of_model]))
         option_model = cols[0].selectbox('Models',models)
         option_ssp = cols[1].selectbox('Experiments',exps)
 
