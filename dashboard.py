@@ -62,13 +62,21 @@ with tab1:
 
         option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
 
+        ref = xr.open_dataset(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.nc',
+                              decode_timedelta=False)
+        sim = xr.open_dataset(f'dashboard_data/diag-sim-prop_{option_id}.nc',
+                              decode_timedelta=False)
+        scen = xr.open_dataset(f'dashboard_data/diag-scen-prop_{option_id}.nc',
+                               decode_timedelta=False)
+        bias_sim = xr.open_dataset(f'dashboard_data/diag-sim-meas_{option_id}.nc',
+                                   decode_timedelta=False)
+        bias_scen = xr.open_dataset(f'dashboard_data/diagscen-meas_{option_id}.nc',
+                                    decode_timedelta=False)
 
-        ref = xr.open_zarr(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.zarr', decode_timedelta=False)
-        sim = xr.open_zarr(f'dashboard_data/diag_sim_{option_id}.zarr', decode_timedelta=False)
-        scen = xr.open_zarr(f'dashboard_data/diag_scen_{option_id}.zarr', decode_timedelta=False)
-        bias_sim = xr.open_zarr(f'dashboard_data/diag_sim_meas_{option_id}.zarr', decode_timedelta=False)
-        bias_scen = xr.open_zarr(f'dashboard_data/diag_scen_meas_{option_id}.zarr', decode_timedelta=False)
-        hmap = np.load(f'dashboard_data/diag_hmap_{option_id}.npy')
+        hm = xr.open_zarr(f'dashboard_data/diag-heatmap_{option_id}.zarr',
+                          decode_timedelta=False)
+        imp = xr.open_zarr(f'dashboard_data/diag-improved_{option_id}.zarr',
+                           decode_timedelta=False)
 
     cols2=st.columns(2)
     # choose properties
