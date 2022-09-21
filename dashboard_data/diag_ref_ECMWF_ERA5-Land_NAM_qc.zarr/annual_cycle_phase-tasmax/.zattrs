@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon"
+    ],
+    "cell_methods": "time: point time: range",
+    "history": "[2022-09-12 19:21:37] annual_cycle_phase-tasmax: properties_info-crue-6.ANNUAL_CYCLE_PHASE-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta",
+    "is_dayofyear": 1,
+    "long_name": "Phase of the annual cycle",
+    "period": "1991-2020",
+    "units": ""
+}

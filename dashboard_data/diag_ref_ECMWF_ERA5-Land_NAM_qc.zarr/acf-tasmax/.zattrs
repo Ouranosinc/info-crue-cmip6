@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon",
+        "season"
+    ],
+    "cell_methods": "time: point",
+    "history": "[2022-09-12 19:21:36] acf-tasmax: properties_info-crue-6.ACF-TASMAX(tasmax=tasmax, lag=1, group=Grouper(name='time.season')) - xclim version: 0.38.1-beta",
+    "long_name": "Lag-1 autocorrelation of the variable over a season and averaged over all years.",
+    "period": "1991-2020",
+    "units": ""
+}

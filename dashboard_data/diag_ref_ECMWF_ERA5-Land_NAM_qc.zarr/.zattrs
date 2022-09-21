@@ -1,0 +1,23 @@
+{
+    "Conventions": "CF-1.8",
+    "cat:_data_format_": "zarr",
+    "cat:domain": "qc",
+    "cat:frequency": "fx",
+    "cat:id": "ECMWF_ERA5-Land_NAM",
+    "cat:institution": "ECMWF",
+    "cat:processing_level": "diag-ref-prop",
+    "cat:source": "ERA5-Land",
+    "cat:type": "reconstruction",
+    "cat:xrfreq": "fx",
+    "domain": "NAM",
+    "format": "zarr",
+    "frequency": "day",
+    "history": "[2022-09-12 19:21:36] bbox spatial subsetting with no buffer, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1",
+    "institution": "ECMWF",
+    "intake_esm_dataset_key": "ECMWF_ERA5-Land_NAM.NAM.raw.D",
+    "processing_level": "raw",
+    "project": "era5-land",
+    "realm": "atmos",
+    "source": "ERA5-Land",
+    "type": "reconstruction"
+}
