@@ -1,0 +1,775 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "Conventions": "CF-1.7 CMIP-6.2",
+            "activity_id": "CMIP",
+            "branch_method": "Hybrid-restart from year 0671-01-01 of piControl",
+            "branch_time": 0.0,
+            "branch_time_in_child": 0.0,
+            "branch_time_in_parent": 171550.0,
+            "cat:_data_format_": "zarr",
+            "cat:activity": "ScenarioMIP",
+            "cat:date_end": "2100-12-31 00:00",
+            "cat:date_start": "1956-01-01 00:00",
+            "cat:domain": "qc",
+            "cat:experiment": "ssp245",
+            "cat:frequency": "fx",
+            "cat:id": "CMIP6_ScenarioMIP_AS-RCEC_TaiESM1_ssp245_r1i1p1f1_global",
+            "cat:institution": "AS-RCEC",
+            "cat:member": "r1i1p1f1",
+            "cat:mip_era": "CMIP6",
+            "cat:path": "/crue/jlavoie/info-crue-cmip6/regridded/CMIP6_ScenarioMIP_AS-RCEC_TaiESM1_ssp245_r1i1p1f1_global_regridded.zarr",
+            "cat:processing_level": "diag-sim-meas",
+            "cat:source": "TaiESM1",
+            "cat:type": "simulation",
+            "cat:xrfreq": "fx",
+            "cmor_version": "3.5.0",
+            "contact": "Dr. Wei-Liang Lee (leelupin@gate.sinica.edu.tw)",
+            "creation_date": "2020-06-14T03:24:17Z",
+            "data_specs_version": "01.00.31",
+            "experiment": "all-forcing simulation of the recent past",
+            "experiment_id": "historical",
+            "external_variables": "areacella",
+            "forcing_index": "1",
+            "frequency": "day",
+            "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.AS-RCEC.TaiESM1.historical.none.r1i1p1f1",
+            "grid": "finite-volume grid with 0.9x1.25 degree lat/lon resolution",
+            "grid_label": "gn",
+            "history": "[2022-09-09 11:56:33] regridded with arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': True, 'reuse_weights': False} - xESMF v0.6.3\n[2022-09-09 11:56:28] regridded with regridder arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} to a xesmf cf_grid_2d with arguments {'lon0_b': 274.74, 'lon1_b': 305.2, 'd_lon': 0.5, 'lat0_b': 39.74, 'lat1_b': 64, 'd_lat': 0.5}  - xESMF v0.6.3\n[2022-09-09 11:56:28] regridded with regridder arguments {'method': 'bilinear', 'extrap_method': 'inverse_dist', 'locstream_out': False, 'reuse_weights': False} to a xesmf cf_grid_2d with arguments {'lon0_b': 274.75, 'lon1_b': 305.2, 'd_lon': 1, 'lat0_b': 39.75, 'lat1_b': 64, 'd_lat': 1}  - xESMF v0.6.3\n[2022-09-09 11:34:19] bbox spatial subsetting with buffer=3, lon_bnds=[-83 -56], lat_bnds=[42 63] - clisops v0.9.1 \n 2020-06-14T03:24:17Z ; CMOR rewrote data to be consistent with CMIP6, CF-1.7 CMIP-6.2 and CF standards.",
+            "initialization_index": "1",
+            "institution": "Research Center for Environmental Changes, Academia Sinica, Nankang, Taipei 11529, Taiwan",
+            "institution_id": "AS-RCEC",
+            "intake_esm_dataset_key": "CMIP6_ScenarioMIP_AS-RCEC_TaiESM1_ssp245_r1i1p1f1_global.qc.regridded.D",
+            "intake_esm_vars": [
+                "tasmax",
+                "pr",
+                "dtr",
+                "tasmin"
+            ],
+            "license": "CMIP6 model data produced by NCC is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at https:///pcmdi.llnl.gov/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+            "mip_era": "CMIP6",
+            "model_id": "TaiESM1",
+            "nominal_resolution": "100 km",
+            "parent_activity_id": "CMIP",
+            "parent_experiment_id": "piControl",
+            "parent_mip_era": "CMIP6",
+            "parent_source_id": "TaiESM1",
+            "parent_sub_experiment_id": "none",
+            "parent_time_units": "days since 1850-01-01",
+            "parent_variant_label": "r1i1p1f1",
+            "physics_index": "1",
+            "product": "model-output",
+            "realization_index": "1",
+            "realm": "atmos",
+            "references": "10.5194/gmd-2019-377",
+            "regrid_method": "bilinear",
+            "run_variant": "N/A",
+            "source": "TaiESM 1.0 (2018): \naerosol: SNAP (same grid as atmos)\natmos: TaiAM1 (0.9x1.25 degree; 288 x 192 longitude/latitude; 30 levels; top level ~2 hPa)\natmosChem: SNAP (same grid as atmos)\nland: CLM4.0 (same grid as atmos)\nlandIce: none\nocean: POP2 (320x384 longitude/latitude; 60 levels; top grid cell 0-10 m)\nocnBgchem: none\nseaIce: CICE4",
+            "source_id": "TaiESM1",
+            "source_type": "AOGCM AER BGC",
+            "sub_experiment": "none",
+            "sub_experiment_id": "none",
+            "table_id": "day",
+            "table_info": "Creation Date:(24 July 2019) MD5:0bb394a356ef9d214d027f1aca45853e",
+            "title": "TaiESM1 output prepared for CMIP6",
+            "tracking_id": "hdl:21.14100/6896ed15-c7f5-41bc-87bd-1c278da45c9a",
+            "variable_id": "pr",
+            "variant_label": "r1i1p1f1"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "20mm_freq/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "20mm_freq/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean ref: time: mean (interval: 1 hour)",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:29] 20mm_freq: properties_info-crue-6.20MM_FREQ(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:38] 20mm_freq: properties_info-crue-6.20MM_FREQ(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:29] bias: xclim.sdba.measures.BIAS(sim=20mm_freq, ref=20mm_freq) - xclim version: 0.38.1-beta",
+            "long_name": "Relative frequency of values >= 20 mm d-1 absolute bias",
+            "units": ""
+        },
+        "acf-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30,
+                4
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271,
+                4
+            ],
+            "zarr_format": 2
+        },
+        "acf-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon",
+                "season"
+            ],
+            "cell_methods": "sim: area: mean time: maximum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:21] acf-tasmax: properties_info-crue-6.ACF-TASMAX(tasmax=tasmax, lag=1, group=Grouper(name='time.season')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] acf-tasmax: properties_info-crue-6.ACF-TASMAX(tasmax=tasmax, lag=1, group=Grouper(name='time.season')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:21] bias: xclim.sdba.measures.BIAS(sim=acf-tasmax, ref=acf-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Lag-1 autocorrelation of the variable over a season and averaged over all years absolute bias",
+            "units": ""
+        },
+        "annual_cycle_amplitude-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_amplitude-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean time: range time: mean ref: time: mean (interval: 1 hour) time: range time: mean",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:29] annual_cycle_amplitude-pr: properties_info-crue-6.ANNUAL_CYCLE_AMPLITUDE-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:38] annual_cycle_amplitude-pr: properties_info-crue-6.ANNUAL_CYCLE_AMPLITUDE-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:29] bias: xclim.sdba.measures.BIAS(sim=annual_cycle_amplitude-pr, ref=annual_cycle_amplitude-pr) - xclim version: 0.38.1-beta",
+            "long_name": "Relative amplitude of the annual cycle absolute bias",
+            "units": "%"
+        },
+        "annual_cycle_amplitude-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_amplitude-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum time: range time: mean ref: time: point time: range time: mean",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:24] annual_cycle_amplitude-tasmax: properties_info-crue-6.ANNUAL_CYCLE_AMPLITUDE-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] annual_cycle_amplitude-tasmax: properties_info-crue-6.ANNUAL_CYCLE_AMPLITUDE-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:24] bias: xclim.sdba.measures.BIAS(sim=annual_cycle_amplitude-tasmax, ref=annual_cycle_amplitude-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Absolute amplitude of the annual cycle absolute bias",
+            "units": "delta_degC"
+        },
+        "annual_cycle_phase-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "annual_cycle_phase-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum time: range ref: time: point time: range",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] annual_cycle_phase-tasmax: properties_info-crue-6.ANNUAL_CYCLE_PHASE-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] annual_cycle_phase-tasmax: properties_info-crue-6.ANNUAL_CYCLE_PHASE-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] circular_bias: xclim.sdba.measures.CIRCULAR_BIAS(sim=annual_cycle_phase-tasmax, ref=annual_cycle_phase-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Phase of the annual cycle circular bias",
+            "units": "days"
+        },
+        "frost_days/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "frost_days/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: minimum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] frost_days: properties_info-crue-6.FROST_DAYS(tasmin=tasmin, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] frost_days: properties_info-crue-6.FROST_DAYS(tasmin=tasmin, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] bias: xclim.sdba.measures.BIAS(sim=frost_days, ref=frost_days) - xclim version: 0.38.1-beta",
+            "long_name": "Relative frequency of values < 0 degc absolute bias",
+            "units": ""
+        },
+        "lat/.zarray": {
+            "chunks": [
+                211
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211
+            ],
+            "zarr_format": 2
+        },
+        "lat/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat"
+            ],
+            "long_name": "latitude",
+            "original_shape": "211x271",
+            "units": "degrees_north"
+        },
+        "lon/.zarray": {
+            "chunks": [
+                271
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                271
+            ],
+            "zarr_format": 2
+        },
+        "lon/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon"
+            ],
+            "long_name": "longitude",
+            "units": "degrees_east"
+        },
+        "maximum_length_of_dry_spell/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "maximum_length_of_dry_spell/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean ref: time: mean (interval: 1 hour)",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:28] maximum_length_of_dry_spell: properties_info-crue-6.MAXIMUM_LENGTH_OF_DRY_SPELL(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] maximum_length_of_dry_spell: properties_info-crue-6.MAXIMUM_LENGTH_OF_DRY_SPELL(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:28] bias: xclim.sdba.measures.BIAS(sim=maximum_length_of_dry_spell, ref=maximum_length_of_dry_spell) - xclim version: 0.38.1-beta",
+            "long_name": "Maximal of spell length distribution when the variable is < the amount 1 mm d-1 absolute bias",
+            "units": "d"
+        },
+        "maximum_length_of_warm_spell/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "maximum_length_of_warm_spell/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:24] maximum_length_of_warm_spell: properties_info-crue-6.MAXIMUM_LENGTH_OF_WARM_SPELL(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] maximum_length_of_warm_spell: properties_info-crue-6.MAXIMUM_LENGTH_OF_WARM_SPELL(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:24] bias: xclim.sdba.measures.BIAS(sim=maximum_length_of_warm_spell, ref=maximum_length_of_warm_spell) - xclim version: 0.38.1-beta",
+            "long_name": "Maximal of spell length distribution when the variable is >= the quantile 09 absolute bias",
+            "units": "d"
+        },
+        "mean-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "mean-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean time: mean ref: time: mean (interval: 1 hour) time: mean",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] mean-pr: properties_info-crue-6.MEAN-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] mean-pr: properties_info-crue-6.MEAN-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] bias: xclim.sdba.measures.BIAS(sim=mean-pr, ref=mean-pr) - xclim version: 0.38.1-beta",
+            "long_name": "Mean of the variable absolute bias",
+            "units": "mm d-1"
+        },
+        "mean-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "mean-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum time: mean ref: time: point time: mean",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:17] mean-tasmax: properties_info-crue-6.MEAN-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] mean-tasmax: properties_info-crue-6.MEAN-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:17] bias: xclim.sdba.measures.BIAS(sim=mean-tasmax, ref=mean-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Mean of the variable absolute bias",
+            "units": "delta_degC"
+        },
+        "quantile_02-tasmin/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_02-tasmin/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: minimum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] quantile_02-tasmin: properties_info-crue-6.QUANTILE_02-TASMIN(tasmin=tasmin, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] quantile_02-tasmin: properties_info-crue-6.QUANTILE_02-TASMIN(tasmin=tasmin, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] bias: xclim.sdba.measures.BIAS(sim=quantile_02-tasmin, ref=quantile_02-tasmin) - xclim version: 0.38.1-beta",
+            "long_name": "Quantile 002 of the variable absolute bias",
+            "units": "delta_degC"
+        },
+        "quantile_98-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_98-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean ref: time: mean (interval: 1 hour)",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] quantile_98-pr: properties_info-crue-6.QUANTILE_98-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] quantile_98-pr: properties_info-crue-6.QUANTILE_98-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] bias: xclim.sdba.measures.BIAS(sim=quantile_98-pr, ref=quantile_98-pr) - xclim version: 0.38.1-beta",
+            "long_name": "Quantile 098 of the variable absolute bias",
+            "units": "mm d-1"
+        },
+        "quantile_98-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "quantile_98-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:17] quantile_98-tasmax: properties_info-crue-6.QUANTILE_98-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] quantile_98-tasmax: properties_info-crue-6.QUANTILE_98-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:17] bias: xclim.sdba.measures.BIAS(sim=quantile_98-tasmax, ref=quantile_98-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Quantile 098 of the variable absolute bias",
+            "units": "delta_degC"
+        },
+        "season/.zarray": {
+            "chunks": [
+                4
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U3",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                4
+            ],
+            "zarr_format": 2
+        },
+        "season/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "season"
+            ]
+        },
+        "skewness-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "skewness-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean ref: time: mean (interval: 1 hour)",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] skewness-pr: properties_info-crue-6.SKEWNESS-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] skewness-pr: properties_info-crue-6.SKEWNESS-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] bias: xclim.sdba.measures.BIAS(sim=skewness-pr, ref=skewness-pr) - xclim version: 0.38.1-beta",
+            "long_name": "Skewness of the variable absolute bias",
+            "units": ""
+        },
+        "skewness-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "skewness-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:17] skewness-tasmax: properties_info-crue-6.SKEWNESS-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] skewness-tasmax: properties_info-crue-6.SKEWNESS-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:17] bias: xclim.sdba.measures.BIAS(sim=skewness-tasmax, ref=skewness-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Skewness of the variable absolute bias",
+            "units": ""
+        },
+        "trend-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "trend-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum ref: time: point",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] trend-tasmax: properties_info-crue-6.TREND-TASMAX(tasmax=tasmax, output='slope', group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] trend-tasmax: properties_info-crue-6.TREND-TASMAX(tasmax=tasmax, output='slope', group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] bias: xclim.sdba.measures.BIAS(sim=trend-tasmax, ref=trend-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Slope of the interannual linear trend absolute bias",
+            "units": "delta_degC yr-1"
+        },
+        "var-pr/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "var-pr/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean time: var ref: time: mean (interval: 1 hour) time: var",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:25] var-pr: properties_info-crue-6.VAR-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:37] var-pr: properties_info-crue-6.VAR-PR(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:25] ratio: xclim.sdba.measures.RATIO(sim=var-pr, ref=var-pr) - xclim version: 0.38.1-beta",
+            "long_name": "Variance of the variable ratio",
+            "units": ""
+        },
+        "var-tasmax/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "var-tasmax/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: mean time: maximum time: var ref: time: point time: var",
+            "history": "sim: 2021-05-16T15:24:07Z altered by CMOR: Treated scalar dimension: 'height'. 2021-05-16T15:24:11Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:17] var-tasmax: properties_info-crue-6.VAR-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:36] var-tasmax: properties_info-crue-6.VAR-TASMAX(tasmax=tasmax, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:17] ratio: xclim.sdba.measures.RATIO(sim=var-tasmax, ref=var-tasmax) - xclim version: 0.38.1-beta",
+            "long_name": "Variance of the variable ratio",
+            "units": ""
+        },
+        "wet_days_freq/.zarray": {
+            "chunks": [
+                30,
+                30
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                211,
+                271
+            ],
+            "zarr_format": 2
+        },
+        "wet_days_freq/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "lon"
+            ],
+            "cell_methods": "sim: area: time: mean ref: time: mean (interval: 1 hour)",
+            "history": "sim: 2020-06-14T03:24:17Z altered by CMOR: Converted type from 'd' to 'f'.\n[2022-09-15 10:02:29] wet_days_freq: properties_info-crue-6.WET_DAYS_FREQ(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\nref: [2022-09-12 19:21:38] wet_days_freq: properties_info-crue-6.WET_DAYS_FREQ(pr=pr, group=Grouper(name='time')) - xclim version: 0.38.1-beta\n[2022-09-15 10:02:29] bias: xclim.sdba.measures.BIAS(sim=wet_days_freq, ref=wet_days_freq) - xclim version: 0.38.1-beta",
+            "long_name": "Relative frequency of values >= 1 mm d-1 absolute bias",
+            "units": ""
+        }
+    },
+    "zarr_consolidated_format": 1
+}
