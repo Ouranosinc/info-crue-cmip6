@@ -65,7 +65,7 @@ with tab1:
 
         ids_of_model_exps = [x for x in ids if option_model in x and option_ssp in x]
         members = sorted(set([y.split('_')[5] for y in ids_of_model_exps]))
-        option_member = cols[3].selectbox('Members',members)
+        option_member = cols[2].selectbox('Members', members)
 
         option_id = [x for x in ids if option_model in x and option_ssp in x and option_member in x][0]
 
