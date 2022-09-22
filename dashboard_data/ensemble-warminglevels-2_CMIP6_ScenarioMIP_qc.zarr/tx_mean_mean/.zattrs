@@ -1,0 +1,14 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "lon",
+        "horizon",
+        "season"
+    ],
+    "cell_methods": "time: maximum within days time: mean over days",
+    "description": "30-year mean of Seasonal mean of daily maximum temperature. : mean of ensemble",
+    "history": "[2022-09-21 14:21:11] 30-year rolling average (non-centered) with a minimum of 28 years of data - xarray v2022.6.0 \n 2019-09-26T03:58:22Z altered by CMOR: Treated scalar dimension: 'height'. 2019-09-26T03:58:22Z altered by CMOR: Reordered dimensions, original order: lat lon time.\n[2022-08-10 12:16:54] : Bias-adjusted with DetrendedQuantileMapping(group=Grouper(add_dims=[], name='time.dayofyear', window=31), kind='+').adjust(sim, detrend=<LoessDetrend>, interp='nearest', extrapolation='constant') - xclim version: 0.37.0\n[2022-09-21 14:18:17] tx_mean: indicators-warminglevels.TX_MEAN(tasmax=tasmax) with options check_missing=any - xclim version: 0.38.1-beta",
+    "long_name": "30-year mean of Mean daily maximum temperature",
+    "standard_name": "air_temperature",
+    "units": "\u00b0C"
+}
