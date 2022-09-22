@@ -175,6 +175,9 @@ with tab1:
     col2.write(fig_per)
 
 with tab2:
+    cols = st.columns([1,3,1,1])
+    option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
+
     # load data
     if useCat:
         from xscen.config import CONFIG, load_config
@@ -185,38 +188,58 @@ with tab2:
         pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
         # get warminglevel
-        wl = pcat.search(processing_level='ensemble-warminglevels').to_dask()
+        if option_type == 'delta':
+            wl = pcat.search(processing_level='ensemble-deltas').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        else:
+            wl = pcat.search(processing_level='ensemble-warminglevels').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+
     else:
-        print('not ready yet')
+        if option_type == 'delta':
+            wl = xr.open_zarr('ensemble-deltas_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+        else:
+            wl = xr.open_zarr('ensemble-warminglevels_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
 
     #choose data
-    cols = st.columns(3)
-    option_stats =  cols[0].selectbox('Statistiques', ['max', 'mean','min', 'stdev'])
     def show_long_name(name):
-        return f"{wl[name].attrs['long_name']} ({name})"
+        for var in wl.data_vars:
+            if name in var:
+                return f"{wl[var].attrs['long_name']} ({name})"
+    if option_type == 'delta':
+        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl.data_vars]), format_func = show_long_name)
+        option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'posfrac'])
+        complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
+    else:
+        option_ind = cols[1].selectbox('Indicateurs', set([x.split('_')[:-1] for x in
+                                                           wl.data_vars]),
+                                       format_func=show_long_name)
+        option_stats = cols[2].selectbox('Statistiques',
+                                         ['max', 'mean', 'min', 'stdev'])
+        complete_var = f"{option_ind}_{option_stats}"
+    st.write(complete_var)
 
-    option_ind = cols[1].selectbox('Indicateurs',[x for x in wl.data_vars if option_stats in x], format_func = show_long_name)
-    option_season = cols[2].selectbox('Saisons', wl.season.values)
+
+    option_season = cols[3].selectbox('Saisons', wl.season.values)
 
     #plot data
-    cols2 = st.columns(len(wl.warminglevel.values))
-    cmap = 'viridis_r' if wl[option_ind].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
-    vmin = wl[option_ind].min().values
-    vmax = wl[option_ind].max().values
-    select_wl = wl[option_ind].sel(season=option_season)
-    #col1.write(hv.render(prop_ref.hvplot(title=f'REF\n{long_name}',width=600, height=616, cmap=cmap, clim=(mini_prop,maxi_prop))))
+    cmap = 'viridis_r' if wl[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    vmin = wl[complete_var].min().values
+    vmax = wl[complete_var].max().values
+    select_wl = wl[complete_var].sel(season=option_season)
 
 
-    # cols2[0].write(hv.render(select_wl.hvplot( cmap=cmap, clim=(vmin,vmax),by='warminglevel',
-    #                          subplots=True)))
+    # fig_wl, axs = plt.subplots(1, len(wl.horizon.values), figsize=(15, 5))
+    #
+    # for i,w in enumerate(wl.horizon.values):
+    #     wl[complete_var].sel(season=option_season, horizon=w).plot( vmin=vmin, vmax=vmax, ax=axs[i])
+    # st.write(fig_wl)
 
-    fig_wl, axs = plt.subplots(1, len(wl.warminglevel.values), figsize=(15, 5))
-
-    for i,w in enumerate(wl.warminglevel.values):
-        wl[option_ind].sel(season=option_season, warminglevel=w).plot( vmin=vmin, vmax=vmax)
-    st.write(fig_wl)
-
-
+    col3 = st.columns(3)
+    for i, w in enumerate(wl.horizon.values):
+        col3[i].write(
+            hv.render(select_wl.sel(horizon=w).hvplot(cmap=cmap,
+                                                      width=450,
+                                                      height=350,
+                                                      clim=(vmin, vmax))))
 
 # test panel
 # https://github.com/holoviz/panel/issues/1074
