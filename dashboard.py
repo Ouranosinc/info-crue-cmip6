@@ -206,16 +206,15 @@ with tab2:
                 return f"{wl[var].attrs['long_name']} ({name})"
     if option_type == 'delta':
         option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl.data_vars]), format_func = show_long_name)
-        option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'posfrac'])
+        option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
         complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
     else:
-        option_ind = cols[1].selectbox('Indicateurs', set([x.split('_')[:-1] for x in
+        option_ind = cols[1].selectbox('Indicateurs', set(['_'.join(x.split('_')[:-1]) for x in
                                                            wl.data_vars]),
                                        format_func=show_long_name)
         option_stats = cols[2].selectbox('Statistiques',
                                          ['max', 'mean', 'min', 'stdev'])
         complete_var = f"{option_ind}_{option_stats}"
-    st.write(complete_var)
 
 
     option_season = cols[3].selectbox('Saisons', wl.season.values)
@@ -240,6 +239,7 @@ with tab2:
                                                       width=450,
                                                       height=350,
                                                       clim=(vmin, vmax))))
+        #col3[i].write(f'Nombre de modèles: {}')
 
 # test panel
 # https://github.com/holoviz/panel/issues/1074
