@@ -66,13 +66,13 @@ with tab1:
 
         ref = xr.open_dataset(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.nc',
                               decode_timedelta=False)
-        sim = xr.open_dataset(f'dashboard_data/diag-sim-prop_{option_id}.nc',
+        sim = xr.open_dataset(f'dashboard_data/diag-sim-prop_{option_id}_qc.nc',
                               decode_timedelta=False)
-        scen = xr.open_dataset(f'dashboard_data/diag-scen-prop_{option_id}.nc',
+        scen = xr.open_dataset(f'dashboard_data/diag-scen-prop_{option_id}_qc.nc',
                                decode_timedelta=False)
-        bias_sim = xr.open_dataset(f'dashboard_data/diag-sim-meas_{option_id}.nc',
+        bias_sim = xr.open_dataset(f'dashboard_data/diag-sim-meas_{option_id}_qc.nc',
                                    decode_timedelta=False)
-        bias_scen = xr.open_dataset(f'dashboard_data/diagscen-meas_{option_id}.nc',
+        bias_scen = xr.open_dataset(f'dashboard_data/diagscen-meas_{option_id}_qc.nc',
                                     decode_timedelta=False)
 
         hm = xr.open_zarr(f'dashboard_data/diag-heatmap_{option_id}.zarr',
