@@ -75,9 +75,9 @@ with tab1:
         bias_scen = xr.open_dataset(f'dashboard_data/diag-scen-meas_{option_id}_qc.nc',
                                     decode_timedelta=False)
 
-        hm = xr.open_zarr(f'dashboard_data/diag-heatmap_{option_id}.zarr',
+        hm = xr.open_zarr(f'dashboard_data/diag-heatmap_{option_id}_qc.nc',
                           decode_timedelta=False)
-        imp = xr.open_zarr(f'dashboard_data/diag-improved_{option_id}.zarr',
+        imp = xr.open_zarr(f'dashboard_data/diag-improved_{option_id}_qc.nc',
                            decode_timedelta=False)
 
     cols2=st.columns(2)
