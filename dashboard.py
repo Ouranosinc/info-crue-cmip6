@@ -220,10 +220,11 @@ with tab2:
     option_season = cols[3].selectbox('Saisons', wl.season.values)
 
     #plot data
-    cmap = 'viridis_r' if wl[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
-    vmin = wl[complete_var].min().values
-    vmax = wl[complete_var].max().values
     select_wl = wl[complete_var].sel(season=option_season)
+    cmap = 'viridis_r' if wl[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    vmin = select_wl.min().values
+    vmax = select_wl.max().values
+
 
 
     # fig_wl, axs = plt.subplots(1, len(wl.horizon.values), figsize=(15, 5))
