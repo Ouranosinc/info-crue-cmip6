@@ -1,0 +1,25 @@
+{
+    "Notes": "Regridded on the grid of ERA5-Land, then bias-adjusted with detrended\nquantile mapping on a day-of-year basis with a window of 31 days,\nLOESS detrending and 50 quantiles.\nThere is a second bias adjustement for pr's extreme values.\nTasmax, dtr and pr were adjusted, tasmin was computed\nfrom tasmax and dtr after the adjustment.\nThe reference was ERA5-Land over the 1991-2010 period.\n",
+    "cat:_data_format_": "zarr",
+    "cat:activity": "ScenarioMIP",
+    "cat:bias_adjust_institution": "Ouranos",
+    "cat:domain": "qc",
+    "cat:frequency": "qtr",
+    "cat:id": "CMIP6_ScenarioMIP_qc",
+    "cat:mip_era": "CMIP6",
+    "cat:processing_level": "ensemble-warminglevels-3",
+    "cat:type": "simulation",
+    "cat:variable": "liquidprcptot,solidprcptot,rx5day,prcptot,rx1day,heat_wave_total_length,tx_mean,tn_mean",
+    "cat:xrfreq": "QS-DEC",
+    "intake_esm_vars": [
+        "liquidprcptot",
+        "solidprcptot",
+        "rx5day",
+        "prcptot",
+        "rx1day",
+        "heat_wave_total_length",
+        "tx_mean",
+        "tn_mean"
+    ],
+    "version": "1.0.0"
+}
