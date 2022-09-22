@@ -72,7 +72,7 @@ with tab1:
                                decode_timedelta=False)
         bias_sim = xr.open_dataset(f'dashboard_data/diag-sim-meas_{option_id}_qc.nc',
                                    decode_timedelta=False)
-        bias_scen = xr.open_dataset(f'dashboard_data/diagscen-meas_{option_id}_qc.nc',
+        bias_scen = xr.open_dataset(f'dashboard_data/diag-scen-meas_{option_id}_qc.nc',
                                     decode_timedelta=False)
 
         hm = xr.open_zarr(f'dashboard_data/diag-heatmap_{option_id}.zarr',
