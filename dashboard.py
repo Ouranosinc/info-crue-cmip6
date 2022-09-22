@@ -195,12 +195,16 @@ with tab2:
         ensemble_sizes= {x.horizon.values[0]:x.horizon.attrs['ensemble_size'] for x in wls.values()}
         wl = xr.concat(wls.values(), dim='horizon')
     else:
+        ensemble_sizes={}
+        wls=[]
         for h in ['1.5', '2', '3']:
             if option_type == 'delta':
-                wl = xr.open_zarr(f'dashboard_data/ensemble-deltas-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+                cur_wl = xr.open_zarr(f'dashboard_data/ensemble-deltas-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
             else:
-                wl = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-
+                cur_wl = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+            ensemble_sizes[h]=cur_wl.horizon.attrs['ensemble_size']
+            wls.append(cur_wl)
+        wl = xr.concat(wls, dim='horizon')
     #choose data
     def show_long_name(name):
         for var in wl.data_vars:
