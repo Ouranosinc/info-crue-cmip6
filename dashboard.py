@@ -247,7 +247,7 @@ with tab2:
                                                       width=450,
                                                       height=350,
                                                       clim=(vmin, vmax))))
-        col3[i].write(f"Nombre de modèles: {ensemble_sizes[h]}")
+        col3[i].write(f"Nombre de réalisations de l'ensemble: {ensemble_sizes[h]}")
 
 # test panel
 # https://github.com/holoviz/panel/issues/1074
