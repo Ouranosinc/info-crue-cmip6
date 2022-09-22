@@ -189,10 +189,11 @@ with tab2:
 
         # get warminglevel
         if option_type == 'delta':
-            wl = pcat.search(processing_level='ensemble-deltas').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            wls = pcat.search(processing_level='^ensemble-deltas-').to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
         else:
-            wl = pcat.search(processing_level='ensemble-warminglevels').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-
+            wls = pcat.search(processing_level='^ensemble-warminglevels-').to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
+        ensemble_sizes= {x.horizon.values[0]:x.horizon.attrs['ensemble_size'] for x in wls.values()}
+        wl = xr.concat(wls.values(), dim='horizon')
     else:
         if option_type == 'delta':
             wl = xr.open_zarr('dashboard_data/ensemble-deltas_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
@@ -204,6 +205,7 @@ with tab2:
         for var in wl.data_vars:
             if name in var:
                 return f"{wl[var].attrs['long_name']} ({name})"
+
     if option_type == 'delta':
         option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl.data_vars]), format_func = show_long_name)
         option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
@@ -234,13 +236,13 @@ with tab2:
     # st.write(fig_wl)
 
     col3 = st.columns(3)
-    for i, w in enumerate(wl.horizon.values):
+    for i, h in enumerate(sorted(wl.horizon.values)):
         col3[i].write(
-            hv.render(select_wl.sel(horizon=w).hvplot(cmap=cmap,
+            hv.render(select_wl.sel(horizon=h).hvplot(cmap=cmap,
                                                       width=450,
                                                       height=350,
                                                       clim=(vmin, vmax))))
-        #col3[i].write(f'Nombre de modèles: {}')
+        col3[i].write(f"Nombre de modèles: {ensemble_sizes[h]}")
 
 # test panel
 # https://github.com/holoviz/panel/issues/1074
