@@ -195,9 +195,9 @@ with tab2:
 
     else:
         if option_type == 'delta':
-            wl = xr.open_zarr('ensemble-deltas_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+            wl = xr.open_zarr('dashboard_data/ensemble-deltas_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
         else:
-            wl = xr.open_zarr('ensemble-warminglevels_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+            wl = xr.open_zarr('dashboard_data/ensemble-warminglevels_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
 
     #choose data
     def show_long_name(name):
