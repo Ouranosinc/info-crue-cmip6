@@ -55,7 +55,7 @@ with tab1:
 
         #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
         ids = [x[30:-6] for x in glob.glob('dashboard_data/diag-scen-meas_*')]
-        st.write(ids)
+        #st.write(ids)
         models = sorted(set([y.split('_')[3] for y in ids ]))
         option_model = cols[0].selectbox('Models', models)
         ids_of_model = [x for x in ids if option_model in x]

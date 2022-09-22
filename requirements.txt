@@ -6,6 +6,7 @@ holoviews
 hvplot
 matplotlib
 mpl-toolkits.clifford
+netCDF4
 numpy
 pandas
 panel
