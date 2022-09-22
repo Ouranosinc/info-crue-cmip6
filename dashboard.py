@@ -24,10 +24,11 @@ useCat = st.checkbox("use catalog (only for local version)")
 tab1, tab2 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global"])
 with tab1:
     #useCat=True
-    cols = st.columns(2)
+
 
     #load data
     if useCat:
+        cols = st.columns(2)
         from xscen.config import CONFIG, load_config
         from xscen.catalog import ProjectCatalog
         load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
@@ -52,7 +53,7 @@ with tab1:
 
 
     else:
-
+        cols = st.columns(3)
         #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
         ids = [x[30:-6] for x in glob.glob('dashboard_data/diag-scen-meas_*')]
         #st.write(ids)
@@ -62,7 +63,11 @@ with tab1:
         exps = sorted(set([y.split('_')[4] for y in ids_of_model]))
         option_ssp = cols[1].selectbox('Experiments',exps)
 
-        option_id = [x for x in ids if option_model in x and option_ssp in x ][0]
+        ids_of_model_exps = [x for x in ids if option_model in x ans option_ssp in x]
+        members = sorted(set([y.split('_')[5] for y in ids_of_model_exps]))
+        option_member = cols[3].selectbox('Members',members)
+
+        option_id = [x for x in ids if option_model in x and option_ssp in x and option_member in x][0]
 
         ref = xr.open_dataset(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.nc',
                               decode_timedelta=False)
