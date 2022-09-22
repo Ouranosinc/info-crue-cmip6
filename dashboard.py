@@ -202,7 +202,7 @@ with tab2:
                 cur_wl = xr.open_zarr(f'dashboard_data/ensemble-deltas-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
             else:
                 cur_wl = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-            ensemble_sizes[h]=cur_wl.horizon.attrs['ensemble_size']
+            ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
             wls.append(cur_wl)
         wl = xr.concat(wls, dim='horizon')
     #choose data
