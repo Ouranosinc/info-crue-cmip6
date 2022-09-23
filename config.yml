@@ -92,26 +92,26 @@ extraction:
           allow_conversion: True
           allow_resampling: False
           periods: *sim_period
-#          exclusions:
-#            source:
-#              - FGOALS-g3
-#              - EC-Earth3
-          other_search_criteria:
-            experiment:
-              - ssp245
-              - ssp370
-              - ssp585
-              - ssp126
+          exclusions:
             source:
-              - ACCESS-ESM1-5
-              - CanESM5
-              - EC-Earth3
               - FGOALS-g3
-              - IPSL-CM6A-LR
-              - KACE-1-0-G
-              - MIROC6
-              - MRI-ESM2-0
-            mip_era: CMIP6
+              - EC-Earth3
+#          other_search_criteria:
+#            experiment:
+#              - ssp245
+#              - ssp370
+#              - ssp585
+#              - ssp126
+#            source:
+#              - ACCESS-ESM1-5
+#              - CanESM5
+#              - EC-Earth3
+#              - FGOALS-g3
+#              - IPSL-CM6A-LR
+#              - KACE-1-0-G
+#              - MIROC6
+#              - MRI-ESM2-0
+#            mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
             xr_combine_kwargs:
