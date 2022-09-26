@@ -20,11 +20,11 @@ st.set_page_config(layout="wide")
 
 st.title('Info-Crue CMIP6')
 
-@st.cache
+@st.cache(hash_funcs={xr.core.dataset.Dataset: id})
 def load_zarr(path):
     return xr.open_zarr(path,decode_timedelta= False)
 
-@st.cache
+@st.cache(hash_funcs={xr.core.dataset.Dataset: id})
 def load_nc(path):
     return xr.open_dataset(path,decode_timedelta= False)
 
