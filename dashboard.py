@@ -19,6 +19,15 @@ from matplotlib import colors
 st.set_page_config(layout="wide")
 
 st.title('Info-Crue CMIP6')
+
+@st.cache
+def load_zarr(path):
+    return xr.open_zarr(path,decode_timedelta= False)
+
+@st.cache
+def load_nc(path):
+    return xr.open_dataset(path,decode_timedelta= False)
+
 useCat = st.checkbox("use catalog (only for local version)")
 
 tab1, tab2 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global"])
@@ -69,21 +78,14 @@ with tab1:
 
         option_id = [x for x in ids if option_model in x and option_ssp in x and option_member in x][0]
 
-        ref = xr.open_dataset(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.nc',
-                              decode_timedelta=False)
-        sim = xr.open_dataset(f'dashboard_data/diag-sim-prop_{option_id}_qc.nc',
-                              decode_timedelta=False)
-        scen = xr.open_dataset(f'dashboard_data/diag-scen-prop_{option_id}_qc.nc',
-                               decode_timedelta=False)
-        bias_sim = xr.open_dataset(f'dashboard_data/diag-sim-meas_{option_id}_qc.nc',
-                                   decode_timedelta=False)
-        bias_scen = xr.open_dataset(f'dashboard_data/diag-scen-meas_{option_id}_qc.nc',
-                                    decode_timedelta=False)
+        ref = load_nc(f'dashboard_data/diag_ref_ECMWF_ERA5-Land_NAM_qc.nc')
+        sim = load_nc(f'dashboard_data/diag-sim-prop_{option_id}_qc.nc')
+        scen = load_nc(f'dashboard_data/diag-scen-prop_{option_id}_qc.nc')
+        bias_sim = load_nc(f'dashboard_data/diag-sim-meas_{option_id}_qc.nc')
+        bias_scen = load_nc(f'dashboard_data/diag-scen-meas_{option_id}_qc.nc')
 
-        hm = xr.open_dataset(f'dashboard_data/diag-heatmap_{option_id}_qc.nc',
-                          decode_timedelta=False)
-        imp = xr.open_dataset(f'dashboard_data/diag-improved_{option_id}_qc.nc',
-                           decode_timedelta=False)
+        hm = load_nc(f'dashboard_data/diag-heatmap_{option_id}_qc.nc')
+        imp = load_nc(f'dashboard_data/diag-improved_{option_id}_qc.nc')
 
     cols2=st.columns(2)
     # choose properties
@@ -204,14 +206,15 @@ with tab2:
         ensemble_sizes={}
 
         if option_type == 'delta':
-            wl15 = xr.open_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-            wl2 = xr.open_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-            wl3 = xr.open_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+            wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
+            wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
+            wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
 
         else:
-            wl15 = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-1.5_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-            wl2 = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-2_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-            wl3 = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-3_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
+
+            wl15 = load_zarr(f'dashboard_data/ensemble-warminglevels-1.5_CMIP6_ScenarioMIP_qc.zarr')
+            wl2 = load_zarr(f'dashboard_data/ensemble-warminglevels-2_CMIP6_ScenarioMIP_qc.zarr')
+            wl3 = load_zarr(f'dashboard_data/ensemble-warminglevels-3_CMIP6_ScenarioMIP_qc.zarr')
         #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
             #wls.append(cur_wl)
         #wl = xr.concat(wls, dim='horizon')
