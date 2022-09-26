@@ -183,7 +183,6 @@ with tab1:
     col2.write(fig_per)
 
 with tab2:
-    st.write('test0')
     cols = st.columns([1,3,1,1])
     option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
 
@@ -261,7 +260,7 @@ with tab2:
 
     col3 = st.columns(3)
     for i, cur_wl in enumerate([wl15, wl2, wl3]):
-        select_wl = cur_wl[complete_var].sel(season=option_season)
+        select_wl = cur_wl[complete_var].sel(season=option_season).isel(horizon=0)
         col3[i].write(
             hv.render(select_wl.hvplot(cmap=cmap,
                                                       width=450,
