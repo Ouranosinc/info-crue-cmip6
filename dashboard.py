@@ -180,6 +180,7 @@ with tab1:
     col2.write(fig_per)
 
 with tab2:
+    st.write('test0')
     cols = st.columns([1,3,1,1])
     option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
 
