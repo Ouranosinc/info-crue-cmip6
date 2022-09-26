@@ -208,7 +208,6 @@ with tab2:
                 cur_wl = xr.open_zarr(f'dashboard_data/ensemble-deltas-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
             else:
                 cur_wl = xr.open_zarr(f'dashboard_data/ensemble-warminglevels-{h}_CMIP6_ScenarioMIP_qc.zarr',decode_timedelta= False)
-            #st.write(cur_wl)
             ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
             wls.append(cur_wl)
         wl = xr.concat(wls, dim='horizon')
@@ -233,14 +232,12 @@ with tab2:
 
     option_season = cols[3].selectbox('Saisons', wl.season.values)
 
-    st.write('test1')
     #plot data
     select_wl = wl[complete_var].sel(season=option_season)
     cmap = 'viridis_r' if wl[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
     vmin = select_wl.min().values
     vmax = select_wl.max().values
 
-    st.write('test2')
 
     # fig_wl, axs = plt.subplots(1, len(wl.horizon.values), figsize=(15, 5))
     #
@@ -248,7 +245,6 @@ with tab2:
     #     wl[complete_var].sel(season=option_season, horizon=w).plot( vmin=vmin, vmax=vmax, ax=axs[i])
     # st.write(fig_wl)
 
-    st.write(select_wl.sel(horizon='+3C'))
 
     col3 = st.columns(3)
     for i, h in enumerate(sorted(wl.horizon.values)):
