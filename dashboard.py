@@ -30,7 +30,7 @@ def load_nc(path):
 
 useCat = st.checkbox("use catalog (only for local version)")
 
-tab1, tab2 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global"])
+#tab1, tab2 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global"])
 # with tab1:
 #     #useCat=True
 #
@@ -180,87 +180,87 @@ tab1, tab2 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global"])
 #
 #     col1.write(fig_hmap)
 #     col2.write(fig_per)
-
-with tab2:
-    st.write('test0')
-    cols = st.columns([1,3,1,1])
-    option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
-
-    # load data
-    if useCat:
-        from xscen.config import CONFIG, load_config
-        from xscen.catalog import ProjectCatalog
-
-        load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'),
-                    reset=True)
-        pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
-
-        # get warminglevel
-        if option_type == 'delta':
-            wls = pcat.search(processing_level='^ensemble-deltas-').to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
-        else:
-            wls = pcat.search(processing_level='^ensemble-warminglevels-').to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
-        ensemble_sizes= {x.horizon.values[0]:x.horizon.attrs['ensemble_size'] for x in wls.values()}
-        wl = xr.concat(wls.values(), dim='horizon')
-    else:
-        ensemble_sizes={}
-
-        if option_type == 'delta':
-            wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
-            wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
-            wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
-
-        else:
-
-            wl15 = load_zarr(f'dashboard_data/ensemble-warminglevels-1.5_CMIP6_ScenarioMIP_qc.zarr')
-            wl2 = load_zarr(f'dashboard_data/ensemble-warminglevels-2_CMIP6_ScenarioMIP_qc.zarr')
-            wl3 = load_zarr(f'dashboard_data/ensemble-warminglevels-3_CMIP6_ScenarioMIP_qc.zarr')
-        #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
-            #wls.append(cur_wl)
-        #wl = xr.concat(wls, dim='horizon')
-    #choose data
-    def show_long_name(name):
-        for var in wl2.data_vars:
-            if name in var:
-                return f"{wl2[var].attrs['long_name']} ({name})"
-
-    if option_type == 'delta':
-        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars]), format_func = show_long_name)
-        option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
-        complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
-    else:
-        option_ind = cols[1].selectbox('Indicateurs', set(['_'.join(x.split('_')[:-1]) for x in
-                                                           wl2.data_vars]),
-                                       format_func=show_long_name)
-        option_stats = cols[2].selectbox('Statistiques',
-                                         ['max', 'mean', 'min', 'stdev'])
-        complete_var = f"{option_ind}_{option_stats}"
-
-
-    option_season = cols[3].selectbox('Saisons', wl2.season.values)
-
-    #plot data
-    cmap = 'viridis_r' if wl2[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
-    vmin = np.min([cur_wl[complete_var].sel(season=option_season).min().values for cur_wl in [wl15, wl2, wl3]])
-    vmax = np.max([cur_wl[complete_var].sel(season=option_season).max().values for cur_wl in [wl15, wl2, wl3]])
-
-
-    # fig_wl, axs = plt.subplots(1, len(wl.horizon.values), figsize=(15, 5))
-    #
-    # for i,w in enumerate(wl.horizon.values):
-    #     wl[complete_var].sel(season=option_season, horizon=w).plot( vmin=vmin, vmax=vmax, ax=axs[i])
-    # st.write(fig_wl)
-
-
-    col3 = st.columns(3)
-    for i, cur_wl in enumerate([wl15, wl2, wl3]):
-        select_wl = cur_wl[complete_var].sel(season=option_season)
-        col3[i].write(
-            hv.render(select_wl.hvplot(cmap=cmap,
-                                                      width=450,
-                                                      height=350,
-                                                      clim=(vmin, vmax))))
-        col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.horizon.attrs['ensemble_size']}")
+#
+# with tab2:
+#     st.write('test0')
+#     cols = st.columns([1,3,1,1])
+#     option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
+#
+#     # load data
+#     if useCat:
+#         from xscen.config import CONFIG, load_config
+#         from xscen.catalog import ProjectCatalog
+#
+#         load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'),
+#                     reset=True)
+#         pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
+#
+#         # get warminglevel
+#         if option_type == 'delta':
+#             wls = pcat.search(processing_level='^ensemble-deltas-').to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
+#         else:
+#             wls = pcat.search(processing_level='^ensemble-warminglevels-').to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
+#         ensemble_sizes= {x.horizon.values[0]:x.horizon.attrs['ensemble_size'] for x in wls.values()}
+#         wl = xr.concat(wls.values(), dim='horizon')
+#     else:
+#         ensemble_sizes={}
+#
+#         if option_type == 'delta':
+#             wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
+#             wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
+#             wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
+#
+#         else:
+#
+#             wl15 = load_zarr(f'dashboard_data/ensemble-warminglevels-1.5_CMIP6_ScenarioMIP_qc.zarr')
+#             wl2 = load_zarr(f'dashboard_data/ensemble-warminglevels-2_CMIP6_ScenarioMIP_qc.zarr')
+#             wl3 = load_zarr(f'dashboard_data/ensemble-warminglevels-3_CMIP6_ScenarioMIP_qc.zarr')
+#         #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
+#             #wls.append(cur_wl)
+#         #wl = xr.concat(wls, dim='horizon')
+#     #choose data
+#     def show_long_name(name):
+#         for var in wl2.data_vars:
+#             if name in var:
+#                 return f"{wl2[var].attrs['long_name']} ({name})"
+#
+#     if option_type == 'delta':
+#         option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars]), format_func = show_long_name)
+#         option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
+#         complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
+#     else:
+#         option_ind = cols[1].selectbox('Indicateurs', set(['_'.join(x.split('_')[:-1]) for x in
+#                                                            wl2.data_vars]),
+#                                        format_func=show_long_name)
+#         option_stats = cols[2].selectbox('Statistiques',
+#                                          ['max', 'mean', 'min', 'stdev'])
+#         complete_var = f"{option_ind}_{option_stats}"
+#
+#
+#     option_season = cols[3].selectbox('Saisons', wl2.season.values)
+#
+#     #plot data
+#     cmap = 'viridis_r' if wl2[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+#     vmin = np.min([cur_wl[complete_var].sel(season=option_season).min().values for cur_wl in [wl15, wl2, wl3]])
+#     vmax = np.max([cur_wl[complete_var].sel(season=option_season).max().values for cur_wl in [wl15, wl2, wl3]])
+#
+#
+#     # fig_wl, axs = plt.subplots(1, len(wl.horizon.values), figsize=(15, 5))
+#     #
+#     # for i,w in enumerate(wl.horizon.values):
+#     #     wl[complete_var].sel(season=option_season, horizon=w).plot( vmin=vmin, vmax=vmax, ax=axs[i])
+#     # st.write(fig_wl)
+#
+#
+#     col3 = st.columns(3)
+#     for i, cur_wl in enumerate([wl15, wl2, wl3]):
+#         select_wl = cur_wl[complete_var].sel(season=option_season)
+#         col3[i].write(
+#             hv.render(select_wl.hvplot(cmap=cmap,
+#                                                       width=450,
+#                                                       height=350,
+#                                                       clim=(vmin, vmax))))
+#         col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.horizon.attrs['ensemble_size']}")
 
 # test panel
 # https://github.com/holoviz/panel/issues/1074
