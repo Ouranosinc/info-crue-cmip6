@@ -253,7 +253,7 @@ with tab2:
     for i, cur_wl in enumerate([wl15, wl2, wl3]):
         select_wl = cur_wl[complete_var].sel(season=option_season)
         col3[i].write(
-            hv.render(select_wl.sel(horizon=h).hvplot(cmap=cmap,
+            hv.render(select_wl.hvplot(cmap=cmap,
                                                       width=450,
                                                       height=350,
                                                       clim=(vmin, vmax))))
