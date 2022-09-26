@@ -245,6 +245,8 @@ with tab2:
     #     wl[complete_var].sel(season=option_season, horizon=w).plot( vmin=vmin, vmax=vmax, ax=axs[i])
     # st.write(fig_wl)
 
+    st.write(select_wl.sel(horizon='+3C'))
+
     col3 = st.columns(3)
     for i, h in enumerate(sorted(wl.horizon.values)):
         col3[i].write(
