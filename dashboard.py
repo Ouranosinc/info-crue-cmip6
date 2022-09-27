@@ -16,11 +16,11 @@ st.set_page_config(layout="wide")
 
 st.title('Info-Crue CMIP6')
 
-@st.cache(hash_funcs={xr.core.dataset.Dataset: id})
+@st.cache(hash_funcs={xr.core.dataset.Dataset: id},ttl=5)
 def load_zarr(path):
     return xr.open_zarr(path,decode_timedelta= False)
 
-@st.cache(hash_funcs={xr.core.dataset.Dataset: id})
+@st.cache(hash_funcs={xr.core.dataset.Dataset: id},ttl=5)
 def load_nc(path):
     return xr.open_dataset(path,decode_timedelta= False)
 
@@ -213,7 +213,6 @@ with tab2:
             wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
 
         else:
-
             wl15 = load_zarr(f'dashboard_data/ensemble-warminglevels-1.5_CMIP6_ScenarioMIP_qc.zarr')
             wl2 = load_zarr(f'dashboard_data/ensemble-warminglevels-2_CMIP6_ScenarioMIP_qc.zarr')
             wl3 = load_zarr(f'dashboard_data/ensemble-warminglevels-3_CMIP6_ScenarioMIP_qc.zarr')
@@ -227,7 +226,7 @@ with tab2:
                 return f"{wl2[var].attrs['long_name']} ({name})"
 
     if option_type == 'delta':
-        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars]), format_func = show_long_name)
+        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars if x !='heat_wave_total_lengthdat']), format_func = show_long_name)
         option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
         complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
     else:
