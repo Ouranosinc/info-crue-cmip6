@@ -502,7 +502,7 @@ if __name__ == '__main__':
                                 maybe_unstack_dict = {'stack_drop_nans': CONFIG['custom']['stack_drop_nans'],
                                                     'rechunk':{d: CONFIG['custom']['chunks'][d]
                                                                for d in ['lon','lat', 'time']},
-                                                    'coords':f"{refdir}/coords_{region_name}.nc"
+                                                    #'coords':f"{refdir}/coords_{region_name}.nc"
                                                     }
 
 
