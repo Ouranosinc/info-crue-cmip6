@@ -226,12 +226,12 @@ with tab2:
                 return f"{wl2[var].attrs['long_name']} ({name})"
 
     if option_type == 'delta':
-        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars if 'heat_wave_total_length' not in x]), format_func = show_long_name)
+        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars]), format_func = show_long_name)
         option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
         complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
     else:
         option_ind = cols[1].selectbox('Indicateurs', set(['_'.join(x.split('_')[:-1]) for x in
-                                                           wl2.data_vars if 'heat_wave_total_length' not in x]),
+                                                           wl2.data_vars),
                                        format_func=show_long_name)
         option_stats = cols[2].selectbox('Statistiques',
                                          ['max', 'mean', 'min', 'stdev'])
