@@ -231,7 +231,7 @@ with tab2:
         complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
     else:
         option_ind = cols[1].selectbox('Indicateurs', set(['_'.join(x.split('_')[:-1]) for x in
-                                                           wl2.data_vars),
+                                                           wl2.data_vars]),
                                        format_func=show_long_name)
         option_stats = cols[2].selectbox('Statistiques',
                                          ['max', 'mean', 'min', 'stdev'])
