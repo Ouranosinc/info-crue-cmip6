@@ -124,7 +124,7 @@ with tab1:
 
     measure_name = bias_sim_prop.attrs['long_name']
     # fix range of colorbar
-    if measure_name =='Ratio': #center around 1 for ratio
+    if 'ratio' in measure_name : #center around 1 for ratio
         maxi_rat = maxi_bias
         mini_rat = max(abs(bias_scen_prop).min().values, abs(bias_sim_prop).min().values)
         max_deviation_from_1 = max(abs(1-maxi_rat),abs(1-mini_rat))

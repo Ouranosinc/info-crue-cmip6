@@ -92,14 +92,20 @@ extraction:
           allow_conversion: True
           allow_resampling: False
           periods: *sim_period
-#          exclusions:
+          exclusions:
+            id:
+              - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r3i1p1f1_global
+#            member:
+#              - r3i1p1f1
+#              - r2i1p1f1
 #            source:
 #              - EC-Earth3
           other_search_criteria:
             experiment:
+              - ssp585
               - ssp245
               - ssp370
-              - ssp585
               - ssp126
             source:
               - ACCESS-ESM1-5
@@ -118,6 +124,10 @@ extraction:
             xr_open_kwargs:
               drop_variables:
                 - height
+                - bnds
+                - time_bnds
+                - lat_bnds
+                - lon_bnds
     ref_source: *ref_source
 
 regrid:

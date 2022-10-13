@@ -291,7 +291,7 @@ if __name__ == '__main__':
                         ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
 
                         # save to zarr
-                        path_rg = f"{workdir}/{sim_id}_regridded.zarr"
+                        path_rg = f"{workdir}/{sim_id}_{region_name}_regridded.zarr"
                         save_to_zarr(ds=ds_regrid,
                                      filename=path_rg,
                                      encoding=CONFIG['custom']['encoding'],
