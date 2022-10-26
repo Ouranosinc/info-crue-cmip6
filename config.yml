@@ -94,8 +94,20 @@ extraction:
           periods: *sim_period
           exclusions:
             id:
-              - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r3i1p1f1_global
+              #- CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1_global
+              #- CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
 #            member:
 #              - r3i1p1f1
 #              - r2i1p1f1
@@ -110,7 +122,7 @@ extraction:
             source:
               - ACCESS-ESM1-5
               - CanESM5
-              #- EC-Earth3
+              - EC-Earth3
               - FGOALS-g3
               - IPSL-CM6A-LR
               - KACE-1-0-G

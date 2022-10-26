@@ -510,6 +510,9 @@ if __name__ == '__main__':
                                              maybe_unstack_dict = maybe_unstack_dict,
                                              **CONFIG['clean_up']['xscen_clean_up'])
 
+                                # TODO: put in clean_up
+                                ds['pr'] = ds.pr.round(10)
+
 
                                 #save and update
                                 path_cu = f"{workdir}/{sim_id}_cleaned_up.zarr"
