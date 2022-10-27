@@ -62,13 +62,6 @@ with tab1:
         cols = st.columns(3)
         #option_id = st.selectbox('id',[x[30:-5] for x in glob.glob('dashboard_data/diag_scen_bias_*')])
         ids = [x[30:-6] for x in glob.glob('dashboard_data/diag-scen-meas_*')]
-        st.write(len(glob.glob('dashboard_data/diag*')))
-        st.write('scen-meas', len(glob.glob('dashboard_data/diag-scen-meas_*')))
-        st.write('scen-pro', len(glob.glob('dashboard_data/diag-scen-prop_*')))
-        st.write('sim-meas', len(glob.glob('dashboard_data/diag-sim-meas_*')))
-        st.write('sim-prop', len(glob.glob('dashboard_data/diag-sim-prop_*')))
-        st.write('imp_', len(glob.glob('dashboard_data/diag-imp_*')))
-        st.write('heat_', len(glob.glob('dashboard_data/diag-heat_*')))
 
         models = sorted(set([y.split('_')[3] for y in ids ]))
         option_model = cols[0].selectbox('Models', models)
