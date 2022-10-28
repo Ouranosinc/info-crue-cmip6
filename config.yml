@@ -120,6 +120,7 @@ extraction:
               - ssp370
               - ssp126
             source:
+              # chosen
               - ACCESS-ESM1-5
               - CanESM5
               - EC-Earth3
@@ -128,6 +129,14 @@ extraction:
               - KACE-1-0-G
               - MIROC6
               - MRI-ESM2-0
+              #other
+              - UKESM1-0-LL #245,370,558
+              - GFDL-ESM4 #245,370,585
+              - CNRM-CM6-1 # 245,370,585
+              - CNRM-ESM2-1 # 245,370,585
+              - ACCESS-CM2 #126, 245,370,585
+              - MPI-ESM1-2-HR
+              - NorESM2-MM
             mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
