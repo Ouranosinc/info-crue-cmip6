@@ -10,6 +10,8 @@ from matplotlib import pyplot as plt
 import os
 import xesmf
 
+import xclim as xc
+import xscen as xs
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
 from xclim.core.units import convert_units_to
 from xclim.sdba import properties, measures, construct_moving_yearly_window, unpack_moving_yearly_window
@@ -215,7 +217,9 @@ if __name__ == '__main__':
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
                      'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id)}
-            if not pcat.exists_in_cat(**final[CONFIG["tasks"][-1]]):
+            final_task = 'diagnostics' if 'diagnostics' in CONFIG[
+                "tasks"] else 'final_zarr'
+            if not pcat.exists_in_cat(**final[final_task]):
                 fmtkws = {'region_name': region_name, 'sim_id': sim_id}
                 logger.info('Adding config to log file')
                 f1 = open(CONFIG['logging']['handlers']['file']['filename'], 'a+')
@@ -546,8 +550,8 @@ if __name__ == '__main__':
                                 **CONFIG['rechunk'],
                                 overwrite=True)
 
-                        # if this is last step, delete workdir, but save log and regridded
-                        if CONFIG["tasks"][-1] == 'final_zarr':
+                        # if  delete workdir, but save log and regridded
+                        if CONFIG['custom']['delete_in_final_zarr']:
 
                             if server == 'neree':
                                 for name, paths in CONFIG['scp_list'].items():
@@ -652,8 +656,8 @@ if __name__ == '__main__':
                             save_to_zarr(ds=ds, filename=path_diag, mode='o',rechunk={'lat':100, 'lon':100})
                             pcat.update_from_ds(ds=ds, path=path_diag)
 
-                        # # if this is the last step, delete workdir, but keep regridded and log
-                        if CONFIG["tasks"][-1] == 'diagnostics':
+                        # # if delete workdir, but keep regridded and log
+                        if CONFIG['custom']['delete_in_diag']:
 
                             logger.info('Move files and delete workdir.')
 
@@ -687,3 +691,29 @@ if __name__ == '__main__':
                             subject=f"{sim_id}/{region_name} - Succès",
                             msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
                         )
+
+    # --- INDIVIDUAL WL ---
+    if 'individual_wl' in CONFIG['tasks']:
+        dict_input = pcat.search(CONFIG['individual_wl']['input']).to_dataset_dict()
+        for name_input, ds_input in dict_input.items():
+            for wl in CONFIG['individual_wl']['wl']:
+                if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
+                                          processing_level=f"+{wl}C"):
+                    with (
+                            Client(n_workers=6, threads_per_worker=5,
+                                   memory_limit="4GB", **daskkws),
+                            measure_time(name=f'individual_wl', logger=logger)
+                    ):
+                        # needed for some indicators (ideally would have been calculated in clean_up...)
+                        ds_input = ds_input.assign(tas=xc.atmos.tg(ds=ds_input))
+
+                        # cut dataset on the wl window
+                        ds_wl = xs.extract.subset_warming_level(ds_input, wl=wl)
+                        # calculate indicators & climatological mean and reformat
+                        ds_hor_wl = xs.aggregate.produce_horizon(ds_wl)
+
+                        # save and update
+                        path_hor_wl = CONFIG['paths']['wl'].format(
+                            **xs.utils.get_cat_attrs(ds_hor_wl))
+                        save_to_zarr(ds=ds_hor_wl,filename = path_hor_wl,mode = 'o')
+                        pcat.update_from_ds(ds=ds_hor_wl, path=path_hor_wl)

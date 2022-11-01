@@ -6,20 +6,23 @@ project:
 
 tasks:
   #- initialize_pcat
-  - makeref
-  - extract
-  - regrid
-  - train_qm
-  - adjust_qm
-  - train_ex
-  - adjust_ex
-  - clean_up
-  - final_zarr
-  - diagnostics
+#  - makeref
+#  - extract
+#  - regrid
+#  - train_qm
+#  - adjust_qm
+#  - train_ex
+#  - adjust_ex
+#  - clean_up
+#  - final_zarr
+#  - diagnostics
+  - individual_wl
 
 
 
 custom:
+    delete_in_final_zarr: False
+    delete_in_diag: True
     regions:
         qc:
             name: qc
@@ -61,6 +64,15 @@ custom:
 
 extract:
     chunks: {'time': 365, 'lat':-1, 'lon':-1}
+    subset_warming_level:
+      ignore_member: True
+      window: 20
+      wl_dim: +{wl}C
+
+aggregate:
+  produce_horizon:
+    to_level: {wl}
+
 
 extraction:
     reference:
@@ -130,13 +142,13 @@ extraction:
               - MIROC6
               - MRI-ESM2-0
               #other
-              - UKESM1-0-LL #245,370,558
-              - GFDL-ESM4 #245,370,585
-              - CNRM-CM6-1 # 245,370,585
-              - CNRM-ESM2-1 # 245,370,585
-              - ACCESS-CM2 #126, 245,370,585
-              - MPI-ESM1-2-HR
-              - NorESM2-MM
+#              - UKESM1-0-LL #245,370,558
+#              - GFDL-ESM4 #245,370,585
+#              - CNRM-CM6-1 # 245,370,585
+#              - CNRM-ESM2-1 # 245,370,585
+#              - ACCESS-CM2 #126, 245,370,585
+#              - MPI-ESM1-2-HR
+#              - NorESM2-MM
             mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
