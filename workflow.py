@@ -694,7 +694,7 @@ if __name__ == '__main__':
 
     # --- INDIVIDUAL WL ---
     if 'individual_wl' in CONFIG['tasks']:
-        dict_input = pcat.search(CONFIG['individual_wl']['input']).to_dataset_dict()
+        dict_input = pcat.search(**CONFIG['individual_wl']['input']).to_dataset_dict()
         for name_input, ds_input in dict_input.items():
             for wl in CONFIG['individual_wl']['wl']:
                 if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
@@ -704,16 +704,19 @@ if __name__ == '__main__':
                                    memory_limit="4GB", **daskkws),
                             measure_time(name=f'individual_wl', logger=logger)
                     ):
-                        # needed for some indicators (ideally would have been calculated in clean_up...)
-                        ds_input = ds_input.assign(tas=xc.atmos.tg(ds=ds_input))
+
 
                         # cut dataset on the wl window
                         ds_wl = xs.extract.subset_warming_level(ds_input, wl=wl)
-                        # calculate indicators & climatological mean and reformat
-                        ds_hor_wl = xs.aggregate.produce_horizon(ds_wl)
+                        if ds_wl:
+                            # needed for some indicators (ideally would have been calculated in clean_up...)
+                            ds_wl = ds_wl.assign(tas=xc.atmos.tg(ds=ds_wl)).load()
 
-                        # save and update
-                        path_hor_wl = CONFIG['paths']['wl'].format(
-                            **xs.utils.get_cat_attrs(ds_hor_wl))
-                        save_to_zarr(ds=ds_hor_wl,filename = path_hor_wl,mode = 'o')
-                        pcat.update_from_ds(ds=ds_hor_wl, path=path_hor_wl)
+                            # calculate indicators & climatological mean and reformat
+                            ds_hor_wl = xs.aggregate.produce_horizon(ds_wl)
+
+                            # save and update
+                            path_hor_wl = CONFIG['paths']['wl'].format(
+                                **xs.utils.get_cat_attrs(ds_hor_wl))
+                            save_to_zarr(ds=ds_hor_wl,filename = path_hor_wl,mode = 'o')
+                            pcat.update_from_ds(ds=ds_hor_wl, path=path_hor_wl)

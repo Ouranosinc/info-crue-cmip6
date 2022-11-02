@@ -67,11 +67,9 @@ extract:
     subset_warming_level:
       ignore_member: True
       window: 20
-      wl_dim: +{wl}C
+      wl_dim: "+{wl}C"
 
-aggregate:
-  produce_horizon:
-    to_level: {wl}
+
 
 
 extraction:
@@ -383,6 +381,19 @@ diagnostics:
     properties_and_measures:
       period: *ref_period
       unstack: False
+
+
+aggregate:
+  produce_horizon:
+    to_level: "{wl}"
+
+individual_wl:
+  input:
+    processing_level: final
+  wl:
+    - 1.5
+    - 2
+    - 3
 
 
 scripting:
