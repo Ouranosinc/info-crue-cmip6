@@ -27,7 +27,7 @@ def load_nc(path):
 
 useCat = st.checkbox("use catalog (only for local version)")
 
-tab1, tab2 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global"])
+tab1, tab2, tab3 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global", "Ensembles"])
 with tab1:
     #useCat=True
 
@@ -193,7 +193,7 @@ with tab2:
 
         # get warminglevel
         if option_type == 'delta':
-            wl15 = pcat.search(processing_level='ensemble-deltas-1.5').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            wl15 = pcat.search(processing_level='+ensemble-deltas-1.5').to_dask(xarray_open_kwargs={'decode_timedelta':False})
             wl2 = pcat.search(processing_level='ensemble-deltas-2').to_dask(xarray_open_kwargs={'decode_timedelta':False})
             wl3 = pcat.search(processing_level='ensemble-deltas-3').to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
@@ -262,6 +262,71 @@ with tab2:
                                                       height=350,
                                                       clim=(vmin, vmax))))
         col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.horizon.attrs['ensemble_size']}")
+
+
+with tab3:
+    col = st.columns([1,3,1,1])
+    if useCat:
+        option_ens = col[0].selectbox('ensemble', ['+1.5C', '+2C','+3C','ssp126-1981-2100','ssp245-1981-2100','ssp370-1981-2100','ssp585-1981-2100'])
+        option_can = 'include'
+        if option_ens in ['ssp245-1981-2100','ssp370-1981-2100']:
+            option_can = col[0].selectbox('CanESM5', ['include', 'exclude'])
+        can=''
+        if option_can== 'exclude':
+            can = 'NoCanESM5'
+        hausfather = pcat.search(processing_level=f'{option_ens}-hausfather{can}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        all = pcat.search(processing_level=f'{option_ens}-all').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        diff = pcat.search(processing_level=f'{option_ens}-hausfather{can}VSall').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+
+
+    def show_long_name_ens(name):
+        for var in all.data_vars:
+            if name in var:
+                return f"{all[var].attrs['long_name']} ({name})"
+
+    option_ind_ens = col[1].selectbox('Indicateur',
+                                   set(['_'.join(x.split('_')[:-1]) for x in
+                                        all.data_vars]),
+                                   format_func=show_long_name_ens)
+    option_stats_ens = col[2].selectbox('Statistique',
+                                     ['max', 'mean', 'min', 'stdev'])
+    complete_var = f"{option_ind_ens}_{option_stats_ens}"
+
+    option_season_ens = col[3].selectbox('Saison', all.season.values)
+
+    col_fig = st.columns(3)
+
+
+
+
+    select_haus = hausfather[complete_var].sel(season=option_season_ens).isel(horizon=0)
+    select_all = all[complete_var].sel(season=option_season_ens).isel(horizon=0)
+    select_diff = diff[complete_var].sel(season=option_season_ens).isel(horizon=0)
+
+    #plot data
+    cmap = 'viridis_r' if select_all.attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    vmin = np.min([cur.min().values for cur in [select_all, select_haus]])
+    vmax = np.max([cur.max().values for cur in [select_all, select_haus]])
+
+
+
+
+    col_fig[0].write('Hausfather')
+    col_fig[0].write(hv.render(select_haus.hvplot(cmap=cmap,width=450,height=350,clim=(vmin, vmax))))
+    col_fig[0].write(f"Nombre de réalisations de l'ensemble: {hausfather.attrs['ensemble_size']}")
+
+    col_fig[1].write('All')
+    col_fig[1].write(
+        hv.render(select_all.hvplot(cmap=cmap, width=450,height=350, clim=(vmin, vmax))))
+    col_fig[1].write(
+        f"Nombre de réalisations de l'ensemble: {all.attrs['ensemble_size']}")
+
+    col_fig[2].write('Hausfather - All')
+    col_fig[2].write( hv.render(select_diff.hvplot(cmap='coolwarm',
+                                     clim =(- abs(select_diff).max(),abs(select_diff).max()),
+                                   width=450,
+                                   height=350)))
+
 
 # # test panel
 # # https://github.com/holoviz/panel/issues/1074

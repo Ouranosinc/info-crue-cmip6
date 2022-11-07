@@ -412,8 +412,29 @@ ensembles:
     +3C-hausfather:
       processing_level: +3C
       source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    indicators1981-2100-hausfather:
+    ssp126-1981-2100-hausfather:
       processing_level: indicators1981-2100
+      experiment: ssp126
+      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    ssp245-1981-2100-hausfather:
+      processing_level: indicators1981-2100
+      experiment: ssp245
+      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    ssp245-1981-2100-hausfatherNoCanESM5:
+      processing_level: indicators1981-2100
+      experiment: ssp245
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    ssp370-1981-2100-hausfather:
+      processing_level: indicators1981-2100
+      experiment: ssp370
+      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    ssp370-1981-2100-hausfatherNoCanESM5:
+      processing_level: indicators1981-2100
+      experiment: ssp370
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    ssp585-1981-2100-hausfather:
+      processing_level: indicators1981-2100
+      experiment: ssp585
       source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
     +1.5C-all:
       processing_level: +1.5C
@@ -421,8 +442,18 @@ ensembles:
       processing_level: +2C
     +3C-all:
       processing_level: +3C
-    indicators1981-2100-all:
+    ssp126-1981-2100-all:
       processing_level: indicators1981-2100
+      experiment: ssp126
+    ssp245-1981-2100-all:
+      processing_level: indicators1981-2100
+      experiment: ssp245
+    ssp370-1981-2100-all:
+      processing_level: indicators1981-2100
+      experiment: ssp370
+    ssp585-1981-2100-all:
+      processing_level: indicators1981-2100
+      experiment: ssp585
   generate_weights:
     independence_level: GCM
   ensemble_stats:
@@ -430,26 +461,51 @@ ensembles:
     statistics:
       ensemble_mean_std_max_min:
   diffs:
-    +1.5C-hausfatherVSfull:
+    +1.5C-hausfatherVSall:
       first:
         processing_level: +1.5C-hausfather
       second:
         processing_level: +1.5C-all
-    +2C-hausfatherVSfull:
+    +2C-hausfatherVSall:
       first:
         processing_level: +2C-hausfather
       second:
         processing_level: +2C-all
-    +3C-hausfatherVSfull:
+    +3C-hausfatherVSall:
       first:
         processing_level: +3C-hausfather
       second:
         processing_level: +3C-all
-    indicators1981-2100-hausfatherVSfull:
+    ssp126-1981-2100-hausfatherVSall:
       first:
-        processing_level: indicators1981-2100-hausfather
+        processing_level: ssp126-1981-2100-hausfather
       second:
-        processing_level: indicators1981-2100-all
+        processing_level: ssp126-1981-2100-all
+    ssp245-1981-2100-hausfatherVSall:
+      first:
+        processing_level: ssp245-1981-2100-hausfather
+      second:
+        processing_level: ssp245-1981-2100-all
+    ssp370-1981-2100-hausfatherVSall:
+      first:
+        processing_level: ssp370-1981-2100-hausfather
+      second:
+        processing_level: ssp370-1981-2100-all
+    ssp585-1981-2100-hausfatherVSall:
+      first:
+        processing_level: ssp585-1981-2100-hausfather
+      second:
+        processing_level: ssp585-1981-2100-all
+    ssp245-1981-2100-hausfatherNoCanESM5VSall:
+      first:
+        processing_level: ssp245-1981-2100-hausfatherNoCanESM5
+      second:
+        processing_level: ssp245-1981-2100-all
+    ssp370-1981-2100-hausfatherNoCanESM5VSall:
+      first:
+        processing_level: ssp370-1981-2100-hausfatherNoCanESM5
+      second:
+        processing_level: ssp370-1981-2100-all
 
 
 io:

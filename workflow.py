@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 import xesmf
+from dask.diagnostics import ProgressBar
 
 import xclim as xc
 import xscen as xs
@@ -209,8 +210,8 @@ if __name__ == '__main__':
                     # plot nan_count and email
                     email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
-    cat_sim = search_data_catalogs(
-       **CONFIG['extraction']['simulation']['search_data_catalogs'])
+    # cat_sim = search_data_catalogs(
+    #    **CONFIG['extraction']['simulation']['search_data_catalogs'])
     #for sim_id, dc_id in cat_sim.items():
     if False:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
@@ -748,46 +749,46 @@ if __name__ == '__main__':
                     # save and update
                     save_and_update(ds_hor, CONFIG['paths']['indicators'], pcat)
 
-        # --- ENSEMBLES ---
-        if 'ensembles' in CONFIG['tasks']:
-            # compute ensembles
-            for ens_name, ens_inputs in CONFIG['ensembles']['inputs'].items():
-                if not pcat.exists_in_cat(processing_level= ens_name):
-                    with (
-                            Client(n_workers=4, threads_per_worker=5,
-                                   memory_limit="6GB", **daskkws),
-                            measure_time(name=f'ensemble {ens_name}', logger=logger)
-                    ):
-                        datasets = pcat.search(**ens_inputs).to_dataset_dict(
-                            xarray_open_kwargs={'decode_timedelta':False})
+    # --- ENSEMBLES ---
+    if 'ensembles' in CONFIG['tasks']:
+        # compute ensembles
+        for ens_name, ens_inputs in CONFIG['ensembles']['inputs'].items():
+            if not pcat.exists_in_cat(processing_level= ens_name):
+                with (
+                        ProgressBar(),
+                        measure_time(name=f'ensemble {ens_name}', logger=logger)
+                ):
+                    datasets = pcat.search(**ens_inputs).to_dataset_dict(
+                        xarray_open_kwargs={'decode_timedelta':False})
 
-                        weights = xs.ensembles.generate_weights(datasets=datasets)
+                    weights = xs.ensembles.generate_weights(datasets=datasets)
 
-                        ds_ens = xs.ensemble_stats(datasets=datasets,
-                                                   weights=weights,
-                                                   to_level=ens_name)
+                    ds_ens = xs.ensemble_stats(datasets=datasets,
+                                               weights=weights,
+                                               to_level=ens_name)
 
-                        # save and update
-                        save_and_update(ds_ens, CONFIG['paths']['ensembles'], pcat)
+                    # save and update
+                    save_and_update(ds_ens, CONFIG['paths']['ensembles'], pcat,
+                                    rechunk={'lat':30, 'lon':30})
 
-            # compute difference between ensembles
-            for diff_name, diff_inputs in CONFIG['ensembles']['diffs'].items():
-                if not pcat.exists_in_cat(processing_level= diff_name):
-                    with (
-                            Client(n_workers=4, threads_per_worker=5,
-                                   memory_limit="6GB", **daskkws),
-                            measure_time(name=f'ensemble {ens_name}', logger=logger)
-                    ):
-                        ens1 = pcat.search(**diff_inputs['first']).to_dask(
-                            xarray_open_kwargs={'decode_timedelta':False})
+        # compute difference between ensembles
+        for diff_name, diff_inputs in CONFIG['ensembles']['diffs'].items():
+            if not pcat.exists_in_cat(processing_level= diff_name):
+                with (
+                        Client(n_workers=4, threads_per_worker=5,
+                               memory_limit="6GB", **daskkws),
+                        measure_time(name=f'ensemble {ens_name}', logger=logger)
+                ):
+                    ens1 = pcat.search(**diff_inputs['first']).to_dask(
+                        xarray_open_kwargs={'decode_timedelta':False})
 
-                        ens2 = pcat.search(**diff_inputs['second']).to_dask(
-                            xarray_open_kwargs={'decode_timedelta': False})
+                    ens2 = pcat.search(**diff_inputs['second']).to_dask(
+                        xarray_open_kwargs={'decode_timedelta': False})
 
-                        diff = ens1 - ens2
-                        diff.attrs.update(ens1.attrs)
-                        diff.attrs['cat:processing_level']= diff_name
+                    diff = ens1 - ens2
+                    diff.attrs.update(ens1.attrs)
+                    diff.attrs['cat:processing_level']= diff_name
 
-                        # save and update
-                        save_and_update(diff, CONFIG['paths']['ensembles'], pcat)
+                    # save and update
+                    save_and_update(diff, CONFIG['paths']['ensembles'], pcat)
 

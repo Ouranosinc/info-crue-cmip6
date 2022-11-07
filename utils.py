@@ -241,7 +241,7 @@ def python_scp(source_path, destination_path, server_address):
     else:
         logging.info(f"{my_folder} doesn't exist.")
 
-def save_and_update(ds, path, pcat):
+def save_and_update(ds, path, pcat, **save_kwargs):
     path = path.format(**xs.utils.get_cat_attrs(ds))
-    save_to_zarr(ds=ds, filename=path)
+    save_to_zarr(ds=ds, filename=path, **save_kwargs)
     pcat.update_from_ds(ds=ds, path=path)
