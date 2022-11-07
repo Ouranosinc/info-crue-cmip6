@@ -5,7 +5,7 @@ project:
     id: ic6
 
 tasks:
-  #- initialize_pcat
+  ####- initialize_pcat
 #  - makeref
 #  - extract
 #  - regrid
@@ -16,7 +16,9 @@ tasks:
 #  - clean_up
 #  - final_zarr
 #  - diagnostics
-  - individual_wl
+#  - individual_wl
+#  - indicators
+  - ensembles
 
 
 
@@ -140,13 +142,13 @@ extraction:
               - MIROC6
               - MRI-ESM2-0
               #other
-#              - UKESM1-0-LL #245,370,558
-#              - GFDL-ESM4 #245,370,585
-#              - CNRM-CM6-1 # 245,370,585
-#              - CNRM-ESM2-1 # 245,370,585
-#              - ACCESS-CM2 #126, 245,370,585
-#              - MPI-ESM1-2-HR
-#              - NorESM2-MM
+              - UKESM1-0-LL #245,370,558
+              - GFDL-ESM4 #245,370,585
+              - CNRM-CM6-1 # 245,370,585
+              - CNRM-ESM2-1 # 245,370,585
+              - ACCESS-CM2 #126, 245,370,585
+              - MPI-ESM1-2-HR
+              - NorESM2-MM
             mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
@@ -383,9 +385,6 @@ diagnostics:
       unstack: False
 
 
-aggregate:
-  produce_horizon:
-    to_level: "{wl}"
 
 individual_wl:
   input:
@@ -395,6 +394,67 @@ individual_wl:
     - 2
     - 3
 
+indicators:
+  input:
+    processing_level: final
+  produce_horizon:
+    period: ['2081', '2100']
+    to_level: indicators1981-2100
+
+ensembles:
+  inputs:
+    +1.5C-hausfather:
+      processing_level: +1.5C
+      source: ['ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    +2C-hausfather:
+      processing_level: +2C
+      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    +3C-hausfather:
+      processing_level: +3C
+      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    indicators1981-2100-hausfather:
+      processing_level: indicators1981-2100
+      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    +1.5C-all:
+      processing_level: +1.5C
+    +2C-all:
+      processing_level: +2C
+    +3C-all:
+      processing_level: +3C
+    indicators1981-2100-all:
+      processing_level: indicators1981-2100
+  generate_weights:
+    independence_level: GCM
+  ensemble_stats:
+    common_attrs_only: True
+    statistics:
+      ensemble_mean_std_max_min:
+  diffs:
+    +1.5C-hausfatherVSfull:
+      first:
+        processing_level: +1.5C-hausfather
+      second:
+        processing_level: +1.5C-all
+    +2C-hausfatherVSfull:
+      first:
+        processing_level: +2C-hausfather
+      second:
+        processing_level: +2C-all
+    +3C-hausfatherVSfull:
+      first:
+        processing_level: +3C-hausfather
+      second:
+        processing_level: +3C-all
+    indicators1981-2100-hausfatherVSfull:
+      first:
+        processing_level: indicators1981-2100-hausfather
+      second:
+        processing_level: indicators1981-2100-all
+
+
+io:
+  save_to_zarr:
+    mode: o
 
 scripting:
     measure_time:

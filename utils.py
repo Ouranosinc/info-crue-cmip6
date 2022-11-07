@@ -22,6 +22,7 @@ from xclim.core.units import convert_units_to
 from xscen.io import save_to_zarr
 from xscen.utils import  maybe_unstack,unstack_fill_nan
 from xscen.scripting import measure_time, send_mail
+import xscen as xs
 
 
 
@@ -239,3 +240,8 @@ def python_scp(source_path, destination_path, server_address):
 
     else:
         logging.info(f"{my_folder} doesn't exist.")
+
+def save_and_update(ds, path, pcat):
+    path = path.format(**xs.utils.get_cat_attrs(ds))
+    save_to_zarr(ds=ds, filename=path)
+    pcat.update_from_ds(ds=ds, path=path)

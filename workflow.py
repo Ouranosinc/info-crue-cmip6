@@ -44,7 +44,7 @@ from xscen import (
 )
 
 
-from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update, python_scp
+from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update, python_scp, save_and_update
 
 server ='neree'
 
@@ -60,7 +60,6 @@ workdir = Path(CONFIG['paths']['workdir'])
 regriddir = Path(CONFIG['paths']['regriddir'])
 refdir = Path(CONFIG['paths']['refdir'])
 
-mode = 'o'
 
 
 
@@ -212,7 +211,8 @@ if __name__ == '__main__':
 
     cat_sim = search_data_catalogs(
        **CONFIG['extraction']['simulation']['search_data_catalogs'])
-    for sim_id, dc_id in cat_sim.items():
+    #for sim_id, dc_id in cat_sim.items():
+    if False:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
@@ -713,10 +713,81 @@ if __name__ == '__main__':
                             ds_wl = ds_wl.assign(tas=xc.atmos.tg(ds=ds_wl)).load()
 
                             # calculate indicators & climatological mean and reformat
-                            ds_hor_wl = xs.aggregate.produce_horizon(ds_wl)
+                            ds_hor_wl = xs.aggregate.produce_horizon(ds_wl, to_level="{wl}")
 
                             # save and update
-                            path_hor_wl = CONFIG['paths']['wl'].format(
-                                **xs.utils.get_cat_attrs(ds_hor_wl))
-                            save_to_zarr(ds=ds_hor_wl,filename = path_hor_wl,mode = 'o')
-                            pcat.update_from_ds(ds=ds_hor_wl, path=path_hor_wl)
+                            save_and_update(ds_hor_wl, CONFIG['paths']['wl'], pcat)
+
+
+    # --- INDICATORS ---
+    if 'indicators' in CONFIG['tasks']:
+        dict_input = pcat.search(**CONFIG['indicators']['input']).to_dataset_dict()
+        for name_input, ds_input in dict_input.items():
+            if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
+                                      processing_level=f"indicators"):
+                with (
+                        Client(n_workers=2, threads_per_worker=5,
+                               memory_limit="12GB", **daskkws),
+                        measure_time(name=f'indicators', logger=logger)
+                ):
+                    logging.info(f"Computing indicators for {ds_input.attrs['cat:id']} ")
+
+                    # needed for some indicators (ideally would have been calculated in clean_up...)
+                    late_period = slice(*map(str, CONFIG['indicators']['produce_horizon']['period']))
+                    ds_input = ds_input.sel(time= late_period)
+                    ds_input= ds_input.chunk({'time':-1, 'lat':20, 'lon':20})
+                    ds_input = ds_input.assign(tas=xc.atmos.tg(ds=ds_input)).load()
+
+
+                    logging.info('produce horizon')
+                    ds_hor = xs.aggregate.produce_horizon(
+                        ds_input,
+                        **CONFIG['indicators']['produce_horizon']
+                    )
+
+                    # save and update
+                    save_and_update(ds_hor, CONFIG['paths']['indicators'], pcat)
+
+        # --- ENSEMBLES ---
+        if 'ensembles' in CONFIG['tasks']:
+            # compute ensembles
+            for ens_name, ens_inputs in CONFIG['ensembles']['inputs'].items():
+                if not pcat.exists_in_cat(processing_level= ens_name):
+                    with (
+                            Client(n_workers=4, threads_per_worker=5,
+                                   memory_limit="6GB", **daskkws),
+                            measure_time(name=f'ensemble {ens_name}', logger=logger)
+                    ):
+                        datasets = pcat.search(**ens_inputs).to_dataset_dict(
+                            xarray_open_kwargs={'decode_timedelta':False})
+
+                        weights = xs.ensembles.generate_weights(datasets=datasets)
+
+                        ds_ens = xs.ensemble_stats(datasets=datasets,
+                                                   weights=weights,
+                                                   to_level=ens_name)
+
+                        # save and update
+                        save_and_update(ds_ens, CONFIG['paths']['ensembles'], pcat)
+
+            # compute difference between ensembles
+            for diff_name, diff_inputs in CONFIG['ensembles']['diffs'].items():
+                if not pcat.exists_in_cat(processing_level= diff_name):
+                    with (
+                            Client(n_workers=4, threads_per_worker=5,
+                                   memory_limit="6GB", **daskkws),
+                            measure_time(name=f'ensemble {ens_name}', logger=logger)
+                    ):
+                        ens1 = pcat.search(**diff_inputs['first']).to_dask(
+                            xarray_open_kwargs={'decode_timedelta':False})
+
+                        ens2 = pcat.search(**diff_inputs['second']).to_dask(
+                            xarray_open_kwargs={'decode_timedelta': False})
+
+                        diff = ens1 - ens2
+                        diff.attrs.update(ens1.attrs)
+                        diff.attrs['cat:processing_level']= diff_name
+
+                        # save and update
+                        save_and_update(diff, CONFIG['paths']['ensembles'], pcat)
+
