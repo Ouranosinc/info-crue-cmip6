@@ -27,7 +27,7 @@ def load_nc(path):
 
 useCat = st.checkbox("use catalog (only for local version)")
 
-tab1, tab2, tab3 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global", "Ensembles"])
+tab1, tab2, tab3, tab4 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global", "Horizons Temporels", "Sélection vs tout"])
 with tab1:
     #useCat=True
 
@@ -179,43 +179,34 @@ with tab1:
     col2.write(fig_per)
 
 with tab2:
-    cols = st.columns([1,3,1,1])
-    option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
+    cols = st.columns([3,1,1])
+    #option_type=  cols[0].selectbox('Type',['delta', 'absolute'])
 
     # load data
     if useCat:
-        from xscen.config import CONFIG, load_config
-        from xscen.catalog import ProjectCatalog
+        #from xscen.config import CONFIG, load_config
+        #from xscen.catalog import ProjectCatalog
 
-        load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'),
-                    reset=True)
-        pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
+        #load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'),reset=True)
+        #pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
         # get warminglevel
-        if option_type == 'delta':
-            wl15 = pcat.search(processing_level='+ensemble-deltas-1.5').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-            wl2 = pcat.search(processing_level='ensemble-deltas-2').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-            wl3 = pcat.search(processing_level='ensemble-deltas-3').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        wl15 = pcat.search(processing_level='delta-+1.5C-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        wl2 = pcat.search(processing_level='delta-+2C-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        wl3 = pcat.search(processing_level='delta-+3C-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
-        else:
-            wl15 = pcat.search(processing_level='ensemble-warminglevels-1.5').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-            wl2 = pcat.search(processing_level='ensemble-warminglevels-2').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-            wl3 = pcat.search(processing_level='ensemble-warminglevels-3').to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
         #ensemble_sizes= {x.horizon.values[0]:x.horizon.attrs['ensemble_size'] for x in wls.values()}
         #wl = xr.concat(wls.values(), dim='horizon')
     else:
         ensemble_sizes={}
 
-        if option_type == 'delta':
-            wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
-            wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
-            wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
 
-        else:
-            wl15 = load_zarr(f'dashboard_data/ensemble-warminglevels-1.5_CMIP6_ScenarioMIP_qc.zarr')
-            wl2 = load_zarr(f'dashboard_data/ensemble-warminglevels-2_CMIP6_ScenarioMIP_qc.zarr')
-            wl3 = load_zarr(f'dashboard_data/ensemble-warminglevels-3_CMIP6_ScenarioMIP_qc.zarr')
+        wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
+        wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
+        wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
+
+
         #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
             #wls.append(cur_wl)
         #wl = xr.concat(wls, dim='horizon')
@@ -225,60 +216,106 @@ with tab2:
             if name in var:
                 return f"{wl2[var].attrs['long_name']} ({name})"
 
-    if option_type == 'delta':
-        option_ind = cols[1].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars]), format_func = show_long_name)
-        option_stats =  cols[2].selectbox('Statistiques', ['max', 'mean','min', 'stdev', 'pos_frac'])
-        complete_var = f"{option_ind}_delta_1991_2020_{option_stats}"
-    else:
-        option_ind = cols[1].selectbox('Indicateurs', set(['_'.join(x.split('_')[:-1]) for x in
-                                                           wl2.data_vars]),
-                                       format_func=show_long_name)
-        option_stats = cols[2].selectbox('Statistiques',
-                                         ['max', 'mean', 'min', 'stdev'])
-        complete_var = f"{option_ind}_{option_stats}"
 
+    option_ind_wl = cols[0].selectbox('Indicateurs',set([x.split('_delta')[0] for x in wl2.data_vars]), format_func = show_long_name)
+    option_stats_wl =  cols[1].selectbox('Statistiques', ['mean', 'max','min', 'stdev','p10', 'p50', 'p190'])
+    option_season_wl = cols[2].selectbox('Saisons', wl2.season.values)
+    complete_var = f"{option_ind_wl}_delta_1991_2020_{option_stats_wl}"
 
-    option_season = cols[3].selectbox('Saisons', wl2.season.values)
 
     #plot data
     cmap = 'viridis_r' if wl2[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
-    vmin = np.min([cur_wl[complete_var].sel(season=option_season).min().values for cur_wl in [wl15, wl2, wl3]])
-    vmax = np.max([cur_wl[complete_var].sel(season=option_season).max().values for cur_wl in [wl15, wl2, wl3]])
-
-
-    # fig_wl, axs = plt.subplots(1, len(wl.horizon.values), figsize=(15, 5))
-    #
-    # for i,w in enumerate(wl.horizon.values):
-    #     wl[complete_var].sel(season=option_season, horizon=w).plot( vmin=vmin, vmax=vmax, ax=axs[i])
-    # st.write(fig_wl)
+    vmin = np.min([cur_wl[complete_var].sel(season=option_season_wl).min().values for cur_wl in [wl15, wl2, wl3]])
+    vmax = np.max([cur_wl[complete_var].sel(season=option_season_wl).max().values for cur_wl in [wl15, wl2, wl3]])
 
 
     col3 = st.columns(3)
     for i, cur_wl in enumerate([wl15, wl2, wl3]):
-        select_wl = cur_wl[complete_var].sel(season=option_season).isel(horizon=0)
+        select_wl = cur_wl[complete_var].sel(season=option_season_wl).isel(horizon=0)
         col3[i].write(
             hv.render(select_wl.hvplot(cmap=cmap,
                                                       width=450,
                                                       height=350,
                                                       clim=(vmin, vmax))))
-        col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.horizon.attrs['ensemble_size']}")
-
+        col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.attrs['ensemble_size']}")
+    st.write( f"Warming levels are calculated from the {select_wl.horizon.attrs['baseline']} baseline.")
 
 with tab3:
-    col = st.columns([1,3,1,1])
+    cols = st.columns([3,1,1])
+
+    # load data
     if useCat:
-        option_ens = col[0].selectbox('ensemble', ['+1.5C', '+2C','+3C','ssp126-1981-2100','ssp245-1981-2100','ssp370-1981-2100','ssp585-1981-2100'])
+
+        # get warminglevel
+        s1 = pcat.search(processing_level='delta-ssp126-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        s2 = pcat.search(processing_level='delta-ssp245-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        s3 = pcat.search(processing_level='delta-ssp370-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        s4 = pcat.search(processing_level='delta-ssp585-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+
+    else:
+        ensemble_sizes={}
+
+        # wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
+        # wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
+        # wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
+
+        #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
+            #wls.append(cur_wl)
+        #wl = xr.concat(wls, dim='horizon')
+
+    #choose data
+    def show_long_name(name):
+        for var in s2.data_vars:
+            if name in var:
+                return f"{s2[var].attrs['long_name']} ({name})"
+
+
+    option_ind_s = cols[0].selectbox('Indicateurs ',set([x.split('_delta')[0] for x in s2.data_vars]), format_func = show_long_name)
+    option_stats_s =  cols[1].selectbox('Statistiques ', [ 'mean', 'max', 'min', 'stdev','p10', 'p50', 'p90'])
+    option_season_s = cols[2].selectbox('Saisons ', s2.season.values)
+    complete_var = f"{option_ind_s}_delta_1991_2020_{option_stats_s}"
+
+
+    #plot data
+    cmap = 'viridis_r' if s2[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    vmin = np.min([cur_wl[complete_var].sel(season=option_season_s).min().values for cur_wl in [s1,s2,s3,s4]])
+    vmax = np.max([cur_wl[complete_var].sel(season=option_season_s).max().values for cur_wl in [s1,s2,s3,s4]])
+
+
+    col3 = st.columns(4)
+    names = ['ssp1-2.6', 'ssp2-4.5', 'ssp3-7.0', 'ssp5-8.5']
+    for i, cur_wl in enumerate([s1,s2,s3,s4]):
+        select_wl = cur_wl[complete_var].sel(season=option_season_s).isel(horizon=0)
+        col3[i].write(names[i])
+        col3[i].write(
+            hv.render(select_wl.hvplot(cmap=cmap,width=400,
+                                                      height=350,
+                                                      clim=(vmin, vmax))))
+        col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.attrs['ensemble_size']}")
+
+with tab4:
+    col = st.columns([1,4,1,1])
+    if useCat:
+        option_ens = col[0].selectbox('ensemble', ['+1.5C', '+2C','+3C' ,'ssp126-2081-2100','ssp245-2081-2100','ssp370-2081-2100','ssp585-2081-2100'])
         option_can = 'include'
-        if option_ens in ['ssp245-1981-2100','ssp370-1981-2100']:
+        if option_ens in ['ssp245-2081-2100','ssp370-2081-2100']:
             option_can = col[0].selectbox('CanESM5', ['include', 'exclude'])
         can=''
+        r=''
         if option_can== 'exclude':
             can = 'NoCanESM5'
-        hausfather = pcat.search(processing_level=f'{option_ens}-hausfather{can}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        all = pcat.search(processing_level=f'{option_ens}-all').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        diff = pcat.search(processing_level=f'{option_ens}-hausfather{can}VSall').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            option_r = col[0].selectbox('members', ['all members', 'only r1'])
+            if option_r == 'only r1':
+                r = 'r1'
+        selection = pcat.search(processing_level=f'delta-{option_ens}-selection{can}{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        all = pcat.search(processing_level=f'delta-{option_ens}-all{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        diff = pcat.search(processing_level=f'{option_ens}-selection{can}{r}VSall{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+        pvalues=None
+        if len(pcat.search(processing_level=f'p-{option_ens}-selection{can}{r}VSall{r}').df)>0:
+            pvalues = pcat.search(processing_level=f'p-{option_ens}-selection{can}{r}VSall{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
-
+    if 'baseline' in selection.horizon.attrs:
+        st.write(f"Warming levels are calculated  from the {selection.horizon.attrs['baseline']} baseline")
     def show_long_name_ens(name):
         for var in all.data_vars:
             if name in var:
@@ -288,18 +325,16 @@ with tab3:
                                    set(['_'.join(x.split('_')[:-1]) for x in
                                         all.data_vars]),
                                    format_func=show_long_name_ens)
-    option_stats_ens = col[2].selectbox('Statistique',
-                                     ['max', 'mean', 'min', 'stdev'])
+    option_stats_ens = col[2].selectbox('Statistique',[ 'mean', 'max', 'min', 'stdev','p10', 'p50', 'p90'])
+    option_season_ens = col[3].selectbox('Saison', all.season.values)
     complete_var = f"{option_ind_ens}_{option_stats_ens}"
 
-    option_season_ens = col[3].selectbox('Saison', all.season.values)
+
 
     col_fig = st.columns(3)
 
 
-
-
-    select_haus = hausfather[complete_var].sel(season=option_season_ens).isel(horizon=0)
+    select_haus = selection[complete_var].sel(season=option_season_ens).isel(horizon=0)
     select_all = all[complete_var].sel(season=option_season_ens).isel(horizon=0)
     select_diff = diff[complete_var].sel(season=option_season_ens).isel(horizon=0)
 
@@ -311,21 +346,26 @@ with tab3:
 
 
 
-    col_fig[0].write('Hausfather')
+    col_fig[0].write('Selection')
     col_fig[0].write(hv.render(select_haus.hvplot(cmap=cmap,width=450,height=350,clim=(vmin, vmax))))
-    col_fig[0].write(f"Nombre de réalisations de l'ensemble: {hausfather.attrs['ensemble_size']}")
+    col_fig[0].write(f"Nombre de réalisations de l'ensemble: {selection.attrs['ensemble_size']}")
 
     col_fig[1].write('All')
-    col_fig[1].write(
-        hv.render(select_all.hvplot(cmap=cmap, width=450,height=350, clim=(vmin, vmax))))
-    col_fig[1].write(
-        f"Nombre de réalisations de l'ensemble: {all.attrs['ensemble_size']}")
+    col_fig[1].write( hv.render(select_all.hvplot(cmap=cmap, width=450,height=350, clim=(vmin, vmax))))
+    col_fig[1].write(f"Nombre de réalisations de l'ensemble: {all.attrs['ensemble_size']}")
 
-    col_fig[2].write('Hausfather - All')
-    col_fig[2].write( hv.render(select_diff.hvplot(cmap='coolwarm',
-                                     clim =(- abs(select_diff).max(),abs(select_diff).max()),
-                                   width=450,
-                                   height=350)))
+    col_fig[2].write('(Selection - All)/All')
+    diff_plot= select_diff.hvplot(cmap='coolwarm',clim =(- abs(select_diff).max(),abs(select_diff).max()),width=450,height=350)
+    col_fig[2].write( hv.render(diff_plot))
+
+    if pvalues:
+        select_p = pvalues[option_ind_ens].sel(season=option_season_ens).isel(horizon=0)
+        levels = [0, 0.05, 10]
+        colors = ['#43A047', '#E53935']
+        col_fig[2].write( hv.render(select_p.hvplot(width=450,height=350).options(color_levels=levels, cmap=colors)))
+
+
+
 
 
 # # test panel

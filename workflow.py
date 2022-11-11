@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 import xesmf
+import scipy
 from dask.diagnostics import ProgressBar
 
 import xclim as xc
@@ -73,6 +74,7 @@ if __name__ == '__main__':
     ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
     sim_period = slice(*map(str, CONFIG['custom']['sim_period']))
     ref_source = CONFIG['extraction']['ref_source']
+    tdd = CONFIG['tdd']
 
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
@@ -210,10 +212,10 @@ if __name__ == '__main__':
                     # plot nan_count and email
                     email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
-    # cat_sim = search_data_catalogs(
-    #    **CONFIG['extraction']['simulation']['search_data_catalogs'])
-    #for sim_id, dc_id in cat_sim.items():
-    if False:
+    cat_sim = search_data_catalogs(
+       **CONFIG['extraction']['simulation']['search_data_catalogs'])
+    for sim_id, dc_id in cat_sim.items():
+    #if False:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
@@ -261,7 +263,6 @@ if __name__ == '__main__':
                                 save_to_zarr(ds=ds_sim,
                                              filename=path_cut,
                                              encoding=CONFIG['custom']['encoding'],
-                                             mode=mode
                                              )
                                 pcat.update_from_ds(ds=ds_sim, path=path_cut)
 
@@ -300,7 +301,6 @@ if __name__ == '__main__':
                         save_to_zarr(ds=ds_regrid,
                                      filename=path_rg,
                                      encoding=CONFIG['custom']['encoding'],
-                                     mode=mode
                                      )
                         pcat.update_from_ds(ds=ds_regrid, path=path_rg)
 
@@ -503,20 +503,7 @@ if __name__ == '__main__':
                                                           )['D']
 
 
-                                # can't put in config because of dynamic path
-                                maybe_unstack_dict = {'stack_drop_nans': CONFIG['custom']['stack_drop_nans'],
-                                                    'rechunk':{d: CONFIG['custom']['chunks'][d]
-                                                               for d in ['lon','lat', 'time']},
-                                                    #'coords':f"{refdir}/coords_{region_name}.nc"
-                                                    }
-
-
-                                ds = clean_up(ds = ds,
-                                             maybe_unstack_dict = maybe_unstack_dict,
-                                             **CONFIG['clean_up']['xscen_clean_up'])
-
-                                # TODO: put in clean_up
-                                ds['pr'] = ds.pr.round(10)
+                                ds = clean_up(ds = ds)
 
 
                                 #save and update
@@ -635,7 +622,7 @@ if __name__ == '__main__':
                             processing_level=['diag-sim-meas',
                                               'diag-scen-meas'],
                             id=sim_id,
-                            domain=region_name).to_dataset_dict(xarray_open_kwargs={'decode_timedelta':False})
+                            domain=region_name).to_dataset_dict(**tdd)
 
                         # make sur sim is first (for improved)
                         order_keys = [f'{sim_id}.{region_name}.diag-sim-meas.fx',
@@ -720,34 +707,63 @@ if __name__ == '__main__':
                             save_and_update(ds_hor_wl, CONFIG['paths']['wl'], pcat)
 
 
-    # --- INDICATORS ---
-    if 'indicators' in CONFIG['tasks']:
-        dict_input = pcat.search(**CONFIG['indicators']['input']).to_dataset_dict()
+    # --- HORIZONS ---
+    if 'horizons' in CONFIG['tasks']:
+        dict_input = pcat.search(**CONFIG['horizons']['input']).to_dataset_dict()
         for name_input, ds_input in dict_input.items():
-            if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
-                                      processing_level=f"indicators"):
+            for period in CONFIG['horizons']['periods']:
+                if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
+                                          processing_level=f"horizon{period[0]}-{period[1]}"):
+                    with (
+                            Client(n_workers=2, threads_per_worker=5,
+                                   memory_limit="20GB", **daskkws),
+                            measure_time(name=f"horizon {period} for {ds_input.attrs['cat:id']}", logger=logger)
+                    ):
+
+                        # needed for some indicators (ideally would have been calculated in clean_up...)
+                        ds_input = ds_input.sel(time= slice(*map(str, period)))
+                        ds_input= ds_input.chunk({'time':-1, 'lat':20, 'lon':20})
+                        ds_input = ds_input.assign(tas=xc.atmos.tg(ds=ds_input)).load()
+
+                        ds_hor = xs.aggregate.produce_horizon(
+                            ds_input,
+                            period=period,
+                            **CONFIG['horizons']['produce_horizon']
+                        )
+
+                        # save and update
+                        save_and_update(ds_hor, CONFIG['paths']['horizons'], pcat)
+
+    # --- DELTAS ---
+    if 'deltas' in CONFIG['tasks']:
+        dict_input = pcat.search(**CONFIG['deltas']['input']).to_dataset_dict(**tdd)
+        for name_input, ds_input in dict_input.items():
+            id = ds_input.attrs['cat:id']
+            plevel = ds_input.attrs['cat:processing_level']
+            if not pcat.exists_in_cat(id=id,
+                                      processing_level=f"delta-{plevel}"):
                 with (
-                        Client(n_workers=2, threads_per_worker=5,
-                               memory_limit="12GB", **daskkws),
-                        measure_time(name=f'indicators', logger=logger)
+                        Client(n_workers=2, threads_per_worker=5, memory_limit="12GB", **daskkws),
+                        measure_time(name=f"delta {id} {plevel}", logger=logger)
                 ):
-                    logging.info(f"Computing indicators for {ds_input.attrs['cat:id']} ")
+                    # get ref dataset
+                    ds_ref = pcat.search(id=id,
+                                         **CONFIG['deltas']['reference']).to_dask(**tdd)
 
-                    # needed for some indicators (ideally would have been calculated in clean_up...)
-                    late_period = slice(*map(str, CONFIG['indicators']['produce_horizon']['period']))
-                    ds_input = ds_input.sel(time= late_period)
-                    ds_input= ds_input.chunk({'time':-1, 'lat':20, 'lon':20})
-                    ds_input = ds_input.assign(tas=xc.atmos.tg(ds=ds_input)).load()
+                    # concat past and future
+                    ds_concat = xr.concat([ds_input,ds_ref], dim='horizon',
+                                          combine_attrs='override')
 
-
-                    logging.info('produce horizon')
-                    ds_hor = xs.aggregate.produce_horizon(
-                        ds_input,
-                        **CONFIG['indicators']['produce_horizon']
+                    # compute delta
+                    ds_delta = xs.aggregate.compute_deltas(
+                        ds=ds_concat,
+                        reference_horizon=ds_ref.horizon.values[0],
+                        to_level=f'delta-{plevel}'
                     )
 
                     # save and update
-                    save_and_update(ds_hor, CONFIG['paths']['indicators'], pcat)
+                    save_and_update(ds_delta, CONFIG['paths']['deltas'], pcat,
+                                    rechunk = {'lat': -1, 'lon':-1} )
 
     # --- ENSEMBLES ---
     if 'ensembles' in CONFIG['tasks']:
@@ -758,8 +774,7 @@ if __name__ == '__main__':
                         ProgressBar(),
                         measure_time(name=f'ensemble {ens_name}', logger=logger)
                 ):
-                    datasets = pcat.search(**ens_inputs).to_dataset_dict(
-                        xarray_open_kwargs={'decode_timedelta':False})
+                    datasets = pcat.search(**ens_inputs).to_dataset_dict(**tdd)
 
                     weights = xs.ensembles.generate_weights(datasets=datasets)
 
@@ -769,7 +784,7 @@ if __name__ == '__main__':
 
                     # save and update
                     save_and_update(ds_ens, CONFIG['paths']['ensembles'], pcat,
-                                    rechunk={'lat':30, 'lon':30})
+                                    rechunk={'lat':-1, 'lon':-1, 'season':1})
 
         # compute difference between ensembles
         for diff_name, diff_inputs in CONFIG['ensembles']['diffs'].items():
@@ -777,18 +792,55 @@ if __name__ == '__main__':
                 with (
                         Client(n_workers=4, threads_per_worker=5,
                                memory_limit="6GB", **daskkws),
-                        measure_time(name=f'ensemble {ens_name}', logger=logger)
+                        measure_time(name=f'ensemble {diff_name}', logger=logger)
                 ):
-                    ens1 = pcat.search(**diff_inputs['first']).to_dask(
-                        xarray_open_kwargs={'decode_timedelta':False})
+                    ens1 = pcat.search(**diff_inputs['first']).to_dask(**tdd)
 
-                    ens2 = pcat.search(**diff_inputs['second']).to_dask(
-                        xarray_open_kwargs={'decode_timedelta': False})
+                    ens2 = pcat.search(**diff_inputs['second']).to_dask(**tdd)
 
-                    diff = ens1 - ens2
+
+                    diff = (ens1 - ens2)/ens2
                     diff.attrs.update(ens1.attrs)
+                    diff.attrs['method'] = '(ens1 - ens2)/ens2'
                     diff.attrs['cat:processing_level']= diff_name
 
                     # save and update
-                    save_and_update(diff, CONFIG['paths']['ensembles'], pcat)
+                    save_and_update(diff, CONFIG['paths']['ensembles'], pcat,
+                                    rechunk={'lat':-1, 'lon':-1, 'season':1})
+
+        # compute p-values
+        for p_name, p_inputs in CONFIG['ensembles']['pvalues'].items():
+            if not pcat.exists_in_cat(processing_level=p_name):
+                with (
+                        Client(n_workers=4, threads_per_worker=5,
+                               memory_limit="6GB", **daskkws),
+                        measure_time(name=f'ensemble {p_name}', logger=logger)
+                ):
+                    ens1 = pcat.search(**p_inputs['first']).to_dataset_dict(**tdd)
+
+                    ens2 = pcat.search(**p_inputs['second']).to_dataset_dict(**tdd)
+
+                    ens1 = xc.ensembles.create_ensemble(ens1)
+                    ens2 = xc.ensembles.create_ensemble(ens2)
+
+
+                    pvals = xr.apply_ufunc(
+                        lambda f, r: scipy.stats.ttest_ind(f, r, axis=-1, nan_policy="omit",
+                                                           equal_var=False).pvalue,
+                        ens1,
+                        ens2,
+                        input_core_dims=[["realization"], ["realization"]],
+                        output_core_dims=[[]],
+                        vectorize=True,
+                        dask="allowed",
+                        output_dtypes=[bool],
+                        join='outer',
+                        keep_attrs=True
+                    )
+                    pvals.attrs['method']='pvals>=0.05'
+                    pvals.attrs['cat:processing_level'] = p_name
+
+                    # save and update
+                    save_and_update(pvals, CONFIG['paths']['ensembles'], pcat,
+                                    rechunk={'lat': -1, 'lon': -1, 'season': 1})
 
