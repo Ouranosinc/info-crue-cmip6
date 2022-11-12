@@ -6,17 +6,17 @@ project:
 
 tasks:
   ####- initialize_pcat
-  - makeref
-  - extract
-  - regrid
-  - train_qm
-  - adjust_qm
-  - train_ex
-  - adjust_ex
-  - clean_up
-  - final_zarr
-  - diagnostics
-  - individual_wl
+#  - makeref
+#  - extract
+#  - regrid
+#  - train_qm
+#  - adjust_qm
+#  - train_ex
+#  - adjust_ex
+#  - clean_up
+#  - final_zarr
+#  - diagnostics
+#  - individual_wl
   - horizons
   - deltas
   - ensembles
@@ -25,7 +25,7 @@ tasks:
 
 custom:
     delete_in_final_zarr: False
-    delete_in_diag: True
+    delete_in_diag: False # TODO: come back
     regions:
         qc:
             name: qc
@@ -618,4 +618,4 @@ logging:
 
 tdd:
   xarray_open_kwargs:
-    decode_dtimedelta: False
+    decode_timedelta: False

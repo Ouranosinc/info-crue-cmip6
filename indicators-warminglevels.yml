@@ -1,0 +1,35 @@
+realm: atmos
+indicators:
+  tx_mean:
+    base: tx_mean
+    parameters:
+      freq: QS-DEC
+  tn_mean:
+    base: tn_mean
+    parameters:
+      freq: QS-DEC
+  prcptot:
+    base: prcptot
+    parameters:
+      freq: QS-DEC
+  rx5day:
+    base: max_n_day_precipitation_amount
+    parameters:
+      freq: QS-DEC
+      window: 5
+  rx1day:
+    base: rx1day
+    parameters:
+      freq: QS-DEC
+  liquidprcptot:
+    base: liquidprcptot
+    parameters:
+      freq: QS-DEC
+  solidprcptot:
+    base: solidprcptot
+    parameters:
+      freq: QS-DEC
+  heat_wave_total_length:
+    base: heat_wave_total_length
+    parameters:
+      freq: QS-DEC

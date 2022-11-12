@@ -212,10 +212,10 @@ if __name__ == '__main__':
                     # plot nan_count and email
                     email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
-    cat_sim = search_data_catalogs(
-       **CONFIG['extraction']['simulation']['search_data_catalogs'])
-    for sim_id, dc_id in cat_sim.items():
-    #if False:
+    # cat_sim = search_data_catalogs(
+    #    **CONFIG['extraction']['simulation']['search_data_catalogs'])
+    # for sim_id, dc_id in cat_sim.items():
+    if False:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
@@ -721,12 +721,12 @@ if __name__ == '__main__':
                     ):
 
                         # needed for some indicators (ideally would have been calculated in clean_up...)
-                        ds_input = ds_input.sel(time= slice(*map(str, period)))
-                        ds_input= ds_input.chunk({'time':-1, 'lat':20, 'lon':20})
-                        ds_input = ds_input.assign(tas=xc.atmos.tg(ds=ds_input)).load()
+                        ds_cut = ds_input.sel(time= slice(*map(str, period)))
+                        ds_cut= ds_cut.chunk({'time':-1, 'lat':20, 'lon':20})
+                        ds_cut = ds_cut.assign(tas=xc.atmos.tg(ds=ds_cut)).load()
 
                         ds_hor = xs.aggregate.produce_horizon(
-                            ds_input,
+                            ds_cut,
                             period=period,
                             **CONFIG['horizons']['produce_horizon']
                         )

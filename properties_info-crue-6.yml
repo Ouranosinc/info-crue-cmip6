@@ -84,11 +84,9 @@ indicators:
         thresh: 1 mm d-1
         stat: max
     annual_cycle_amplitude-pr:
-      base: xclim.sdba.properties.annual_cycle_amplitude
+      base: xclim.sdba.properties.relative_annual_cycle_amplitude
       input:
         da: pr
-      parameters:
-        amplitude_type: relative
     wet_days_freq:
       base: xclim.sdba.properties.relative_frequency
       input:
