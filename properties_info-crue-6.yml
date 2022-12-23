@@ -43,12 +43,26 @@ indicators:
       base: xclim.sdba.properties.trend
       input:
         da: tasmax
+    mean-tasmin:
+      base: xclim.sdba.properties.mean
+      input:
+        da: tasmin
+    quantile_98-tasmin:
+      base: xclim.sdba.properties.quantile
+      input:
+        da: tasmin
+      parameters:
+        q: 0.98
     quantile_02-tasmin:
       base: xclim.sdba.properties.quantile
       input:
         da: tasmin
       parameters:
         q: 0.02
+    annual_cycle_amplitude-tasmin:
+      base: xclim.sdba.properties.annual_cycle_amplitude
+      input:
+        da: tasmin
     frost_days:
       base: xclim.sdba.properties.relative_frequency
       input:
@@ -101,3 +115,13 @@ indicators:
       parameters:
         op: '>='
         thresh: 20 mm d-1
+    corr_tasmax_tasmin:
+      base: xclim.sdba.properties.corr_btw_var
+      input:
+        da1: tasmax
+        da2: tasmin
+    corr_tasmax_pr:
+      base: xclim.sdba.properties.corr_btw_var
+      input:
+        da1: tasmax
+        da2: pr

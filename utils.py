@@ -169,7 +169,11 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
 
     for files in moving_files:
         source, dest = files[0], files[1]
+        print('move_then del')
+        print(source)
+        print(dest)
         if Path(source).exists():
+            print('exist')
             shutil.move(source, dest)
             if dest[-5:] =='.zarr':
                 ds = xr.open_zarr(dest)

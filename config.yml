@@ -6,43 +6,73 @@ project:
 
 tasks:
   ####- initialize_pcat
-#  - makeref
-#  - extract
-#  - regrid
+  - makeref
+  - extract
+  - regrid
+  - ba-MBCn
+#  - ba-dOTC
 #  - train_qm
 #  - adjust_qm
 #  - train_ex
 #  - adjust_ex
-#  - clean_up
-#  - final_zarr
-#  - diagnostics
+  - clean_up
+  - final_zarr
+  - diagnostics
 #  - individual_wl
-  - horizons
-  - deltas
-  - ensembles
+#  - horizons
+#  - deltas
+#  - ensembles
 
 
 
 custom:
     delete_in_final_zarr: False
-    delete_in_diag: False # TODO: come back
+    delete_in_diag: True
     regions:
-        qc:
-            name: qc
-            method: bbox
-            bbox:
-                lon_bnds: [ -83, -56 ]
-                lat_bnds: [ 42, 63 ]
+#      test_MBCn50:
+#        name: test_MBCn50
+#        method: bbox
+#        bbox:
+#          lon_bnds: [ -72,-70.5 ]
+#          lat_bnds: [ 46,47.5 ]
+#        qc:
+#            name: qc
+#            method: bbox
+#            bbox:
+#                lon_bnds: [ -83, -56 ]
+#                lat_bnds: [ 42, 63 ]
+      QC-MBCn50q50i:
+          name: QC-MBCn50q50i
+          method: bbox
+          bbox:
+              lon_bnds: [ -83, -55 ]
+              lat_bnds: [ 42, 63 ]
+#      east:
+#        name: east
+#        method: bbox
+#        bbox:
+#            lon_bnds: [ -55.95, -55 ]
+#            lat_bnds: [ 42, 63 ]
+#      test_dOTC:
+#        name: test_dOTC
+#        method: bbox
+#        bbox:
+#          lon_bnds: [-72,-70.5]
+#          lat_bnds: [46,47.5]
     stack_drop_nans: &stack
         True
     chunks:
         lat: 15
+#        lon: -1  # east
         lon: 15
         loc: 50
         time: -1
     out_chunks:
         lat: 30
         lon: 30
+#        lat: 16 # test TODO: put back
+#        lon: 16 #Test
+#        lon: 1 # east
         time: 4year
     ref_period : &ref_period
         - '1991'
@@ -127,29 +157,31 @@ extraction:
 #            source:
 #              - EC-Earth3
           other_search_criteria:
+            member:
+              - r1i1p1f1
             experiment:
-              - ssp585
-              - ssp245
+#              - ssp585
+#              - ssp245
               - ssp370
-              - ssp126
+#              - ssp126
             source:
               # chosen
-              - ACCESS-ESM1-5
-              - CanESM5
+#              - ACCESS-ESM1-5
+#              - CanESM5
               - EC-Earth3
-              - FGOALS-g3
-              - IPSL-CM6A-LR
-              - KACE-1-0-G
+#              - FGOALS-g3
+#              - IPSL-CM6A-LR
+#              - KACE-1-0-G
               - MIROC6
-              - MRI-ESM2-0
-              #other
-              - UKESM1-0-LL #245,370,558
-              - GFDL-ESM4 #245,370,585
-              - CNRM-CM6-1 # 245,370,585
-              - CNRM-ESM2-1 # 245,370,585
-              - ACCESS-CM2 #126, 245,370,585
-              - MPI-ESM1-2-HR
-              - NorESM2-MM
+#              - MRI-ESM2-0
+##              #other
+#              - UKESM1-0-LL #245,370,558
+#              - GFDL-ESM4 #245,370,585
+#              - CNRM-CM6-1 # 245,370,585
+#              - CNRM-ESM2-1 # 245,370,585
+#              - ACCESS-CM2 #126, 245,370,585
+#              - MPI-ESM1-2-HR
+#              - NorESM2-MM
             mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
@@ -201,6 +233,13 @@ regrid:
           extrap_method: inverse_dist
           locstream_out: False
           reuse_weights: False
+
+biasadjust_dOTC:
+  adjust: {}
+  attrs:
+    processing_level: biasadjusted
+    bias_adjust_institution: Ouranos
+    bias_adjust_project: info-crue-CMIP6
 
 
 biasadjust_qm:
@@ -300,73 +339,71 @@ biasadjust_ex:
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
 clean_up:
-    search_data_catalogs:
-      variables_and_freqs:
-        tasmax: D
-        tasmin: D
-        pr: D
-      allow_conversion: True
-      allow_resampling: False
-
-utils:
-    clean_up:
-      to_level: cleaned_up
-      variables_and_units:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
-      convert_calendar_kwargs:
-        target: standard
-        align_on: random
-      missing_by_var:
-        tasmax: interpolate
-        tasmin: interpolate
-        pr: [0]
-      maybe_unstack_dict:
-        stack_drop_nans: *stack
-        rechunk:
-          lat: 15
-          lon: 15
-          time: -1
-      round_var:
-        pr: 10
-      remove_all_attrs_except:
-        global:
-          - '^cat:'
-          - history
-        tasmax: &attrs_to_keep
-          - bias_adjustment
-          - cell_methods
-          - coordinates
-          - history
-          - long_name
-          - standard_name
-          - units
-        tasmin: *attrs_to_keep
-        pr: *attrs_to_keep
-      add_attrs:
-        global:
-          Notes: |
-            Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
-            quantile mapping on a day-of-year basis with a window of 31 days,
-            LOESS detrending and 50 quantiles.
-            There is a second bias adjustement for pr's extreme values.
-            Tasmax, dtr and pr were adjusted, tasmin was computed
-            from tasmax and dtr after the adjustment.
-            The reference was ERA5-Land over the 1991-2010 period.
-          version: "1.0.0"
-        tasmax:
-            standard_name: air_temperature
-            long_name: Maximal daily temperature
-            cell_methods: "time: maximum within days"
-        tasmin:
-            standard_name: air_temperature
-            long_name: Minimal daily temperature
-            cell_methods: "time: minimum within days"
-        pr:
-            standard_name: precipitation_flux
-            long_name: Mean daily precipitation flux
-            cell_methods: "time: mean within days"
+  search_data_catalogs:
+    variables_and_freqs:
+      tasmax: D
+      tasmin: D
+      pr: D
+    allow_conversion: True
+    allow_resampling: False
+  xscen_clean_up:
+    to_level: cleaned_up
+    variables_and_units:
+      tasmax: degC
+      tasmin: degC
+      pr: mm d-1
+    convert_calendar_kwargs:
+      target: standard
+      align_on: random
+    missing_by_var:
+      tasmax: interpolate
+      tasmin: interpolate
+      pr: [0]
+    maybe_unstack_dict:
+      stack_drop_nans: *stack
+      rechunk:
+        lat: 15
+        lon: 15
+        time: -1
+    round_var:
+      pr: 10
+    remove_all_attrs_except:
+      global:
+        - '^cat:'
+        - history
+      tasmax: &attrs_to_keep
+        - bias_adjustment
+        - cell_methods
+        - coordinates
+        - history
+        - long_name
+        - standard_name
+        - units
+      tasmin: *attrs_to_keep
+      pr: *attrs_to_keep
+    add_attrs:
+      global:
+        Notes: |
+          Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
+          quantile mapping on a day-of-year basis with a window of 31 days,
+          LOESS detrending and 50 quantiles.
+          There is a second bias adjustement for pr's extreme values.
+          Tasmax, dtr and pr were adjusted, tasmin was computed
+          from tasmax and dtr after the adjustment.
+          The reference was ERA5-Land over the 1991-2010 period.
+        version: "1.0.0"
+      tasmax:
+          standard_name: air_temperature
+          long_name: Maximal daily temperature
+          cell_methods: "time: maximum within days"
+      tasmin:
+          standard_name: air_temperature
+          long_name: Minimal daily temperature
+          cell_methods: "time: minimum within days"
+      pr:
+          standard_name: precipitation_flux
+          long_name: Mean daily precipitation flux
+          cell_methods: "time: mean within days"
 
 rechunk:
     worker_mem: 2GB

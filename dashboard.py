@@ -38,6 +38,7 @@ with tab1:
         from xscen.config import CONFIG, load_config
         from xscen.catalog import ProjectCatalog
         load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+        #pcat = ProjectCatalog(CONFIG['paths']['dashboard_catalog'])
         pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
 
         # choose id
@@ -54,8 +55,8 @@ with tab1:
         bias_scen = pcat.search(id=option_id, processing_level='diag-scen-meas', domain=option_domain).to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
         #get measures summary
-        hm = pcat.search( id=option_id,processing_level='diag-heatmap').to_dask()
-        imp = pcat.search(id=option_id,processing_level='diag-improved').to_dask()
+        hm = pcat.search( id=option_id,processing_level='diag-heatmap', domain=option_domain).to_dask()
+        imp = pcat.search(id=option_id,processing_level='diag-improved', domain=option_domain).to_dask()
 
 
     else:
@@ -213,7 +214,7 @@ with tab2:
     #choose data
     def show_long_name(name):
         for var in wl2.data_vars:
-            if name in var:
+            if f"{name}_delta" in var:
                 return f"{wl2[var].attrs['long_name']} ({name})"
 
 
@@ -224,7 +225,7 @@ with tab2:
 
 
     #plot data
-    cmap = 'viridis_r' if wl2[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    cmap = 'viridis_r' if  'precipitation' in wl2[complete_var].attrs['standard_name'] else 'plasma'
     vmin = np.min([cur_wl[complete_var].sel(season=option_season_wl).min().values for cur_wl in [wl15, wl2, wl3]])
     vmax = np.max([cur_wl[complete_var].sel(season=option_season_wl).max().values for cur_wl in [wl15, wl2, wl3]])
 
@@ -277,7 +278,7 @@ with tab3:
 
 
     #plot data
-    cmap = 'viridis_r' if s2[complete_var].attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    cmap = 'viridis_r' if  'precipitation' in s2[complete_var].attrs['standard_name']  else 'plasma'
     vmin = np.min([cur_wl[complete_var].sel(season=option_season_s).min().values for cur_wl in [s1,s2,s3,s4]])
     vmax = np.max([cur_wl[complete_var].sel(season=option_season_s).max().values for cur_wl in [s1,s2,s3,s4]])
 
@@ -294,7 +295,7 @@ with tab3:
         col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.attrs['ensemble_size']}")
 
 with tab4:
-    col = st.columns([1,4,1,1])
+    col = st.columns([1,5,1,1])
     if useCat:
         option_ens = col[0].selectbox('ensemble', ['+1.5C', '+2C','+3C' ,'ssp126-2081-2100','ssp245-2081-2100','ssp370-2081-2100','ssp585-2081-2100'])
         option_can = 'include'
@@ -317,9 +318,7 @@ with tab4:
     if 'baseline' in selection.horizon.attrs:
         st.write(f"Warming levels are calculated  from the {selection.horizon.attrs['baseline']} baseline")
     def show_long_name_ens(name):
-        for var in all.data_vars:
-            if name in var:
-                return f"{all[var].attrs['long_name']} ({name})"
+        return f"{all[f'{name}_mean'].attrs['long_name']} ({name})"
 
     option_ind_ens = col[1].selectbox('Indicateur',
                                    set(['_'.join(x.split('_')[:-1]) for x in
@@ -339,9 +338,12 @@ with tab4:
     select_diff = diff[complete_var].sel(season=option_season_ens).isel(horizon=0)
 
     #plot data
-    cmap = 'viridis_r' if select_all.attrs['standard_name'] == 'precipitation_flux' else 'plasma'
+    cmap = 'viridis_r' if  'precipitation' in select_all.attrs['standard_name'] else 'plasma'
+    cmap_bias = 'BrBG' if 'precipitation' in select_all.attrs[
+        'standard_name'] else 'coolwarm'
     vmin = np.min([cur.min().values for cur in [select_all, select_haus]])
     vmax = np.max([cur.max().values for cur in [select_all, select_haus]])
+
 
 
 
@@ -355,7 +357,7 @@ with tab4:
     col_fig[1].write(f"Nombre de réalisations de l'ensemble: {all.attrs['ensemble_size']}")
 
     col_fig[2].write('(Selection - All)/All')
-    diff_plot= select_diff.hvplot(cmap='coolwarm',clim =(- abs(select_diff).max(),abs(select_diff).max()),width=450,height=350)
+    diff_plot= select_diff.hvplot(cmap=cmap_bias,clim =(- abs(select_diff).max(),abs(select_diff).max()),width=450,height=350)
     col_fig[2].write( hv.render(diff_plot))
 
     if pvalues:

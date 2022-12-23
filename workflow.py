@@ -5,16 +5,20 @@ from pathlib import Path
 import xarray as xr
 import shutil
 import logging
+import dask
 import numpy as np
 from matplotlib import pyplot as plt
 import os
 import xesmf
 import scipy
 from dask.diagnostics import ProgressBar
+import SBCK
 
 import xclim as xc
 import xscen as xs
+from xclim import sdba
 from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
+from xclim.sdba import adjustment
 from xclim.core.units import convert_units_to
 from xclim.sdba import properties, measures, construct_moving_yearly_window, unpack_moving_yearly_window
 
@@ -48,7 +52,7 @@ from xscen import (
 
 from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update, python_scp, save_and_update
 
-server ='neree'
+server = 'neree' # not really but bc we can write on jarre from neree, no need to scp
 
 
 # Load configuration
@@ -78,7 +82,7 @@ if __name__ == '__main__':
 
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
-        pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'], overwrite=True)
+        pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'])
 
     # load project catalog
     pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
@@ -163,7 +167,6 @@ if __name__ == '__main__':
                                              **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
 
-                    print(ds_ref.chunks)
                     # drop to make faster
                     dref_ref = ds_ref.drop_vars('dtr')
 
@@ -182,8 +185,8 @@ if __name__ == '__main__':
                         ds_ref_prop = ds_ref_prop.chunk({'lat':30, 'lon':30})
 
                         path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                                               sim_id=ds_ref.attrs['cat:id'],
-                                                                               step='ref'))
+                                                                               sim_id=ds_ref_prop.attrs['cat:id'],
+                                                                               level=ds_ref_prop.attrs['cat:processing_level']))
                         path_diag_exec = f"{workdir}/{path_diag.name}"
 
 
@@ -212,14 +215,15 @@ if __name__ == '__main__':
                     # plot nan_count and email
                     email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
-    # cat_sim = search_data_catalogs(
-    #    **CONFIG['extraction']['simulation']['search_data_catalogs'])
-    # for sim_id, dc_id in cat_sim.items():
-    if False:
+    cat_sim = search_data_catalogs(
+       **CONFIG['extraction']['simulation']['search_data_catalogs'])
+    for sim_id, dc_id in cat_sim.items():
+    #if False:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
-                     'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id)}
+                     'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id),
+                     }
             final_task = 'diagnostics' if 'diagnostics' in CONFIG[
                 "tasks"] else 'final_zarr'
             if not pcat.exists_in_cat(**final[final_task]):
@@ -259,7 +263,7 @@ if __name__ == '__main__':
                                 ds_sim = ds_sim.chunk(CONFIG['extract']['chunks'])
 
                                 # save to zarr
-                                path_cut = f"{workdir}/{sim_id}_extracted.zarr"
+                                path_cut = f"{workdir}/{sim_id}_{region_name}_extracted.zarr"
                                 save_to_zarr(ds=ds_sim,
                                              filename=path_cut,
                                              encoding=CONFIG['custom']['encoding'],
@@ -306,6 +310,234 @@ if __name__ == '__main__':
 
 
                 # ---BIAS ADJUST---
+
+                from xclim.sdba import adjustment
+
+                # ---BA-MBCn ---
+                if (
+                        "ba-MBCn" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                   processing_level='biasadjusted')
+                ):
+                    with (
+                            Client(n_workers=9, threads_per_worker=3,
+                                   memory_limit="7GB", **daskkws),
+                            measure_time(name=f'MBCn', logger=logger)
+                    ):
+                        # load hist ds (simulation)
+                        sim = pcat.search(id=sim_id,
+                                          processing_level='regridded',
+                                          domain=region_name).to_dask().drop_vars('dtr')
+
+                        # load ref ds
+                        # choose right calendar
+                        simcal = get_calendar(sim)
+                        refcal = minimum_calendar(simcal,
+                                                  CONFIG['custom']['maximal_calendar'])
+                        dref = pcat.search(source=ref_source,
+                                             calendar=refcal,
+                                             domain=region_name).to_dask().drop_vars('dtr')
+
+                        # convert calendar if necessary
+                        maximal_calendar = "noleap"
+                        align_on = "year"
+                        simcal = get_calendar(sim)
+                        refcal = get_calendar(dref)
+                        mincal = minimum_calendar(simcal, maximal_calendar)
+                        if simcal != mincal:
+                            sim = convert_calendar(sim, mincal, align_on=align_on)
+                        if refcal != mincal:
+                            dref = convert_calendar(dref, mincal, align_on=align_on)
+
+                        dsim = sim.sel(time= sim_period)
+                        dhist = sim.sel(time=ref_period)
+
+                        nquantiles = 50
+                        n_iter=50
+
+                        # 1. initial univariate
+
+                        # additive for tasmax
+                        QDMtx = sdba.QuantileDeltaMapping.train(
+                            dref.tasmax, dhist.tasmax, nquantiles=nquantiles, kind="+",
+                            group="time"
+                        )
+                        # Adjust both hist and sim, we'll feed both to the Npdf transform.
+                        scenh_tx = QDMtx.adjust(dhist.tasmax)
+                        scens_tx = QDMtx.adjust(dsim.tasmax)
+
+                        # additive for tasmin
+                        QDMtn = sdba.QuantileDeltaMapping.train(
+                            dref.tasmin, dhist.tasmin, nquantiles=nquantiles, kind="+",
+                            group="time"
+                        )
+                        # Adjust both hist and sim, we'll feed both to the Npdf transform.
+                        scenh_tn = QDMtn.adjust(dhist.tasmin)
+                        scens_tn = QDMtn.adjust(dsim.tasmin)
+
+                        # remove == 0 values in pr:
+                        dref["pr"] = sdba.processing.jitter_under_thresh(dref.pr,
+                                                                         "0.01 mm d-1")
+                        dhist["pr"] = sdba.processing.jitter_under_thresh(dhist.pr,
+                                                                          "0.01 mm d-1")
+                        dsim["pr"] = sdba.processing.jitter_under_thresh(dsim.pr,
+                                                                         "0.01 mm d-1")
+
+                        # multiplicative for pr
+                        QDMpr = sdba.QuantileDeltaMapping.train(
+                            dref.pr, dhist.pr, nquantiles=nquantiles, kind="*", group="time"
+                        )
+                        # Adjust both hist and sim, we'll feed both to the Npdf transform.
+                        scenh_pr = QDMpr.adjust(dhist.pr)
+                        scens_pr = QDMpr.adjust(dsim.pr)
+
+                        scenh = xr.Dataset(
+                            dict(tasmax=scenh_tx, pr=scenh_pr, tasmin=scenh_tn))
+                        scens = xr.Dataset(
+                            dict(tasmax=scens_tx, pr=scens_pr, tasmin=scens_tn))
+
+                        # 2. stack and standardize
+                        # Stack the variables (tasmax and pr)
+                        ref = sdba.processing.stack_variables(dref)
+                        scenh = sdba.processing.stack_variables(scenh)
+                        scens = sdba.processing.stack_variables(scens)
+
+                        # Standardize
+                        ref, _, _ = sdba.processing.standardize(ref)
+
+                        allsim_std, _, _ = sdba.processing.standardize(scens)
+                        scenh_std = allsim_std.sel(time=scenh.time)
+                        scens_std = allsim_std.sel(time=scens.time)
+
+                        # 3. Perform the N-dimensional probability density function transform
+
+                        # See the advanced notebook for details on how this option work
+                        with xc.set_options(sdba_extra_output=True):
+                            out = sdba.adjustment.NpdfTransform.adjust(
+                                ref,
+                                scenh_std,
+                                scens_std,
+                                base=sdba.QuantileDeltaMapping,
+                                # Use QDM as the univariate adjustment.
+                                base_kws={"nquantiles": nquantiles, "group": "time"},
+                                n_iter= n_iter,  # perform X iteration
+                                n_escore=1000,
+                                # only send 1000 points to the escore metric (it is realy slow)
+                            )
+
+                        scenh_npdft = out.scenh.rename(
+                            time_hist="time")  # Bias-adjusted historical period
+                        scens_npdft = out.scen  # Bias-adjusted future period
+                        extra = out.drop_vars(["scenh", "scen"])
+
+                        # 4. Restoring the trend
+
+                        scenh = sdba.processing.reordering(scenh_npdft, scenh,
+                                                           group="time")
+                        scens = sdba.processing.reordering(scens_npdft, scens,
+                                                           group="time")
+
+                        scenh = sdba.processing.unstack_variables(scenh)
+                        scens = sdba.processing.unstack_variables(scens)
+
+                        #scens = Client.scatter(scens)
+                        #escores = Client.scatter(extra.escores)
+                        ds_scen, escores = dask.compute(scens, extra.escores)
+
+                        ds_scen.attrs.update(sim.attrs)
+                        for attrs_k, attrs_v in CONFIG['biasadjust_dOTC'][
+                            'attrs'].items():
+                            ds_scen.attrs[f"cat:{attrs_k}"] = attrs_v
+
+                        ds_scen.attrs["cat:variable"] = \
+                        xs.catalog.parse_from_ds(ds_scen, ["variable"])["variable"]
+
+                        save_to_zarr(ds=escores.to_dataset(),
+                                     filename= CONFIG['paths']['escores'].format(
+                                         sim_id=sim_id, region_name=region_name),
+                                     mode='o')
+
+                        # save and update
+                        path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted.zarr"
+                        save_to_zarr(ds=ds_scen,
+                                     filename=path_adj,
+                                     mode='o')
+                        pcat.update_from_ds(ds=ds_scen, path=path_adj)
+
+                # ---BA-dOTC ---
+                if (
+                        "ba-dOTC" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                   processing_level='biasadjusted')
+                ):
+                    with (
+                            Client(n_workers=2, threads_per_worker=3,
+                                   memory_limit="30GB", **daskkws),
+                            measure_time(name=f'dOTC', logger=logger)
+                    ):
+                        # load hist ds (simulation)
+                        sim = pcat.search(id=sim_id,
+                                          processing_level='regridded',
+                                          domain=region_name).to_dask().drop_vars('dtr')
+
+                        # load ref ds
+                        # choose right calendar
+                        simcal = get_calendar(sim)
+                        refcal = minimum_calendar(simcal,
+                                                  CONFIG['custom']['maximal_calendar'])
+                        ds_ref = pcat.search(source=ref_source,
+                                             calendar=refcal,
+                                             domain=region_name).to_dask().drop_vars('dtr')
+
+                        # convert calendar if necessary
+                        maximal_calendar = "noleap"
+                        align_on = "year"
+                        simcal = get_calendar(sim)
+                        refcal = get_calendar(ds_ref)
+                        mincal = minimum_calendar(simcal, maximal_calendar)
+                        if simcal != mincal:
+                            sim = convert_calendar(sim, mincal, align_on=align_on)
+                        if refcal != mincal:
+                            ds_ref = convert_calendar(ds_ref, mincal, align_on=align_on)
+
+                        # TODO: maybe it would work to do it by season!
+                        # TODO: careful with order of dimensions fed to sbck. wants (n_samples,n_features)
+                        ds_sim = sim.sel(time=slice('2071', '2100')) #sim_period) # TODO: put back
+                        ds_hist = sim.sel(time=ref_period)
+                        # TODO: jitter???
+
+                        # stack_var
+                        ds_ref = xc.sdba.processing.stack_variables(ds_ref).transpose()
+                        ds_hist = xc.sdba.processing.stack_variables(ds_hist).transpose()
+                        ds_sim = xc.sdba.processing.stack_variables(ds_sim).transpose()
+
+                        ds_ref = ds_ref.chunk({'loc':1})
+                        ds_hist = ds_hist.chunk({'loc': 1})
+                        ds_sim = ds_sim.chunk({'loc': 1})
+
+                        ds_scen = adjustment.SBCK_dOTC.adjust(
+                            ds_ref,
+                            ds_hist,
+                            ds_sim,
+                            multi_dim="multivar",
+                            **CONFIG['biasadjust_dOTC']['adjust'],
+                        )
+                        ds_scen = xc.sdba.processing.unstack_variables(ds_scen).load()
+
+                        for k, v in CONFIG['biasadjust_dOTC']['attrs'].items():
+                            ds_scen.attrs[f"cat_{k}"]= v
+
+                        ds_scen.attrs["cat:variable"] = xs.catalog.parse_from_ds(ds_scen, ["variable"])["variable"]
+
+                        # save and update
+                        path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted.zarr"
+                        save_to_zarr(ds=ds_scen,
+                                     filename=path_adj,
+                                     mode='o')
+                        pcat.update_from_ds(ds=ds_scen, path=path_adj)
+
+
+                # --- UNIVARIATE ---
                 for var, conf in CONFIG['biasadjust_qm']['variables'].items():
 
                     # ---TRAIN QM ---
@@ -503,7 +735,8 @@ if __name__ == '__main__':
                                                           )['D']
 
 
-                                ds = clean_up(ds = ds)
+                                ds = clean_up(ds = ds.chunk(dict(time=-1)), # TODO: put in MBCn
+                                              **CONFIG['clean_up']['xscen_clean_up'])
 
 
                                 #save and update
@@ -538,31 +771,41 @@ if __name__ == '__main__':
                                 **CONFIG['rechunk'],
                                 overwrite=True)
 
+                        # add final file to catalog
+                        ds = xr.open_zarr(fi_path)
+                        pcat.update_from_ds(ds=ds, path=str(fi_path), info_dict= {'processing_level': 'final'})
+
+
                         # if  delete workdir, but save log and regridded
                         if CONFIG['custom']['delete_in_final_zarr']:
 
+
                             if server == 'neree':
                                 for name, paths in CONFIG['scp_list'].items():
-                                    python_scp(source_path=paths['source'],
-                                            destination_path=paths['dest'],
+                                    source_path = Path(paths['source'].format(**fmtkws))
+                                    dest = Path(paths['dest'].format(**fmtkws))
+                                    python_scp(source_path= source_path,
+                                            destination_path=dest,
                                             **CONFIG['scp'])
-                                    ds = xr.open_zarr(paths['dest'])
-                                    pcat.update_from_ds(ds, paths['dest'])
+
+                                    dest = dest / source_path.name
+                                    if dest.suffix == '.zarr' and source_path.exists():
+                                        ds = pcat.search(path=str(source_path)).to_dask()
+                                        pcat.update_from_ds(ds, str(dest ))
+
                                 move_then_delete(dirs_to_delete=[workdir],
                                                  moving_files=[],
                                                  pcat=pcat)
+
                             else:
                                 final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
                                 path_log = CONFIG['logging']['handlers']['file']['filename']
                                 move_then_delete(dirs_to_delete=[workdir],
                                                  moving_files=
-                                                 [[f"{workdir}/{sim_id}_regridded.zarr", final_regrid_path],
+                                                 [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
                                                   [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
                                                  pcat=pcat)
 
-                        # add final file to catalog
-                        ds = xr.open_zarr(fi_path)
-                        pcat.update_from_ds(ds=ds, path=str(fi_path), info_dict= {'processing_level': 'final'})
 
 
                 # ---DIAGNOSTICS ---
@@ -667,12 +910,18 @@ if __name__ == '__main__':
                                                  pcat=pcat)
                             else:
                                 final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
+                                print(f"{workdir}/{sim_id}_{region_name}_regridded.zarr")
+                                print(final_regrid_path)
                                 path_log = CONFIG['logging']['handlers']['file'][
                                     'filename']
-                                move_then_delete(dirs_to_delete= [workdir],
+                                move_then_delete(
+                                    dirs_to_delete= [
+                                        workdir
+                                    ],
                                                  moving_files =
-                                                 [[f"{workdir}/{sim_id}_regridded.zarr",final_regrid_path],
-                                                  [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
+                                                 [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
+                                                  #[path_log, CONFIG['paths']['logging'].format(**fmtkws)] #TODO: put back
+                                                  ],
                                                   pcat=pcat)
 
                         send_mail(
