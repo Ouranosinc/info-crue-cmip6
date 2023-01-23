@@ -10,11 +10,11 @@ tasks:
   - extract
   - regrid
   - ba-MBCn
-#  - ba-dOTC
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
+##  - ba-dOTC
+##  - train_qm
+##  - adjust_qm
+##  - train_ex
+##  - adjust_ex
   - clean_up
   - final_zarr
   - diagnostics
@@ -47,18 +47,19 @@ custom:
           bbox:
               lon_bnds: [ -83, -55 ]
               lat_bnds: [ 42, 63 ]
+#    QC:
+#      name: QC
+#      method: bbox
+#      bbox:
+#        lon_bnds: [ -83, -55 ]
+#        lat_bnds: [ 42, 63 ]
 #      east:
 #        name: east
 #        method: bbox
 #        bbox:
 #            lon_bnds: [ -55.95, -55 ]
 #            lat_bnds: [ 42, 63 ]
-#      test_dOTC:
-#        name: test_dOTC
-#        method: bbox
-#        bbox:
-#          lon_bnds: [-72,-70.5]
-#          lat_bnds: [46,47.5]
+
     stack_drop_nans: &stack
         True
     chunks:
@@ -70,7 +71,7 @@ custom:
     out_chunks:
         lat: 30
         lon: 30
-#        lat: 16 # test TODO: put back
+#        lat: 16 # test
 #        lon: 16 #Test
 #        lon: 1 # east
         time: 4year
@@ -137,8 +138,6 @@ extraction:
           periods: *sim_period
           exclusions:
             id:
-              #- CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1_global
-              #- CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r3i1p1f1_global
               - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r2i1p1f1_global
               - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r2i1p1f1_global
               - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r2i1p1f1_global
@@ -151,11 +150,6 @@ extraction:
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r2i1p1f1_global
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
-#            member:
-#              - r3i1p1f1
-#              - r2i1p1f1
-#            source:
-#              - EC-Earth3
           other_search_criteria:
             member:
               - r1i1p1f1
@@ -168,7 +162,7 @@ extraction:
               # chosen
 #              - ACCESS-ESM1-5
 #              - CanESM5
-              - EC-Earth3
+              #- EC-Earth3
 #              - FGOALS-g3
 #              - IPSL-CM6A-LR
 #              - KACE-1-0-G
