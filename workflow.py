@@ -56,8 +56,8 @@ server = 'neree' # not really but bc we can write on jarre from neree, no need t
 
 
 # Load configuration
-if server == 'neree':
-    load_config('paths_neree.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+if server == 'neree': #TODO: put the right config
+    load_config('paths_neree.yml', 'config-RSDS.yml', verbose=(__name__ == '__main__'), reset=True)
 else:
     load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
@@ -170,7 +170,9 @@ if __name__ == '__main__':
                     # drop to make faster
                     dref_ref = ds_ref.drop_vars('dtr')
 
-                    dref_ref = dref_ref.chunk({'time': -1,'lat':30, 'lon':30})
+
+                    dref_ref = dref_ref.chunk(**CONFIG['extract']['ref_chunk'])
+
 
                     # diagnostics
                     if 'diagnostics' in CONFIG['tasks']:
@@ -182,7 +184,8 @@ if __name__ == '__main__':
                                 'properties_and_measures']
                         )
 
-                        ds_ref_prop = ds_ref_prop.chunk({'lat':30, 'lon':30})
+                        ds_ref_prop = ds_ref_prop.chunk(
+                            **CONFIG['extract']['ref_prop_chunk'])
 
                         path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                                sim_id=ds_ref_prop.attrs['cat:id'],
@@ -199,7 +202,8 @@ if __name__ == '__main__':
 
                     # nan count
                     ds_ref_props_nan_count = dref_ref.to_array().isnull().sum('time').mean('variable').chunk(
-                        {'lon': 10, 'lat': 10})
+                        {d: CONFIG['custom']['chunks'][d] for d in ds_ref_prop.dims if
+                         d in CONFIG['custom']['chunks']})
                     ds_ref_props_nan_count = ds_ref_props_nan_count.to_dataset(name='nan_count')
                     ds_ref_props_nan_count.attrs.update(ds_ref.attrs)
 

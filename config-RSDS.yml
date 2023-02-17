@@ -35,55 +35,24 @@ custom:
           bbox:
             lon_bnds: [ -83, -55 ]
             lat_bnds: [ 42, 63 ]
-#      test_MBCn50:
-#        name: test_MBCn50
-#        method: bbox
-#        bbox:
-#          lon_bnds: [ -72,-70.5 ]
-#          lat_bnds: [ 46,47.5 ]
-#        qc:
-#            name: qc
-#            method: bbox
-#            bbox:
-#                lon_bnds: [ -83, -56 ]
-#                lat_bnds: [ 42, 63 ]
-#      QC-MBCn50q50i:
-#          name: QC-MBCn50q50i
-#          method: bbox
-#          bbox:
-#              lon_bnds: [ -83, -55 ]
-#              lat_bnds: [ 42, 63 ]
-#    QC:
-#      name: QC
-#      method: bbox
-#      bbox:
-#        lon_bnds: [ -83, -55 ]
-#        lat_bnds: [ 42, 63 ]
-#      east:
-#        name: east
-#        method: bbox
-#        bbox:
-#            lon_bnds: [ -55.95, -55 ]
-#            lat_bnds: [ 42, 63 ]
-
     stack_drop_nans: &stack
-        True
+        False
     chunks:
-        lat: 15
+        rlat: 15
 #        lon: -1  # east
-        lon: 15
-        loc: 50
+        rlon: 15
+#        loc: 50
         time: -1
     out_chunks:
-        lat: 30
-        lon: 30
+        rlat: 30
+        rlon: 30
 #        lat: 16 # test
 #        lon: 16 #Test
 #        lon: 1 # east
         time: 4year
     ref_period : &ref_period # new-ref
-      - '1989' #'1991'
-      - '2018' #'2020'
+      - '1989'
+      - '2018'
     sim_period: &sim_period
         - '1956'
         - '2100'
@@ -103,18 +72,17 @@ custom:
 
 
 extract:
-    chunks: {'time': 365, 'lat':-1, 'lon':-1}
+    chunks: {'time': 365, 'rlat':-1, 'rlon':-1}
     subset_warming_level:
       ignore_member: True
       window: 20
       wl_dim: "+{wl}C"
-    ref_chunk :
+    ref_chunk:
       time: -1
-      lat: 30
-      lon: 30
     ref_prop_chunk:
-      lat: 30
-      lon: 30
+      rlat: 50
+      rlon: 50
+
 
 
 
@@ -203,8 +171,8 @@ extraction:
                 - lat_bnds
                 - lon_bnds
               chunks:
-                lat: 50
-                lon: 50
+                rlat: 50
+                rlon: 50
                 time: 365
     ref_source: *ref_source
 
@@ -374,8 +342,8 @@ clean_up:
     maybe_unstack_dict:
       stack_drop_nans: *stack
       rechunk:
-        lat: 15
-        lon: 15
+        rlat: 15
+        rlon: 15
         time: -1
     round_var:
       pr: 10
