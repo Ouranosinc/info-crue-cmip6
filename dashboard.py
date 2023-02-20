@@ -239,7 +239,7 @@ with tab2:
                                                       height=350,
                                                       clim=(vmin, vmax))))
         col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.horizon.attrs['ensemble_size']}")
-    st.write( f"Warming levels are calculated from the {select_wl.horizon.attrs['baseline']} baseline.")
+    #st.write( f"Warming levels are calculated from the {select_wl.horizon.attrs['baseline']} baseline.")
 
 with tab3:
     cols = st.columns([3,1,1])
