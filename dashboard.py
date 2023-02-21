@@ -27,7 +27,11 @@ def load_nc(path):
 
 useCat = st.checkbox("use catalog (only for local version)")
 
-tab1, tab2, tab3, tab4 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global", "Horizons Temporels", "Sélection vs tout"])
+if useCat:
+    tab1, tab2, tab3, tab4 = st.tabs(["Diagnostiques", "Niveaux de réchauffement global", "Horizons Temporels", "Sélection vs tout"])
+else:
+    tab1, tab2 = st.tabs(
+        ["Diagnostiques", "Niveaux de réchauffement global"])
 with tab1:
     #useCat=True
 
