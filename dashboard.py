@@ -241,130 +241,132 @@ with tab2:
         col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.horizon.attrs['ensemble_size']}")
     #st.write( f"Warming levels are calculated from the {select_wl.horizon.attrs['baseline']} baseline.")
 
-with tab3:
-    cols = st.columns([3,1,1])
+# load data
+if useCat:
+    with tab3:
+        cols = st.columns([3,1,1])
 
-    # load data
-    if useCat:
+        # load data
+        if useCat:
 
-        # get warminglevel
-        s1 = pcat.search(processing_level='delta-ssp126-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        s2 = pcat.search(processing_level='delta-ssp245-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        s3 = pcat.search(processing_level='delta-ssp370-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        s4 = pcat.search(processing_level='delta-ssp585-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            # get warminglevel
+            s1 = pcat.search(processing_level='delta-ssp126-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            s2 = pcat.search(processing_level='delta-ssp245-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            s3 = pcat.search(processing_level='delta-ssp370-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            s4 = pcat.search(processing_level='delta-ssp585-2081-2100-selection').to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
-    else:
-        ensemble_sizes={}
+        else:
+            ensemble_sizes={}
 
-        # wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
-        # wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
-        # wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
+            # wl15 = load_zarr(f'dashboard_data/ensemble-deltas-1.5_CMIP6_ScenarioMIP_qc.zarr')
+            # wl2 = load_zarr(f'dashboard_data/ensemble-deltas-2_CMIP6_ScenarioMIP_qc.zarr')
+            # wl3 = load_zarr(f'dashboard_data/ensemble-deltas-3_CMIP6_ScenarioMIP_qc.zarr')
 
-        #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
-            #wls.append(cur_wl)
-        #wl = xr.concat(wls, dim='horizon')
+            #ensemble_sizes[f"+{h}C"]=cur_wl.horizon.attrs['ensemble_size']
+                #wls.append(cur_wl)
+            #wl = xr.concat(wls, dim='horizon')
 
-    #choose data
-    def show_long_name(name):
-        for var in s2.data_vars:
-            if name in var:
-                return f"{s2[var].attrs['long_name']} ({name})"
-
-
-    option_ind_s = cols[0].selectbox('Indicateurs ',set([x.split('_delta')[0] for x in s2.data_vars]), format_func = show_long_name)
-    option_stats_s =  cols[1].selectbox('Statistiques ', [ 'mean', 'max', 'min', 'stdev','p10', 'p50', 'p90'])
-    option_season_s = cols[2].selectbox('Saisons ', s2.season.values)
-    complete_var = f"{option_ind_s}_delta_1991_2020_{option_stats_s}"
+        #choose data
+        def show_long_name(name):
+            for var in s2.data_vars:
+                if name in var:
+                    return f"{s2[var].attrs['long_name']} ({name})"
 
 
-    #plot data
-    cmap = 'viridis_r' if  'precipitation' in s2[complete_var].attrs['standard_name']  else 'plasma'
-    vmin = np.min([cur_wl[complete_var].sel(season=option_season_s).min().values for cur_wl in [s1,s2,s3,s4]])
-    vmax = np.max([cur_wl[complete_var].sel(season=option_season_s).max().values for cur_wl in [s1,s2,s3,s4]])
+        option_ind_s = cols[0].selectbox('Indicateurs ',set([x.split('_delta')[0] for x in s2.data_vars]), format_func = show_long_name)
+        option_stats_s =  cols[1].selectbox('Statistiques ', [ 'mean', 'max', 'min', 'stdev','p10', 'p50', 'p90'])
+        option_season_s = cols[2].selectbox('Saisons ', s2.season.values)
+        complete_var = f"{option_ind_s}_delta_1991_2020_{option_stats_s}"
 
 
-    col3 = st.columns(4)
-    names = ['ssp1-2.6', 'ssp2-4.5', 'ssp3-7.0', 'ssp5-8.5']
-    for i, cur_wl in enumerate([s1,s2,s3,s4]):
-        select_wl = cur_wl[complete_var].sel(season=option_season_s).isel(horizon=0)
-        col3[i].write(names[i])
-        col3[i].write(
-            hv.render(select_wl.hvplot(cmap=cmap,width=400,
-                                                      height=350,
-                                                      clim=(vmin, vmax))))
-        col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.attrs['ensemble_size']}")
-
-with tab4:
-    col = st.columns([1,5,1,1])
-    if useCat:
-        option_ens = col[0].selectbox('ensemble', ['+1.5C', '+2C','+3C' ,'ssp126-2081-2100','ssp245-2081-2100','ssp370-2081-2100','ssp585-2081-2100'])
-        option_can = 'include'
-        if option_ens in ['ssp245-2081-2100','ssp370-2081-2100']:
-            option_can = col[0].selectbox('CanESM5', ['include', 'exclude'])
-        can=''
-        r=''
-        if option_can== 'exclude':
-            can = 'NoCanESM5'
-            option_r = col[0].selectbox('members', ['all members', 'only r1'])
-            if option_r == 'only r1':
-                r = 'r1'
-        selection = pcat.search(processing_level=f'delta-{option_ens}-selection{can}{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        all = pcat.search(processing_level=f'delta-{option_ens}-all{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        diff = pcat.search(processing_level=f'{option_ens}-selection{can}{r}VSall{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-        pvalues=None
-        if len(pcat.search(processing_level=f'p-{option_ens}-selection{can}{r}VSall{r}').df)>0:
-            pvalues = pcat.search(processing_level=f'p-{option_ens}-selection{can}{r}VSall{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
-
-    if 'baseline' in selection.horizon.attrs:
-        st.write(f"Warming levels are calculated  from the {selection.horizon.attrs['baseline']} baseline")
-    def show_long_name_ens(name):
-        return f"{all[f'{name}_mean'].attrs['long_name']} ({name})"
-
-    option_ind_ens = col[1].selectbox('Indicateur',
-                                   set(['_'.join(x.split('_')[:-1]) for x in
-                                        all.data_vars]),
-                                   format_func=show_long_name_ens)
-    option_stats_ens = col[2].selectbox('Statistique',[ 'mean', 'max', 'min', 'stdev','p10', 'p50', 'p90'])
-    option_season_ens = col[3].selectbox('Saison', all.season.values)
-    complete_var = f"{option_ind_ens}_{option_stats_ens}"
+        #plot data
+        cmap = 'viridis_r' if  'precipitation' in s2[complete_var].attrs['standard_name']  else 'plasma'
+        vmin = np.min([cur_wl[complete_var].sel(season=option_season_s).min().values for cur_wl in [s1,s2,s3,s4]])
+        vmax = np.max([cur_wl[complete_var].sel(season=option_season_s).max().values for cur_wl in [s1,s2,s3,s4]])
 
 
+        col3 = st.columns(4)
+        names = ['ssp1-2.6', 'ssp2-4.5', 'ssp3-7.0', 'ssp5-8.5']
+        for i, cur_wl in enumerate([s1,s2,s3,s4]):
+            select_wl = cur_wl[complete_var].sel(season=option_season_s).isel(horizon=0)
+            col3[i].write(names[i])
+            col3[i].write(
+                hv.render(select_wl.hvplot(cmap=cmap,width=400,
+                                                          height=350,
+                                                          clim=(vmin, vmax))))
+            col3[i].write(f"Nombre de réalisations de l'ensemble: {cur_wl.attrs['ensemble_size']}")
 
-    col_fig = st.columns(3)
+    with tab4:
+        col = st.columns([1,5,1,1])
+        if useCat:
+            option_ens = col[0].selectbox('ensemble', ['+1.5C', '+2C','+3C' ,'ssp126-2081-2100','ssp245-2081-2100','ssp370-2081-2100','ssp585-2081-2100'])
+            option_can = 'include'
+            if option_ens in ['ssp245-2081-2100','ssp370-2081-2100']:
+                option_can = col[0].selectbox('CanESM5', ['include', 'exclude'])
+            can=''
+            r=''
+            if option_can== 'exclude':
+                can = 'NoCanESM5'
+                option_r = col[0].selectbox('members', ['all members', 'only r1'])
+                if option_r == 'only r1':
+                    r = 'r1'
+            selection = pcat.search(processing_level=f'delta-{option_ens}-selection{can}{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            all = pcat.search(processing_level=f'delta-{option_ens}-all{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            diff = pcat.search(processing_level=f'{option_ens}-selection{can}{r}VSall{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
+            pvalues=None
+            if len(pcat.search(processing_level=f'p-{option_ens}-selection{can}{r}VSall{r}').df)>0:
+                pvalues = pcat.search(processing_level=f'p-{option_ens}-selection{can}{r}VSall{r}').to_dask(xarray_open_kwargs={'decode_timedelta':False})
 
+        if 'baseline' in selection.horizon.attrs:
+            st.write(f"Warming levels are calculated  from the {selection.horizon.attrs['baseline']} baseline")
+        def show_long_name_ens(name):
+            return f"{all[f'{name}_mean'].attrs['long_name']} ({name})"
 
-    select_haus = selection[complete_var].sel(season=option_season_ens).isel(horizon=0)
-    select_all = all[complete_var].sel(season=option_season_ens).isel(horizon=0)
-    select_diff = diff[complete_var].sel(season=option_season_ens).isel(horizon=0)
-
-    #plot data
-    cmap = 'viridis_r' if  'precipitation' in select_all.attrs['standard_name'] else 'plasma'
-    cmap_bias = 'BrBG' if 'precipitation' in select_all.attrs[
-        'standard_name'] else 'coolwarm'
-    vmin = np.min([cur.min().values for cur in [select_all, select_haus]])
-    vmax = np.max([cur.max().values for cur in [select_all, select_haus]])
+        option_ind_ens = col[1].selectbox('Indicateur',
+                                       set(['_'.join(x.split('_')[:-1]) for x in
+                                            all.data_vars]),
+                                       format_func=show_long_name_ens)
+        option_stats_ens = col[2].selectbox('Statistique',[ 'mean', 'max', 'min', 'stdev','p10', 'p50', 'p90'])
+        option_season_ens = col[3].selectbox('Saison', all.season.values)
+        complete_var = f"{option_ind_ens}_{option_stats_ens}"
 
 
 
+        col_fig = st.columns(3)
 
 
-    col_fig[0].write('Selection')
-    col_fig[0].write(hv.render(select_haus.hvplot(cmap=cmap,width=450,height=350,clim=(vmin, vmax))))
-    col_fig[0].write(f"Nombre de réalisations de l'ensemble: {selection.attrs['ensemble_size']}")
+        select_haus = selection[complete_var].sel(season=option_season_ens).isel(horizon=0)
+        select_all = all[complete_var].sel(season=option_season_ens).isel(horizon=0)
+        select_diff = diff[complete_var].sel(season=option_season_ens).isel(horizon=0)
 
-    col_fig[1].write('All')
-    col_fig[1].write( hv.render(select_all.hvplot(cmap=cmap, width=450,height=350, clim=(vmin, vmax))))
-    col_fig[1].write(f"Nombre de réalisations de l'ensemble: {all.attrs['ensemble_size']}")
+        #plot data
+        cmap = 'viridis_r' if  'precipitation' in select_all.attrs['standard_name'] else 'plasma'
+        cmap_bias = 'BrBG' if 'precipitation' in select_all.attrs[
+            'standard_name'] else 'coolwarm'
+        vmin = np.min([cur.min().values for cur in [select_all, select_haus]])
+        vmax = np.max([cur.max().values for cur in [select_all, select_haus]])
 
-    col_fig[2].write('(Selection - All)/All')
-    diff_plot= select_diff.hvplot(cmap=cmap_bias,clim =(- abs(select_diff).max(),abs(select_diff).max()),width=450,height=350)
-    col_fig[2].write( hv.render(diff_plot))
 
-    if pvalues:
-        select_p = pvalues[option_ind_ens].sel(season=option_season_ens).isel(horizon=0)
-        levels = [0, 0.05, 10]
-        colors = ['#43A047', '#E53935']
-        col_fig[2].write( hv.render(select_p.hvplot(width=450,height=350).options(color_levels=levels, cmap=colors)))
+
+
+
+        col_fig[0].write('Selection')
+        col_fig[0].write(hv.render(select_haus.hvplot(cmap=cmap,width=450,height=350,clim=(vmin, vmax))))
+        col_fig[0].write(f"Nombre de réalisations de l'ensemble: {selection.attrs['ensemble_size']}")
+
+        col_fig[1].write('All')
+        col_fig[1].write( hv.render(select_all.hvplot(cmap=cmap, width=450,height=350, clim=(vmin, vmax))))
+        col_fig[1].write(f"Nombre de réalisations de l'ensemble: {all.attrs['ensemble_size']}")
+
+        col_fig[2].write('(Selection - All)/All')
+        diff_plot= select_diff.hvplot(cmap=cmap_bias,clim =(- abs(select_diff).max(),abs(select_diff).max()),width=450,height=350)
+        col_fig[2].write( hv.render(diff_plot))
+
+        if pvalues:
+            select_p = pvalues[option_ind_ens].sel(season=option_season_ens).isel(horizon=0)
+            levels = [0, 0.05, 10]
+            colors = ['#43A047', '#E53935']
+            col_fig[2].write( hv.render(select_p.hvplot(width=450,height=350).options(color_levels=levels, cmap=colors)))
 
 
 
