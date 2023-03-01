@@ -2,28 +2,46 @@ realm: generic
 indicators:
     mean-tasmax:
       base: xclim.sdba.properties.mean
+      cf_attrs:
+        long_name: Mean maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     var-tasmax:
       base: xclim.sdba.properties.var
+      cf_attrs:
+        long_name: Variance of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     skewness-tasmax:
       base: xclim.sdba.properties.skewness
+      cf_attrs:
+        long_name: Skewness of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     quantile_98-tasmax:
       base: xclim.sdba.properties.quantile
+      cf_attrs:
+        long_name: 98th quantile of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
       parameters:
         q: 0.98
     acf-tasmax:
       base: xclim.sdba.properties.acf
+      cf_attrs:
+        long_name: Lag-1 autocorrelation of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     maximum_length_of_warm_spell:
       base: xclim.sdba.properties.spell_length_distribution
+      cf_attrs:
+        long_name: Maximum length of warm spell
+        standard_name: air_temperature
       input:
         da: tasmax
       parameters:
@@ -33,38 +51,62 @@ indicators:
         stat: max
     annual_cycle_amplitude-tasmax:
       base: xclim.sdba.properties.annual_cycle_amplitude
+      cf_attrs:
+        long_name: Amplitude of the annual cycle of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     annual_cycle_phase-tasmax:
       base: xclim.sdba.properties.annual_cycle_phase
+      cf_attrs:
+        long_name: Phase of the annual cycle of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     trend-tasmax:
       base: xclim.sdba.properties.trend
+      cf_attrs:
+        long_name: Slope of the interannual linear trend of the maximum temperature
+        standard_name: air_temperature
       input:
         da: tasmax
     mean-tasmin:
       base: xclim.sdba.properties.mean
+      cf_attrs:
+        long_name: Mean of the minimum temperature
+        standard_name: air_temperature
       input:
         da: tasmin
     quantile_98-tasmin:
       base: xclim.sdba.properties.quantile
+      cf_attrs:
+        long_name: 98th quantile of the minimum temperature
+        standard_name: air_temperature
       input:
         da: tasmin
       parameters:
         q: 0.98
     quantile_02-tasmin:
       base: xclim.sdba.properties.quantile
+      cf_attrs:
+        long_name: 2nd quantile of the minimum temperature
+        standard_name: air_temperature
       input:
         da: tasmin
       parameters:
         q: 0.02
     annual_cycle_amplitude-tasmin:
       base: xclim.sdba.properties.annual_cycle_amplitude
+      cf_attrs:
+        long_name: Amplitude of the annual cycle of the minimum temperature
+        standard_name: air_temperature
       input:
         da: tasmin
     frost_days:
       base: xclim.sdba.properties.relative_frequency
+      cf_attrs:
+        long_name: Frequency of frost days
+        standard_name: air_temperature
       input:
         da: tasmin
       parameters:
@@ -72,24 +114,39 @@ indicators:
         thresh: 0 degC
     mean-pr:
       base: xclim.sdba.properties.mean
+      cf_attrs:
+        long_name: Mean of the precipitation
+        standard_name: precipitation_flux
       input:
         da: pr
     var-pr:
       base: xclim.sdba.properties.var
+      cf_attrs:
+        long_name: Variance of the precipitation
+        standard_name: precipitation_flux
       input:
         da: pr
     skewness-pr:
       base: xclim.sdba.properties.skewness
+      cf_attrs:
+        long_name: Skewness of the precipitation
+        standard_name: precipitation_flux
       input:
         da: pr
     quantile_98-pr:
       base: xclim.sdba.properties.quantile
+      cf_attrs:
+        long_name: 98th quantile of the precipitation
+        standard_name: precipitation_flux
       input:
         da: pr
       parameters:
         q: 0.98
     maximum_length_of_dry_spell:
       base: xclim.sdba.properties.spell_length_distribution
+      cf_attrs:
+        long_name: Maximum lenght of dry spell
+        standard_name: precipitation_flux
       input:
         da: pr
       parameters:
@@ -99,10 +156,16 @@ indicators:
         stat: max
     annual_cycle_amplitude-pr:
       base: xclim.sdba.properties.relative_annual_cycle_amplitude
+      cf_attrs:
+        long_name: Relative amplitude of the annual cycle of the precipitation
+        standard_name: precipitation_flux
       input:
         da: pr
     wet_days_freq:
       base: xclim.sdba.properties.relative_frequency
+      cf_attrs:
+        long_name: Wet days frequency
+        standard_name: precipitation_flux
       input:
         da: pr
       parameters:
@@ -110,6 +173,9 @@ indicators:
         thresh: 1 mm d-1
     20mm_freq:
       base: xclim.sdba.properties.relative_frequency
+      cf_attrs:
+        long_name: Relative frequency of days with more than 20 mm of precipitation
+        standard_name: precipitation_flux
       input:
         da: pr
       parameters:
@@ -117,11 +183,15 @@ indicators:
         thresh: 20 mm d-1
     corr_tasmax_tasmin:
       base: xclim.sdba.properties.corr_btw_var
+      cf_attrs:
+        long_name: Spearman correlation between maximum temperature and minimum temperature
       input:
         da1: tasmax
         da2: tasmin
     corr_tasmax_pr:
       base: xclim.sdba.properties.corr_btw_var
+      cf_attrs:
+        long_name: Spearman correlation between maximum temperature and precipitation
       input:
         da1: tasmax
         da2: pr

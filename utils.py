@@ -249,3 +249,14 @@ def save_and_update(ds, path, pcat, **save_kwargs):
     path = path.format(**xs.utils.get_cat_attrs(ds))
     save_to_zarr(ds=ds, filename=path, **save_kwargs)
     pcat.update_from_ds(ds=ds, path=path)
+
+
+def rotated_latlon(ds, path):
+    ds_latlon = xr.open_dataset(path)
+    ds = ds.assign_coords(
+        lat=(('rlat', "rlon"),
+             ds_latlon.lat.data)).assign_coords(
+        lon=(('rlat', "rlon"),
+             ds_latlon.lon.data)).assign_coords(
+        rotated_pole=ds_latlon.rotated_pole.data)
+    return ds

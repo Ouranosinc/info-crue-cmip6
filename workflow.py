@@ -50,14 +50,20 @@ from xscen import (
 )
 
 
-from utils import calculate_properties, measures_and_heatmap,email_nan_count,move_then_delete, save_move_update, python_scp, save_and_update
+from utils import (
+    move_then_delete,
+    save_move_update,
+    python_scp,
+    save_and_update,
+    rotated_latlon)
 
-server = 'neree' # not really but bc we can write on jarre from neree, no need to scp
-
+server = 'neree_jarre' # not really but bc we can write on jarre from neree, no need to scp
 
 # Load configuration
 if server == 'neree': #TODO: put the right config
     load_config('paths_neree.yml', 'config-RSDS.yml', verbose=(__name__ == '__main__'), reset=True)
+elif server =='neree_jarre':
+    load_config('paths_neree_jarre.yml', 'config-RSDS.yml', verbose=(__name__ == '__main__'), reset=True)
 else:
     load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
@@ -105,15 +111,36 @@ if __name__ == '__main__':
                                              region=region_dict,
                                              **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
+                    ds_ref= ds_ref.chunk({'time':365, 'rlat':50, 'rlon':50})
+                    #if rotated pole create a ref that is not stack for regrid.
+                    # if 'rlat' in ds_ref:
+                    #     save_move_update(ds=ds_ref,
+                    #                      pcat=pcat,
+                    #                      init_path=f"{workdir}/ref_{region_name}_nostack.zarr",
+                    #                      final_path=f"{refdir}/ref_{region_name}_nostack.zarr",
+                    #                      info_dict={'calendar': 'nostack'
+                    #                                 },
+                    #                      server=server)
+
 
                     # stack
                     if CONFIG['custom']['stack_drop_nans']:
+
+                        # make it work for rlat/rlon
+                        #save lat and lon and remove them
+                        # if 'rlat' in ds_ref and 'lat' in ds_ref:
+                        #     ds_ref.coords.to_dataset().to_netcdf(
+                        #         CONFIG['save_rotated'].format(domain=ds_ref.attrs['cat:domain']))
+                        #     ds_ref = ds_ref.drop_vars('lat')
+                        #     ds_ref = ds_ref.drop_vars('lon')
+                        #     ds_ref = ds_ref.drop_vars('rotated_pole')
+
+
                         variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
                                              'variables_and_freqs'].keys())
                         ds_ref = stack_drop_nans(
                             ds_ref,
                             ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
-                            #to_file=f'{refdir}/coords_{region_name}.nc'
                         )
                     ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
 
@@ -154,7 +181,7 @@ if __name__ == '__main__':
                                      server=server)
 
             # nan_count
-            if not pcat.exists_in_cat(domain=region_name, processing_level='nancount', source=ref_source):
+            if not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source):
                 with (Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws)):
 
                     # search
@@ -174,6 +201,7 @@ if __name__ == '__main__':
                     dref_ref = dref_ref.chunk(**CONFIG['extract']['ref_chunk'])
 
 
+
                     # diagnostics
                     if 'diagnostics' in CONFIG['tasks']:
 
@@ -184,8 +212,7 @@ if __name__ == '__main__':
                                 'properties_and_measures']
                         )
 
-                        ds_ref_prop = ds_ref_prop.chunk(
-                            **CONFIG['extract']['ref_prop_chunk'])
+                        ds_ref_prop = ds_ref_prop.chunk(**CONFIG['extract']['ref_prop_chunk'])
 
                         path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                                sim_id=ds_ref_prop.attrs['cat:id'],
@@ -200,24 +227,6 @@ if __name__ == '__main__':
                                          server=server
                                          )
 
-                    # nan count
-                    ds_ref_props_nan_count = dref_ref.to_array().isnull().sum('time').mean('variable').chunk(
-                        {d: CONFIG['custom']['chunks'][d] for d in ds_ref_prop.dims if
-                         d in CONFIG['custom']['chunks']})
-                    ds_ref_props_nan_count = ds_ref_props_nan_count.to_dataset(name='nan_count')
-                    ds_ref_props_nan_count.attrs.update(ds_ref.attrs)
-
-
-                    save_move_update(ds=ds_ref_props_nan_count,
-                                     pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_nancount.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_nancount.zarr",
-                                     info_dict={'processing_level': 'nancount'},
-                                     server=server
-                                     )
-
-                    # plot nan_count and email
-                    email_nan_count(path=f"{refdir}/ref_{region_name}_nancount.zarr", region_name=region_name)
 
     cat_sim = search_data_catalogs(
        **CONFIG['extraction']['simulation']['search_data_catalogs'])
@@ -264,7 +273,7 @@ if __name__ == '__main__':
                                 ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
 
                                 # need lat and lon -1 for the regrid
-                                ds_sim = ds_sim.chunk(CONFIG['extract']['chunks'])
+                                ds_sim = ds_sim.chunk(CONFIG['extract']['sim_chunks'])
 
                                 # save to zarr
                                 path_cut = f"{workdir}/{sim_id}_{region_name}_extracted.zarr"
@@ -301,6 +310,22 @@ if __name__ == '__main__':
                             ds_grid=ds_target,
                             **CONFIG['regrid']['regrid_dataset']
                         )
+
+                        # stack_drop_nan after regrid only for rotated grid
+                        # if 'rlat' in ds_target:
+                        #     variable = list(ds_regrid.data_vars)[0]
+                        #     # temporary domain to avoir saving to coords
+                        #     ds_regrid.attrs['cat:domain']='no'
+                        #     ds_regrid = ds_regrid.drop_vars('lat')
+                        #     ds_regrid = ds_regrid.drop_vars('lon')
+                        #     ds_regrid = ds_regrid.drop_vars('rotated_pole')
+                        #     ds_regrid = stack_drop_nans(
+                        #         ds_regrid,
+                        #         ds_regrid[variable].isel(time=130,drop=True).notnull(),
+                        #     )
+                        #     ds_regrid.attrs['cat:domain'] = region_name
+
+
                         # chunk time dim
                         ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
 
@@ -738,6 +763,7 @@ if __name__ == '__main__':
                                                  calendar=refcal,
                                                  domain=region_name).to_dask()
 
+                            # make sure sim and ref have the same units
 
                             # training
                             ds_tr = train(dref=ds_ref,
@@ -746,7 +772,7 @@ if __name__ == '__main__':
                                           **conf['training_args'])
 
                             #save and update
-                            path_tr = f"{workdir}/{sim_id}_{var}_training_qm.zarr"
+                            path_tr = f"{workdir}/{sim_id}_{region_name}_{var}_training_qm.zarr"
                             save_to_zarr(ds=ds_tr,
                                          filename=path_tr,
                                          mode='o')
@@ -787,7 +813,7 @@ if __name__ == '__main__':
                                              **conf['adjusting_args'])
 
                             #save and update
-                            path_adj = f"{workdir}/{sim_id}_{var}_{plevel}.zarr"
+                            path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_{plevel}.zarr"
                             save_to_zarr(ds=ds_scen_qm,
                                          filename=path_adj,
                                          mode='o')
@@ -816,6 +842,13 @@ if __name__ == '__main__':
                                                  ).to_dask()
 
 
+                            # if var == 'pr' and 'rlat' in ds_ref.dims:
+                            #     ds_ref=ds_ref.drop_vars('lat')
+                            #     ds_ref = ds_ref.drop_vars('lon')
+                            #     ds_ref = ds_ref.drop_vars('rotated_pole')
+                            #     ds_hist = ds_hist.drop_vars('lat')
+                            #     ds_hist = ds_hist.drop_vars('lon')
+                            #     ds_hist = ds_hist.drop_vars('rotated_pole')
                             # training
                             ds_tr = train(dref=ds_ref,
                                           dhist=ds_hist,
@@ -823,7 +856,7 @@ if __name__ == '__main__':
                                           **conf['training_args'])
 
                             #save and update
-                            path_tr = f"{workdir}/{sim_id}_{var}_training_ex.zarr"
+                            path_tr = f"{workdir}/{sim_id}_{region_name}_{var}_training_ex.zarr"
                             save_to_zarr(ds=ds_tr,
                                          filename=path_tr,
                                          mode='o')
@@ -879,7 +912,7 @@ if __name__ == '__main__':
                             ds_scen_ex = ds_scen_ex.chunk({'time':-1})
 
                             #save and update
-                            path_adj = f"{workdir}/{sim_id}_{var}_biasadjusted.zarr"
+                            path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_biasadjusted.zarr"
                             ds_scen_ex.lat.encoding.pop('chunks')
                             ds_scen_ex.lon.encoding.pop('chunks')
                             save_to_zarr(ds=ds_scen_ex,
@@ -914,6 +947,9 @@ if __name__ == '__main__':
                                 ds = clean_up(ds = ds.chunk(dict(time=-1)), # TODO: put in MBCn
                                               **CONFIG['clean_up']['xscen_clean_up'])
 
+                                #if rotated pole put back, lat and lon
+                                # if 'rlat' in ds:
+                                #     ds= rotated_latlon(ds, CONFIG['save_rotated'].format(domain=ds_ref.attrs['cat:domain']))
 
                                 #save and update
                                 path_cu = f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr"
@@ -1012,7 +1048,6 @@ if __name__ == '__main__':
                                 dref_for_measure=dref_for_measure,
                                 to_level_prop=f'diag-{step}-prop',
                                 to_level_meas=f'diag-{step}-meas',
-                                rechunk = {'lat':30, 'lon':30, 'time':-1},
                                 **step_dict['properties_and_measures']
                             )
 
@@ -1028,7 +1063,8 @@ if __name__ == '__main__':
                                              filename=path_diag_exec,
                                              mode='o',
                                              itervar=True,
-                                             rechunk={'lat':30, 'lon':30})
+                                             rechunk=CONFIG['extract']['ref_prop_chunk']
+                                )
                                 if server == 'neree':
                                     pcat.update_from_ds(ds=ds,
                                                         path=str(path_diag_exec))

@@ -36,19 +36,15 @@ custom:
             lon_bnds: [ -83, -55 ]
             lat_bnds: [ 42, 63 ]
     stack_drop_nans: &stack
-        False
+        True
     chunks:
         rlat: 15
-#        lon: -1  # east
         rlon: 15
-#        loc: 50
+        loc: 50
         time: -1
     out_chunks:
         rlat: 30
         rlon: 30
-#        lat: 16 # test
-#        lon: 16 #Test
-#        lon: 1 # east
         time: 4year
     ref_period : &ref_period # new-ref
       - '1989'
@@ -72,7 +68,7 @@ custom:
 
 
 extract:
-    chunks: {'time': 365, 'rlat':-1, 'rlon':-1}
+    sim_chunks: {'time': 365, 'lat':-1, 'lon':-1}
     subset_warming_level:
       ignore_member: True
       window: 20
@@ -80,8 +76,8 @@ extract:
     ref_chunk:
       time: -1
     ref_prop_chunk:
-      rlat: 50
-      rlon: 50
+      rlat: 30
+      rlon: 30
 
 
 
@@ -171,8 +167,8 @@ extraction:
                 - lat_bnds
                 - lon_bnds
               chunks:
-                rlat: 50
-                rlon: 50
+                rlat: 30
+                rlon: 30
                 time: 365
     ref_source: *ref_source
 
@@ -312,7 +308,7 @@ biasadjust_ex:
                     thresh: 0.05 mm d-1
                 group: False
                 xclim_train_args:
-                    cluster_thresh: 1 mm d-1
+                    cluster_thresh: 1 mm d-1 #0.00001157407 kg m-2 s-1 #
                     q_thresh: 0.95
             adjusting_args:
                 simulation_period: *sim_period
@@ -341,6 +337,7 @@ clean_up:
       pr: [0]
     maybe_unstack_dict:
       stack_drop_nans: *stack
+      coords: ['rlat', 'rlon']
       rechunk:
         rlat: 15
         rlon: 15
@@ -396,6 +393,7 @@ diagnostics:
     dref_for_measure:
       processing_level: diag-ref-prop
     properties_and_measures:
+      rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
       period: *ref_period
       unstack: *stack
       change_units_arg:
@@ -408,6 +406,7 @@ diagnostics:
     dref_for_measure:
       processing_level: diag-ref-prop
     properties_and_measures:
+      rechunk: {'rlat':30, 'rlon':30, 'time':-1}
       period: *ref_period
       unstack: False
 
@@ -636,3 +635,10 @@ logging:
 tdd:
   xarray_open_kwargs:
     decode_timedelta: False
+
+
+utils:
+  unstack_fill_nan:
+    coords: ['rlat', 'rlon']
+  maybe_unstack:
+    coords: ['rlat', 'rlon']

@@ -17,7 +17,7 @@ tasks:
   - adjust_ex
   - clean_up
   - final_zarr
-  - diagnostics
+#  - diagnostics
 #  - individual_wl
 #  - horizons
 #  - deltas
@@ -29,8 +29,8 @@ custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        QC-RSDS:
-          name: QC-RSDS
+        QC-TEST2:
+          name: QC-TEST2
           method: bbox
           bbox:
             lon_bnds: [ -83, -55 ]
@@ -81,9 +81,9 @@ custom:
 #        lon: 16 #Test
 #        lon: 1 # east
         time: 4year
-    ref_period : &ref_period # new-ref
-      - '1989' #'1991'
-      - '2018' #'2020'
+    ref_period : &ref_period
+      - '1991'
+      - '2020'
     sim_period: &sim_period
         - '1956'
         - '2100'
@@ -103,7 +103,10 @@ custom:
 
 
 extract:
-    chunks: {'time': 365, 'lat':-1, 'lon':-1}
+    sim_chunks:
+      time: 365
+      lat: -1
+      lon: -1
     subset_warming_level:
       ignore_member: True
       window: 20
@@ -132,8 +135,7 @@ extraction:
             periods : *ref_period
             other_search_criteria:
                 source: &ref_source
-                    #"ERA5-Land"
-                  RDRS # new-ref
+                    "ERA5-Land"
         extract_dataset: {}
         properties_and_measures:
           period: *ref_period
@@ -252,7 +254,6 @@ biasadjust_dOTC:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
     bias_adjust_project: info-crue-CMIP6
-
 
 biasadjust_qm:
     variables:
@@ -430,6 +431,7 @@ diagnostics:
     properties_and_measures:
       period: *ref_period
       unstack: *stack
+      rechunk: {'lat':30, 'lon':30, 'time':-1}
       change_units_arg:
         tasmax: degC
         tasmin: degC
@@ -440,6 +442,7 @@ diagnostics:
     dref_for_measure:
       processing_level: diag-ref-prop
     properties_and_measures:
+      rechunk: {'lat':30, 'lon':30, 'time':-1}
       period: *ref_period
       unstack: False
 
