@@ -61,9 +61,9 @@ server = 'neree_jarre' # not really but bc we can write on jarre from neree, no 
 
 # Load configuration
 if server == 'neree': #TODO: put the right config
-    load_config('paths_neree.yml', 'config-RSDS.yml', verbose=(__name__ == '__main__'), reset=True)
+    load_config('paths_neree.yml', 'config-RDRS.yml', verbose=(__name__ == '__main__'), reset=True)
 elif server =='neree_jarre':
-    load_config('paths_neree_jarre.yml', 'config-RSDS.yml', verbose=(__name__ == '__main__'), reset=True)
+    load_config('paths_neree_j.yml', 'config-RDRS.yml', verbose=(__name__ == '__main__'), reset=True)
 else:
     load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
@@ -111,29 +111,12 @@ if __name__ == '__main__':
                                              region=region_dict,
                                              **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
-                    ds_ref= ds_ref.chunk({'time':365, 'rlat':50, 'rlon':50})
-                    #if rotated pole create a ref that is not stack for regrid.
-                    # if 'rlat' in ds_ref:
-                    #     save_move_update(ds=ds_ref,
-                    #                      pcat=pcat,
-                    #                      init_path=f"{workdir}/ref_{region_name}_nostack.zarr",
-                    #                      final_path=f"{refdir}/ref_{region_name}_nostack.zarr",
-                    #                      info_dict={'calendar': 'nostack'
-                    #                                 },
-                    #                      server=server)
+                    ds_ref = ds_ref.chunk(
+                        {d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
 
 
                     # stack
                     if CONFIG['custom']['stack_drop_nans']:
-
-                        # make it work for rlat/rlon
-                        #save lat and lon and remove them
-                        # if 'rlat' in ds_ref and 'lat' in ds_ref:
-                        #     ds_ref.coords.to_dataset().to_netcdf(
-                        #         CONFIG['save_rotated'].format(domain=ds_ref.attrs['cat:domain']))
-                        #     ds_ref = ds_ref.drop_vars('lat')
-                        #     ds_ref = ds_ref.drop_vars('lon')
-                        #     ds_ref = ds_ref.drop_vars('rotated_pole')
 
 
                         variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
@@ -180,7 +163,7 @@ if __name__ == '__main__':
                                      info_dict={'calendar': '360_day'},
                                      server=server)
 
-            # nan_count
+            # diag
             if not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source):
                 with (Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws)):
 
@@ -198,7 +181,7 @@ if __name__ == '__main__':
                     dref_ref = ds_ref.drop_vars('dtr')
 
 
-                    dref_ref = dref_ref.chunk(**CONFIG['extract']['ref_chunk'])
+                    dref_ref = dref_ref.chunk(CONFIG['extract']['ref_chunk'])
 
 
 
@@ -260,7 +243,7 @@ if __name__ == '__main__':
                             with (
                                     Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws),
                                     measure_time(name='extract', logger=logger),
-                                    timeout(3600, task='extract')
+                                    timeout(6600, task='extract')
                             ):
 
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
@@ -310,20 +293,6 @@ if __name__ == '__main__':
                             ds_grid=ds_target,
                             **CONFIG['regrid']['regrid_dataset']
                         )
-
-                        # stack_drop_nan after regrid only for rotated grid
-                        # if 'rlat' in ds_target:
-                        #     variable = list(ds_regrid.data_vars)[0]
-                        #     # temporary domain to avoir saving to coords
-                        #     ds_regrid.attrs['cat:domain']='no'
-                        #     ds_regrid = ds_regrid.drop_vars('lat')
-                        #     ds_regrid = ds_regrid.drop_vars('lon')
-                        #     ds_regrid = ds_regrid.drop_vars('rotated_pole')
-                        #     ds_regrid = stack_drop_nans(
-                        #         ds_regrid,
-                        #         ds_regrid[variable].isel(time=130,drop=True).notnull(),
-                        #     )
-                        #     ds_regrid.attrs['cat:domain'] = region_name
 
 
                         # chunk time dim
@@ -842,13 +811,6 @@ if __name__ == '__main__':
                                                  ).to_dask()
 
 
-                            # if var == 'pr' and 'rlat' in ds_ref.dims:
-                            #     ds_ref=ds_ref.drop_vars('lat')
-                            #     ds_ref = ds_ref.drop_vars('lon')
-                            #     ds_ref = ds_ref.drop_vars('rotated_pole')
-                            #     ds_hist = ds_hist.drop_vars('lat')
-                            #     ds_hist = ds_hist.drop_vars('lon')
-                            #     ds_hist = ds_hist.drop_vars('rotated_pole')
                             # training
                             ds_tr = train(dref=ds_ref,
                                           dhist=ds_hist,
@@ -946,10 +908,6 @@ if __name__ == '__main__':
 
                                 ds = clean_up(ds = ds.chunk(dict(time=-1)), # TODO: put in MBCn
                                               **CONFIG['clean_up']['xscen_clean_up'])
-
-                                #if rotated pole put back, lat and lon
-                                # if 'rlat' in ds:
-                                #     ds= rotated_latlon(ds, CONFIG['save_rotated'].format(domain=ds_ref.attrs['cat:domain']))
 
                                 #save and update
                                 path_cu = f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr"
@@ -1147,16 +1105,18 @@ if __name__ == '__main__':
         for name_input, ds_input in dict_input.items():
             for wl in CONFIG['individual_wl']['wl']:
                 if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
-                                          processing_level=f"+{wl}C"):
+                                        domain=ds_input.attrs['cat:domain'],
+                                        processing_level=f"+{wl}C"):
                     with (
-                            Client(n_workers=6, threads_per_worker=5,
-                                   memory_limit="4GB", **daskkws),
+                            Client(n_workers=2, threads_per_worker=5,
+                                   memory_limit="20GB", **daskkws),
                             measure_time(name=f'individual_wl', logger=logger)
                     ):
 
 
                         # cut dataset on the wl window
                         ds_wl = xs.extract.subset_warming_level(ds_input, wl=wl)
+                        ds_wl = ds_wl.chunk(CONFIG['individual_wl']['chunks'])
                         if ds_wl:
                             # needed for some indicators (ideally would have been calculated in clean_up...)
                             ds_wl = ds_wl.assign(tas=xc.atmos.tg(ds=ds_wl)).load()
@@ -1174,6 +1134,7 @@ if __name__ == '__main__':
         for name_input, ds_input in dict_input.items():
             for period in CONFIG['horizons']['periods']:
                 if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
+                                          domain =ds_input.attrs['cat:domain'],
                                           processing_level=f"horizon{period[0]}-{period[1]}"):
                     with (
                             Client(n_workers=2, threads_per_worker=5,
@@ -1183,7 +1144,7 @@ if __name__ == '__main__':
 
                         # needed for some indicators (ideally would have been calculated in clean_up...)
                         ds_cut = ds_input.sel(time= slice(*map(str, period)))
-                        ds_cut= ds_cut.chunk({'time':-1, 'lat':20, 'lon':20})
+                        ds_cut= ds_cut.chunk(CONFIG['horizons']['chunks'])
                         ds_cut = ds_cut.assign(tas=xc.atmos.tg(ds=ds_cut)).load()
 
                         ds_hor = xs.aggregate.produce_horizon(
@@ -1202,6 +1163,7 @@ if __name__ == '__main__':
             id = ds_input.attrs['cat:id']
             plevel = ds_input.attrs['cat:processing_level']
             if not pcat.exists_in_cat(id=id,
+                                      domain=ds_input.attrs['cat:domain'],
                                       processing_level=f"delta-{plevel}"):
                 with (
                         Client(n_workers=2, threads_per_worker=5, memory_limit="12GB", **daskkws),

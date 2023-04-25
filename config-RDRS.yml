@@ -18,10 +18,10 @@ tasks:
   - clean_up
   - final_zarr
   - diagnostics
-#  - individual_wl
-#  - horizons
-#  - deltas
-#  - ensembles
+  - individual_wl
+  - horizons
+  - deltas
+#  - ensembles # check the domains
 
 
 
@@ -29,8 +29,8 @@ custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        QC-RSDS:
-          name: QC-RSDS
+        QC-RDRS:
+          name: QC-RDRS
           method: bbox
           bbox:
             lon_bnds: [ -83, -55 ]
@@ -129,6 +129,7 @@ extraction:
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
           other_search_criteria:
+            processing_level: raw
 #            member:
 #              - r1i1p1f1
             experiment:
@@ -167,8 +168,8 @@ extraction:
                 - lat_bnds
                 - lon_bnds
               chunks:
-                rlat: 30
-                rlon: 30
+                lat: 30
+                lon: 30
                 time: 365
     ref_source: *ref_source
 
@@ -361,13 +362,13 @@ clean_up:
     add_attrs:
       global:
         Notes: |
-          Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
+          Regridded on the grid of RDRS v2.1, then bias-adjusted with detrended
           quantile mapping on a day-of-year basis with a window of 31 days,
           LOESS detrending and 50 quantiles.
           There is a second bias adjustement for pr's extreme values.
-          Tasmax, dtr and pr were adjusted, tasmin was computed
+          The variables tasmax, dtr and pr were adjusted, tasmin was computed
           from tasmax and dtr after the adjustment.
-          The reference was ERA5-Land over the 1991-2010 period.
+          The reference was RDRS v2.1 over the 1989-2018 period.
         version: "1.0.0"
       tasmax:
           standard_name: air_temperature
@@ -415,6 +416,8 @@ diagnostics:
 individual_wl:
   input:
     processing_level: final
+    domain: QC-RDRS
+  chunks: {'time':-1, 'rlat':30, 'rlon':30}
   wl:
     - 1.5
     - 2
@@ -422,9 +425,12 @@ individual_wl:
 
 horizons:
   input:
+    domain: QC-RDRS
     processing_level: final
+  chunks: {'time':-1, 'rlat':30, 'rlon':30}
   periods:
     - ['2081', '2100']
+    - ['1991','2020']
     - *ref_period
   produce_horizon:
     to_level: horizon{period0}-{period1}
