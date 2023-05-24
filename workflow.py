@@ -57,13 +57,13 @@ from utils import (
     save_and_update,
     rotated_latlon)
 
-server = 'neree_jarre' # not really but bc we can write on jarre from neree, no need to scp
+server = 'n_j' # not really but bc we can write on j from n, no need to scp
 
 # Load configuration
-if server == 'neree': #TODO: put the right config
-    load_config('paths_neree.yml', 'config-RDRS.yml', verbose=(__name__ == '__main__'), reset=True)
-elif server =='neree_jarre':
-    load_config('paths_neree_j.yml', 'config-RDRS.yml', verbose=(__name__ == '__main__'), reset=True)
+if server == 'n': #TODO: put the right config
+    load_config('paths_n.yml', 'config-E5L.yml', verbose=(__name__ == '__main__'), reset=True)
+elif server =='n_j':
+    load_config('paths_n_j.yml', 'config-EMDNA.yml', verbose=(__name__ == '__main__'), reset=True)
 else:
     load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     for region_name, region_dict in CONFIG['custom']['regions'].items():
         if (
                 "makeref" in CONFIG["tasks"]
-                and not pcat.exists_in_cat(domain=region_name, processing_level='nancount', source=ref_source)
+                and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
         ):
             # default
             if not pcat.exists_in_cat(domain=region_name, calendar='default', source=ref_source):
@@ -114,7 +114,6 @@ if __name__ == '__main__':
                     ds_ref = ds_ref.chunk(
                         {d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
 
-
                     # stack
                     if CONFIG['custom']['stack_drop_nans']:
 
@@ -126,7 +125,6 @@ if __name__ == '__main__':
                             ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
                         )
                     ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
-
                     save_move_update(ds=ds_ref,
                                      pcat=pcat,
                                      init_path=f"{workdir}/ref_{region_name}_default.zarr",
@@ -164,7 +162,8 @@ if __name__ == '__main__':
                                      server=server)
 
             # diag
-            if not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source):
+            if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
+                                       source=ref_source)) and ('diagnostics' in CONFIG['tasks']):
                 with (Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws)):
 
                     # search
@@ -183,32 +182,27 @@ if __name__ == '__main__':
 
                     dref_ref = dref_ref.chunk(CONFIG['extract']['ref_chunk'])
 
-
-
                     # diagnostics
-                    if 'diagnostics' in CONFIG['tasks']:
+                    ds_ref_prop, _ = xs.properties_and_measures(
+                        ds=dref_ref,
+                        **CONFIG['extraction']['reference'][
+                            'properties_and_measures']
+                    )
 
-                        # diagnostics
-                        ds_ref_prop, _ = xs.properties_and_measures(
-                            ds=dref_ref,
-                            **CONFIG['extraction']['reference'][
-                                'properties_and_measures']
-                        )
+                    ds_ref_prop = ds_ref_prop.chunk(**CONFIG['extract']['ref_prop_chunk'])
 
-                        ds_ref_prop = ds_ref_prop.chunk(**CONFIG['extract']['ref_prop_chunk'])
-
-                        path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                                               sim_id=ds_ref_prop.attrs['cat:id'],
-                                                                               level=ds_ref_prop.attrs['cat:processing_level']))
-                        path_diag_exec = f"{workdir}/{path_diag.name}"
+                    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
+                                                                           sim_id=ds_ref_prop.attrs['cat:id'],
+                                                                           level=ds_ref_prop.attrs['cat:processing_level']))
+                    path_diag_exec = f"{workdir}/{path_diag.name}"
 
 
-                        save_move_update(ds=ds_ref_prop,
-                                         pcat=pcat,
-                                         init_path=path_diag_exec,
-                                         final_path=path_diag,
-                                         server=server
-                                         )
+                    save_move_update(ds=ds_ref_prop,
+                                     pcat=pcat,
+                                     init_path=path_diag_exec,
+                                     final_path=path_diag,
+                                     server=server
+                                     )
 
 
     cat_sim = search_data_catalogs(
@@ -628,7 +622,7 @@ if __name__ == '__main__':
 
                                 # save and update
                                 path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted.zarr"
-                                save_to_zarr(ds=ds_scen,
+                                save_to_zarr(ds=ds_scen.chunk(dict(time=-1)),
                                              filename=path_adj,
                                              mode='o')
                                 pcat.update_from_ds(ds=ds_scen, path=path_adj)
@@ -906,7 +900,7 @@ if __name__ == '__main__':
                                                           )['D']
 
 
-                                ds = clean_up(ds = ds.chunk(dict(time=-1)), # TODO: put in MBCn
+                                ds = clean_up(ds = ds,
                                               **CONFIG['clean_up']['xscen_clean_up'])
 
                                 #save and update
@@ -950,7 +944,7 @@ if __name__ == '__main__':
                         if CONFIG['custom']['delete_in_final_zarr']:
 
 
-                            if server == 'neree':
+                            if server == 'n':
                                 for name, paths in CONFIG['scp_list'].items():
                                     source_path = Path(paths['source'].format(**fmtkws))
                                     dest = Path(paths['dest'].format(**fmtkws))
@@ -1023,7 +1017,7 @@ if __name__ == '__main__':
                                              itervar=True,
                                              rechunk=CONFIG['extract']['ref_prop_chunk']
                                 )
-                                if server == 'neree':
+                                if server == 'n':
                                     pcat.update_from_ds(ds=ds,
                                                         path=str(path_diag_exec))
                                 else:
@@ -1052,7 +1046,7 @@ if __name__ == '__main__':
                                     region_name=ds.attrs['cat:domain'],
                                     sim_id=ds.attrs['cat:id'],
                                     level=ds.attrs['cat:processing_level']))
-                            if server == 'neree':
+                            if server == 'n':
                                 path_diag = f"{workdir}/{path_diag.name}"
                             save_to_zarr(ds=ds, filename=path_diag, mode='o',rechunk={'lat':100, 'lon':100})
                             pcat.update_from_ds(ds=ds, path=path_diag)
@@ -1062,7 +1056,7 @@ if __name__ == '__main__':
 
                             logger.info('Move files and delete workdir.')
 
-                            if server == 'neree':
+                            if server == 'n':
                                 for name, paths in CONFIG['scp_list'].items():
                                     source_path = Path(paths['source'].format(**fmtkws))
                                     dest = Path(paths['dest'].format(**fmtkws))
@@ -1116,8 +1110,11 @@ if __name__ == '__main__':
 
                         # cut dataset on the wl window
                         ds_wl = xs.extract.subset_warming_level(ds_input, wl=wl)
-                        ds_wl = ds_wl.chunk(CONFIG['individual_wl']['chunks'])
+
                         if ds_wl:
+                            #chunks
+                            ds_wl = ds_wl.chunk(CONFIG['individual_wl']['chunks'])
+
                             # needed for some indicators (ideally would have been calculated in clean_up...)
                             ds_wl = ds_wl.assign(tas=xc.atmos.tg(ds=ds_wl)).load()
 
@@ -1144,8 +1141,10 @@ if __name__ == '__main__':
 
                         # needed for some indicators (ideally would have been calculated in clean_up...)
                         ds_cut = ds_input.sel(time= slice(*map(str, period)))
+                        if ds_cut.attrs['cat:type']=='reconstruction':
+                            ds_cut= xs.utils.unstack_fill_nan(ds_cut)
                         ds_cut= ds_cut.chunk(CONFIG['horizons']['chunks'])
-                        ds_cut = ds_cut.assign(tas=xc.atmos.tg(ds=ds_cut)).load()
+                        ds_cut = ds_cut.assign(tas=xc.atmos.tg(ds=ds_cut))#.load()
 
                         ds_hor = xs.aggregate.produce_horizon(
                             ds_cut,

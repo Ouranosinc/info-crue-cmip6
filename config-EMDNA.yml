@@ -6,22 +6,22 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-#  - makeref
-#  - extract
-#  - regrid
-##  - ba-MBCn
-###  - ba-dOTC
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
-#  - clean_up
-#  - final_zarr
-#  - diagnostics
+  - makeref
+  - extract
+  - regrid
+#  - ba-MBCn
+##  - ba-dOTC
+  - train_qm
+  - adjust_qm
+  - train_ex
+  - adjust_ex
+  - clean_up
+  - final_zarr
+  - diagnostics
 #  - individual_wl
 #  - horizons
 #  - deltas
-  - ensembles # check the domains
+#  - ensembles # check the domains and not including refs
 
 
 
@@ -29,8 +29,8 @@ custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        QC-RDRS:
-          name: QC-RDRS
+        QC-EMDNA:
+          name: QC-EMDNA
           method: bbox
           bbox:
             lon_bnds: [ -83, -55 ]
@@ -38,13 +38,13 @@ custom:
     stack_drop_nans: &stack
         True
     chunks:
-        rlat: 15
-        rlon: 15
+        lat: 15
+        lon: 15
         loc: 50
         time: -1
     out_chunks:
-        rlat: 30
-        rlon: 30
+        lat: 30
+        lon: 30
         time: 4year
     ref_period : &ref_period # new-ref
       - '1989'
@@ -76,8 +76,8 @@ extract:
     ref_chunk:
       time: -1
     ref_prop_chunk:
-      rlat: 30
-      rlon: 30
+      lat: 30
+      lon: 30
 
 
 
@@ -96,8 +96,8 @@ extraction:
             periods : *ref_period
             other_search_criteria:
                 source: &ref_source
-                    #"ERA5-Land"
-                  RDRS # new-ref
+                    EMDNA
+                member: OI
         extract_dataset: {}
         properties_and_measures:
           period: *ref_period
@@ -161,6 +161,7 @@ extraction:
             xr_combine_kwargs:
               combine_attrs: override
             xr_open_kwargs:
+              engine: h5netcdf
               drop_variables:
                 - height
                 - bnds
@@ -338,10 +339,10 @@ clean_up:
       pr: [0]
     maybe_unstack_dict:
       stack_drop_nans: *stack
-      coords: ['rlat', 'rlon']
+      #coords: ['rlat', 'rlon']
       rechunk:
-        rlat: 15
-        rlon: 15
+        lat: 15
+        lon: 15
         time: -1
     round_var:
       pr: 10
@@ -394,7 +395,7 @@ diagnostics:
     dref_for_measure:
       processing_level: diag-ref-prop
     properties_and_measures:
-      rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
+      rechunk: {'lat': 30, 'lon': 30, 'time': -1}
       period: *ref_period
       unstack: *stack
       change_units_arg:
@@ -407,7 +408,7 @@ diagnostics:
     dref_for_measure:
       processing_level: diag-ref-prop
     properties_and_measures:
-      rechunk: {'rlat':30, 'rlon':30, 'time':-1}
+      rechunk: {'lat':30, 'lon':30, 'time':-1}
       period: *ref_period
       unstack: False
 
@@ -417,7 +418,7 @@ individual_wl:
   input:
     processing_level: final
     domain: QC-RDRS
-  chunks: {'time':-1, 'rlat':30, 'rlon':30}
+  chunks: {'time':-1, 'lat':30, 'lon':30}
   wl:
     - 1.5
     - 2
@@ -426,9 +427,7 @@ individual_wl:
 horizons:
   input:
     processing_level: final
-    source: RDRS
-    calendar: default
-  chunks: {'time':-1, 'rlat':30, 'rlon':30}
+  chunks: {'time':-1, 'lat':30, 'lon':30}
   periods:
     - ['2081', '2100']
     - ['1991','2020']
@@ -647,8 +646,8 @@ tdd:
     decode_timedelta: False
 
 
-utils:
-  unstack_fill_nan:
-    coords: ['rlat', 'rlon']
-  maybe_unstack:
-    coords: ['rlat', 'rlon']
+#utils:
+#  unstack_fill_nan:
+#    coords: ['rlat', 'rlon']
+#  maybe_unstack:
+#    coords: ['rlat', 'rlon']
