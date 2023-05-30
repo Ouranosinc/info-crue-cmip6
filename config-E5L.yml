@@ -268,7 +268,7 @@ biasadjust_qm:
                     kind: "*"
                     nquantiles: 50
             adjusting_args:
-                simulation_period: *sim_period
+                periods: *sim_period
                 xclim_adjust_args:
                     detrend:
                         LoessDetrend:
@@ -293,7 +293,7 @@ biasadjust_qm:
                     kind: "+"
                     nquantiles: 50
             adjusting_args:
-                simulation_period: *sim_period
+                periods: *sim_period
                 xclim_adjust_args:
                   detrend:
                     LoessDetrend:
@@ -318,7 +318,7 @@ biasadjust_qm:
                     kind: "*"
                     nquantiles: 50
             adjusting_args:
-                simulation_period: *sim_period
+                periods: *sim_period
                 xclim_adjust_args:
                   detrend:
                     LoessDetrend:
@@ -348,7 +348,7 @@ biasadjust_ex:
                     cluster_thresh: 1 mm d-1
                     q_thresh: 0.95
             adjusting_args:
-                simulation_period: *sim_period
+                periods: *sim_period
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
 clean_up:

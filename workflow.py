@@ -6,35 +6,18 @@ import xarray as xr
 import shutil
 import logging
 import dask
-import numpy as np
-from matplotlib import pyplot as plt
-import os
-import xesmf
 import scipy
 from dask.diagnostics import ProgressBar
-import SBCK
 
 import xclim as xc
-import xscen as xs
 from xclim import sdba
-from xclim.core.calendar import convert_calendar, get_calendar, date_range_like
-from xclim.sdba import adjustment
-from xclim.core.units import convert_units_to
-from xclim.sdba import properties, measures, construct_moving_yearly_window, unpack_moving_yearly_window
+from xclim.core.calendar import convert_calendar, get_calendar
 
-# from xscen.checkups import fig_compare_and_diff, fig_bias_compare_and_diff
-# from xscen.catalog import ProjectCatalog, parse_directory, parse_from_ds, DataCatalog
-# from xscen.extraction import search_data_catalogs, extract_dataset
-# from xscen.io import save_to_zarr, rechunk
-# from xscen.config import CONFIG, load_config
-# from xscen.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
-# from xscen.regridding import regrid
-# from xscen.biasadjust import train, adjust
-# from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout, TimeoutException
-# from xscen.finalize import clean_up
+from xclim.sdba import  construct_moving_yearly_window, unpack_moving_yearly_window
+
 
 import xscen as xs
-from xscen.utils import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan, maybe_unstack
+from xscen.utils import minimum_calendar, stack_drop_nans
 from xscen.io import rechunk
 from xscen import (
     ProjectCatalog,
@@ -55,17 +38,14 @@ from utils import (
     save_move_update,
     python_scp,
     save_and_update,
-    rotated_latlon)
+    )
 
-server = 'n_j' # not really but bc we can write on j from n, no need to scp
+path = 'paths_n.yml' #TODO: put the right path for server and where to right
+config = 'config-EMDNA.yml'#TODO: put the right config for the right ref
 
 # Load configuration
-if server == 'n': #TODO: put the right config
-    load_config('paths_n.yml', 'config-E5L.yml', verbose=(__name__ == '__main__'), reset=True)
-elif server =='n_j':
-    load_config('paths_n_j.yml', 'config-EMDNA.yml', verbose=(__name__ == '__main__'), reset=True)
-else:
-    load_config('paths.yml', 'config.yml', verbose=(__name__ == '__main__'), reset=True)
+load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
+server = CONFIG['server']
 logger = logging.getLogger('xscen')
 
 workdir = Path(CONFIG['paths']['workdir'])
