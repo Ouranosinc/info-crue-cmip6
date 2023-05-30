@@ -111,7 +111,8 @@ if __name__ == '__main__':
                                      final_path=f"{refdir}/ref_{region_name}_default.zarr",
                                      info_dict={'calendar': 'default'
                                                 },
-                                     server=server)
+                                     server=server,
+                                     **CONFIG['scp'])
 
             # noleap
             if not pcat.exists_in_cat(domain=region_name, calendar='noleap', source=ref_source):
@@ -126,7 +127,8 @@ if __name__ == '__main__':
                                      init_path=f"{workdir}/ref_{region_name}_noleap.zarr",
                                      final_path=f"{refdir}/ref_{region_name}_noleap.zarr",
                                      info_dict={'calendar': 'noleap'},
-                                     server=server)
+                                     server=server,
+                                     **CONFIG['scp'])
             # 360_day
             if not pcat.exists_in_cat(domain=region_name, calendar='360_day', source=ref_source):
                 with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)) :
@@ -139,7 +141,8 @@ if __name__ == '__main__':
                                      init_path=f"{workdir}/ref_{region_name}_360day.zarr",
                                      final_path=f"{refdir}/ref_{region_name}_360day.zarr",
                                      info_dict={'calendar': '360_day'},
-                                     server=server)
+                                     server=server,
+                                     **CONFIG['scp'])
 
             # diag
             if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
@@ -181,7 +184,8 @@ if __name__ == '__main__':
                                      pcat=pcat,
                                      init_path=path_diag_exec,
                                      final_path=path_diag,
-                                     server=server
+                                     server=server,
+                                     **CONFIG['scp']
                                      )
 
 

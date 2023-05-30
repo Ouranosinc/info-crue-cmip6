@@ -187,17 +187,17 @@ def move_then_delete(dirs_to_delete, moving_files, pcat):
 
 
 def save_move_update(ds,pcat, init_path, final_path,info_dict=None,
-                     encoding=None, mode='o', itervar=False, server='doris'):
+                     encoding=None, mode='o', itervar=False, server='d', server_address=None, user=None):
     encoding = encoding or {var: {'dtype':'float32'} for var in ds.data_vars}
     save_to_zarr(ds, init_path, encoding=encoding, mode=mode,itervar=itervar)
-    if server == 'neree':
-        python_scp(init_path, Path(final_path).parent, 'doris.ouranos.ca')
+    if server == 'n':
+        python_scp(init_path, Path(final_path).parent, server_address, user)
     else:
         shutil.move(init_path,final_path)
     pcat.update_from_ds(ds=ds, path=str(final_path),info_dict=info_dict)
 
 
-def python_scp(source_path, destination_path, server_address):
+def python_scp(source_path, destination_path, server_address, user):
     """
     scp with python
     based on https://gist.github.com/Zeitsperre/448f8d6d7bf907c9e9976b4bf2069fb1
@@ -218,21 +218,19 @@ def python_scp(source_path, destination_path, server_address):
     Password argument is not neccessary because I have set up a ssh key between neree and doris.
     On neree:
     ssh-keygen -t ed25519
-    ssh-copy-id [usager]@doris.ouranos.ca
+    ssh-copy-id [usager]@server_address
     """
     logging.basicConfig(
         filename=f"{dt.strftime(dt.now(), '%Y-%m-%d')}_{Path(__file__).stem}.log",
         level=logging.INFO,
     )  # can't go wrong making a logfile
 
-    user = "jlavoie"  # username on the server being accessed.
     my_folder = Path(source_path)  # folder being transferred
 
     if my_folder.exists():
         with SSHClient() as ssh:
             ssh.load_system_host_keys()  # loads any SSH keys. If keys are loaded, password not needed.
 
-            #server_address = f"doris.ouranos.ca"
             logging.info(f"Connecting to {server_address}")
 
             ssh.connect(server_address, username=user)  # opens a shell to create a connection.
