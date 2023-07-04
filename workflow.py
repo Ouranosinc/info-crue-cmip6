@@ -40,8 +40,8 @@ from utils import (
     save_and_update,
     )
 
-path = 'paths_n.yml' #TODO: put the right path for server and where to right
-config = 'config-EMDNA.yml'#TODO: put the right config for the right ref
+path = 'paths_n.yml' #TODO: put the right path config
+config = 'config-EMDNA.yml'#TODO: put the right config
 
 # Load configuration
 load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
@@ -221,7 +221,7 @@ if __name__ == '__main__':
                             with (
                                     Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws),
                                     measure_time(name='extract', logger=logger),
-                                    timeout(6600, task='extract')
+                                    timeout(10600, task='extract')
                             ):
 
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge

@@ -1,0 +1,18 @@
+realm: atmos
+indicators:
+  tx_mean:
+    base: tx_mean
+    parameters:
+      freq: QS-DEC
+  tn_mean:
+    base: tn_mean
+    parameters:
+      freq: QS-DEC
+  prcptot:
+    base: prcptot
+    parameters:
+      freq: QS-DEC
+  rx1day:
+    base: rx1day
+    parameters:
+      freq: QS-DEC

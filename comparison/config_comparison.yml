@@ -1,0 +1,145 @@
+# Config for comparison
+
+tasks:
+  #- initialize_pcat
+  - horizons
+
+project:
+    name: Info-Crue CMIP6 comparison
+    version: 1.0.0
+    description: Comparaison de version de Info-Crue
+    id: ic6c
+
+horizons:
+  input:
+    processing_level:
+      - final
+      - biasadjusted
+    experiment:
+      - ssp245
+      - rcp45
+    activity:
+      - CMIP5 # TODO: should I include only CMIP5 or also CORDEX?
+      - ScenarioMIP
+    domain:
+      - QC
+      - QC-RDRS
+      - QC-EMDNA
+    source:
+      #hausfather
+      - ACCESS-ESM1-5
+      #- CanESM5
+      - EC-Earth3
+      - FGOALS-g3
+      - IPSL-CM6A-LR
+      - KACE-1-0-G
+      - MIROC6
+      - MRI-ESM2-0
+      # CMIP5
+      - ACCESS1.0
+      - ACCESS1.3
+      - BCC-CSM1.1(m)
+      - BCC-CSM1.1
+      - BNU-ESM
+      - CMCC-CM
+      - CMCC-CMS
+      - CNRM-CM5
+      - FGOALS-g2
+      - GFDL-ESM2G
+      - GFDL-ESM2M
+      - GISS-E2-H
+      - IPSL-CM5A-MR
+      - IPSL-CM5B-LR
+      - INM-CM4
+      - MIROC-ESM-CHEM
+      - MIROC-ESM
+      - MRI-CGCM3
+      - NorESM1-M
+      - CanESM2
+      - CSIRO-Mk3.6.0
+      - GFDL-CM3
+      - GISS-E2-R
+      - IPSL-CM5A-LR
+      - MIROC5
+      - MPI-ESM-LR
+      - MPI-ESM-MR
+  chunks: {'time':-1, 'lat':30, 'lon':30}
+  periods:
+    - ['2071', '2100']
+    - ['1991','2020']
+  produce_horizon:
+    to_level: comp-horizon{period0}-{period1}
+
+deltas:
+  input:
+    processing_level:
+      - horizon2071-2100
+  reference:
+    processing_level: comp-horizon1991-2020
+
+ensembles:
+  groups:
+    RDRS: # basic groups don't include CanESM5
+        domain: QC-RDRS
+        source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    EMDNA:
+      domain: QC-EMDNA
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    E5L:
+      domain: QC-E5L
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    CM5:
+      domain: QC-CM5
+    CM6:
+      domain:
+        - QC-RDRS
+        - QC-EMDNA
+        - QC-E5L
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+
+
+    inputs:
+    ensemble-horizon2071-2100-EMDNA-noCanESM5:
+      processing_level: horizon2081-2100
+      domain: QC-EMDNA
+      experiment: ssp245
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+
+
+dask:
+    client:
+        dashboard_address: 6785
+    array.slicing.split_large_chunks: False
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : INFO
+    loggers:
+        xscen:
+            propagate: False
+            level: INFO
+            handlers: [ console]
+
+io:
+  save_to_zarr:
+    mode: o
+
+scripting:
+    measure_time:
+        cpu: True
+    subject: Info-Crue CMIP6
+    send_mail_on_exit:
+        msg_ok: Toutes les étapes demandées ont été complétées.
+        msg_err: Une erreur est survenue durant le traitement.
+        on_error_only: True
+
+tdd:
+  xarray_open_kwargs:
+    decode_timedelta: False

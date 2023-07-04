@@ -130,8 +130,6 @@ extraction:
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
           other_search_criteria:
             processing_level: raw
-#            member:
-#              - r1i1p1f1
             experiment:
               - ssp585
               - ssp245
@@ -143,7 +141,7 @@ extraction:
               - CanESM5
               - EC-Earth3
               - FGOALS-g3
-              #- IPSL-CM6A-LR
+              - IPSL-CM6A-LR
               - KACE-1-0-G
               - MIROC6
               - MRI-ESM2-0
@@ -608,8 +606,6 @@ io:
 scripting:
     measure_time:
         cpu: True
-    send_mail:
-        to: lavoie.juliette@ouranos.ca
     subject: Info-Crue CMIP6
     send_mail_on_exit:
         msg_ok: Toutes les étapes demandées ont été complétées.
