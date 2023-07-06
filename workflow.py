@@ -1020,7 +1020,7 @@ if __name__ == '__main__':
                                       f'{sim_id}.{region_name}.diag-scen-meas.fx']
                         meas_datasets = {k: meas_datasets[k] for k in order_keys}
 
-                        hm = xs.diagnostics.measures_heatmap(meas_datasets)
+                        hm = xs.diagnostics.measures_heatmap(meas_datasets) # TODO: because id change, this is never transfered
 
                         ip = xs.diagnostics.measures_improvement(meas_datasets)
 

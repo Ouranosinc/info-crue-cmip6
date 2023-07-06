@@ -77,6 +77,28 @@ deltas:
   reference:
     processing_level: comp-horizon1991-2020
 
+regrid:
+  input:
+    processing_level:
+      - horizon2071-2100
+      - horizon1991-2020
+      - delta-horizon2071-2100
+    domain:
+      - QC-EMDNA
+      - QC-E5L
+      - QC-CMIP5
+  target:
+    domain: QC-RDRS
+    processing_level: horizon2071-2100
+    id: CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1_global # just choose a random one
+  regrid_dataset:
+    regridder_kwargs:
+      method: bilinear
+      extrap_method: inverse_dist
+      locstream_out: False
+      reuse_weights: False
+
+
 ensembles:
   groups:
     RDRS: # basic groups don't include CanESM5
@@ -88,21 +110,19 @@ ensembles:
     E5L:
       domain: QC-E5L
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    EMDNA-rdrs:
+      domain: QC-EMDNA-rdrs
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
+    E5L-rdrs:
+      domain: QC-E5L-rdrs
+      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
     CM5:
-      domain: QC-CM5
+      domain: QC-CM5-rdrs
     CM6:
       domain:
-        - QC-RDRS
-        - QC-EMDNA
-        - QC-E5L
-      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-
-
-    inputs:
-    ensemble-horizon2071-2100-EMDNA-noCanESM5:
-      processing_level: horizon2081-2100
-      domain: QC-EMDNA
-      experiment: ssp245
+        - QC-RDRS-rdrs
+        - QC-EMDNA-rdrs
+        - QC-E5L-rdrs
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
 
 

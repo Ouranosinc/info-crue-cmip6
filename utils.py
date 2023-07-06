@@ -10,6 +10,8 @@ import logging
 from datetime import datetime as dt
 from getpass import getpass
 from pathlib import Path
+import glob
+import shutil as sh
 
 from paramiko import SSHClient
 from scp import SCPClient
@@ -226,22 +228,38 @@ def python_scp(source_path, destination_path, server_address, user):
     )  # can't go wrong making a logfile
 
     my_folder = Path(source_path)  # folder being transferred
+    destination_path =Path(destination_path)
 
     if my_folder.exists():
+        if not destination_path.exists():
+            with SSHClient() as ssh:
+                ssh.load_system_host_keys()  # loads any SSH keys. If keys are loaded, password not needed.
+
+                logging.info(f"Connecting to {server_address}")
+
+                ssh.connect(server_address, username=user)  # opens a shell to create a connection.
+                logging.info(f"Connected!")
+
+                ssh.exec_command(f"mkdir -p {destination_path}")
+                logging.info(f"Created {destination_path}.")
+
         with SSHClient() as ssh:
             ssh.load_system_host_keys()  # loads any SSH keys. If keys are loaded, password not needed.
 
             logging.info(f"Connecting to {server_address}")
 
-            ssh.connect(server_address, username=user)  # opens a shell to create a connection.
+            ssh.connect(server_address,
+                        username=user)  # opens a shell to create a connection.
             logging.info(f"Connected!")
-
+            logging.info(f"attempting : {my_folder} transfered to {destination_path}.")
             with SCPClient(ssh.get_transport(), socket_timeout=30.0) as scp:
                 scp.put(my_folder, recursive=True, remote_path=destination_path)
             logging.info(f"{my_folder} transfered to {destination_path}.")
+            return destination_path/my_folder.name
 
     else:
         logging.info(f"{my_folder} doesn't exist.")
+        return None
 
 def save_and_update(ds, path, pcat, **save_kwargs):
     path = path.format(**xs.utils.get_cat_attrs(ds))
@@ -258,3 +276,17 @@ def rotated_latlon(ds, path):
              ds_latlon.lon.data)).assign_coords(
         rotated_pole=ds_latlon.rotated_pole.data)
     return ds
+
+def comp_transfer(workdir, final_dest,pcat, scp_kwargs):
+    for f in glob.glob(f"{workdir}/*/*/*/*/*"):
+        ds = xr.open_zarr(f)
+        final_dest_cur = Path(final_dest.format(
+            **xs.utils.get_cat_attrs(ds)))
+        out_path = python_scp(f, final_dest_cur, **scp_kwargs)
+        pcat.update_from_ds(ds=ds, path=out_path)
+
+    dir_to_delete = workdir
+    if Path(dir_to_delete).exists() and Path(dir_to_delete).is_dir():
+        logger.info(f"Deleting content inside {dir_to_delete}.")
+        sh.rmtree(dir_to_delete)
+        os.mkdir(dir_to_delete)
