@@ -3,6 +3,9 @@
 tasks:
   #- initialize_pcat
   - horizons
+  - deltas
+  - regrid
+  - ensembles
 
 project:
     name: Info-Crue CMIP6 comparison
@@ -58,7 +61,7 @@ horizons:
       - CanESM2
       - CSIRO-Mk3.6.0
       - GFDL-CM3
-      - GISS-E2-R
+      - GISS-E2-R # this one is supposed to have 2 members, but only one was found on our disks "nomenclature cQ2 ne permettait pas de distinguer ces 2 membres (r6i1p1 et r6i1p3)... Je sens qu'un des deux a juste été écrasé à un moment"
       - IPSL-CM5A-LR
       - MIROC5
       - MPI-ESM-LR
@@ -67,29 +70,33 @@ horizons:
   periods:
     - ['2071', '2100']
     - ['1991','2020']
-  produce_horizon:
-    to_level: comp-horizon{period0}-{period1}
+
 
 deltas:
   input:
     processing_level:
-      - horizon2071-2100
+      - comp-horizon2071-2100
+    domain:
+      - QC-RDRS
+      - QC-EMDNA
+      - QC-E5L
+      - QC-CM5
   reference:
     processing_level: comp-horizon1991-2020
 
 regrid:
   input:
     processing_level:
-      - horizon2071-2100
-      - horizon1991-2020
-      - delta-horizon2071-2100
+      - comp-horizon2071-2100
+      - comp-horizon1991-2020
+      - delta-comp-horizon2071-2100
     domain:
       - QC-EMDNA
       - QC-E5L
-      - QC-CMIP5
+      - QC-CM5
   target:
     domain: QC-RDRS
-    processing_level: horizon2071-2100
+    processing_level: comp-horizon2071-2100
     id: CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1_global # just choose a random one
   regrid_dataset:
     regridder_kwargs:
@@ -100,6 +107,10 @@ regrid:
 
 
 ensembles:
+  ensemble_stats:
+    common_attrs_only: True
+    statistics:
+      ensemble_percentiles:
   groups:
     RDRS: # basic groups don't include CanESM5
         domain: QC-RDRS
@@ -110,19 +121,19 @@ ensembles:
     E5L:
       domain: QC-E5L
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    EMDNA-rdrs:
-      domain: QC-EMDNA-rdrs
+    EMDNA2rdrs:
+      domain: QC-EMDNA2rdrs
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    E5L-rdrs:
-      domain: QC-E5L-rdrs
+    E5L2rdrs:
+      domain: QC-E5L2rdrs
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
     CM5:
-      domain: QC-CM5-rdrs
+      domain: QC-CM52rdrs
     CM6:
       domain:
-        - QC-RDRS-rdrs
-        - QC-EMDNA-rdrs
-        - QC-E5L-rdrs
+        - QC-RDRS
+        - QC-EMDNA2rdrs
+        - QC-E5L2rdrs
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
 
 

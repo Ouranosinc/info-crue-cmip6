@@ -7,6 +7,7 @@ import xscen as xs
 from xscen import CONFIG
 from dask.distributed import Client
 from dask import config as dskconf
+from dask.diagnostics import ProgressBar
 import atexit
 import xclim as xc
 import logging
@@ -54,6 +55,8 @@ if __name__ == '__main__':
             # fix domain names. in this project, I differentiate the different datasets by domain
             if ds_input.attrs['cat:activity'] == 'CMIP5':
                 ds_input.attrs['cat:domain'] = 'QC-CM5'
+                if '(m)' in ds_input.attrs['cat:id']: # these character don't play well with the workflow
+                   ds_input.attrs['cat:id'] = ds_input.attrs['cat:id'].replace('(m)', '-M')
             elif ds_input.attrs['cat:domain'] == 'QC':
                 ds_input.attrs['cat:domain'] = 'QC-E5L'
 
@@ -69,17 +72,24 @@ if __name__ == '__main__':
                                 xs.measure_time(name=f"horizon {period} for {ds_input.attrs['cat:id']}")
                         ):
                             # prepare input
-                            ds_cut = ds_input.sel(time=slice(*map(str, period)))
-                            ds_cut = ds_cut.assign(tas=xc.atmos.tg(ds=ds_cut))
+                            # cmip5 doesn't always go to 2100 (INFO-Crue-CM5_CMIP5_NASA-GISS_GISS-E2-H_rcp45_r6i1p3_QC)
+                            if period[1]=='2100' and str(ds_input.time[-1].dt.year.values) != '2100' and ds_input.attrs['cat:domain'] == 'QC-CM5':
+                                period_cur =  [period[0], '2099']
+                                logger.info('CMIP5 dataset does not go to 2100, cutting a year')
+                            else:
+                                period_cur=period
+                            ds_cut = ds_input.assign(tas=xc.atmos.tg(ds=ds_input))
 
                             #produce horizon
                             ds_hor = xs.aggregate.produce_horizon(
                                 ds_cut,
-                                period=period,
+                                period=period_cur,
                                 indicators=[(name, ind)],
-                                **CONFIG['horizons']['produce_horizon']
+                                to_level= "comp-horizon{period0}-{period1}".format(period0=period[0], period1=period[1]),
                             )
                             ds_hor.attrs['cat:variable']=name
+                            # because of INFO-Crue-CM5_CMIP5_NASA-GISS_GISS-E2-H_rcp45_r6i1p3_QC
+                            ds_hor['horizon']= ["{period0}-{period1}".format(period0=period[0], period1=period[1])]
 
                             # save and update
                             xs.save_and_update(ds_hor,
@@ -87,7 +97,7 @@ if __name__ == '__main__':
                                                path=CONFIG['paths']['work_comp'],
                                                )
 
-        # scp to final destination
+        #scp to final destination
         comp_transfer(workdir=CONFIG['paths']['workdir'],
                       final_dest=CONFIG['paths']['final_dest'],
                       pcat=pcat,
@@ -110,14 +120,16 @@ if __name__ == '__main__':
                     with (
                             Client(n_workers=2, threads_per_worker=5, memory_limit="12GB",
                                    **daskkws),
-                            xs.measure_time(name=f"{id} {level}", logger=logger)
+                            xs.measure_time(name=f"{name_input} {level}", logger=logger)
                     ):
                         # get ref dataset
                         ds_ref = pcat.search(id=id,
+                                             variable=var,
+                                             domain=ds_input.attrs['cat:domain'],
                                              **CONFIG['deltas']['reference']).to_dask(**tdd)
 
                         # concat past and future
-                        ds_concat = xr.concat([ds_input, ds_ref], dim='horizon',
+                        ds_concat = xr.concat([ds_input[[var]], ds_ref], dim='horizon',
                                               combine_attrs='override')
 
                         # compute delta
@@ -126,9 +138,10 @@ if __name__ == '__main__':
                             reference_horizon=ds_ref.horizon.values[0],
                             to_level=level
                         )
+                        ds_delta.attrs['cat:variable'] = var
 
                         # save and update
-                        xs.save_and_update(ds_hor,
+                        xs.save_and_update(ds_delta,
                                            pcat=pcat,
                                            path=CONFIG['paths']['work_comp'],
                                            )
@@ -146,23 +159,36 @@ if __name__ == '__main__':
         # regrid on rdrs grid
         ds_target = pcat.search(**CONFIG['regrid']['target']).to_dataset(**tdd)
         for name_input, ds_input in dict_input.items():
+            id = ds_input.attrs['cat:id']
+            level = ds_input.attrs['cat:processing_level']
+            domain= f"{ds_input.attrs['cat:domain']}2rdrs"
+            for var in ds_input.data_vars:
+                if not pcat.exists_in_cat(id=id,
+                                          variable=var,
+                                          domain=domain,
+                                          processing_level=level):
+                    with (
+                        Client(n_workers=2, threads_per_worker=5, memory_limit="12GB",**daskkws),
+                        xs.measure_time(name=f" regrid {id} {level} {domain}", logger=logger)
+                    ):
 
-            # regrid
-            ds_regrid = xs.regrid_dataset(
-                ds=ds_input,
-                ds_grid=ds_target,
-                to_level= ds_input.attrs['cat:processing_level'],
-                **CONFIG['regrid']['regrid_dataset']
-            )
+                        # regrid
+                        ds_regrid = xs.regrid_dataset(
+                            ds=ds_input[[var]].chunk({'lat':-1, 'lon':-1}),
+                            ds_grid=ds_target,
+                            to_level= level,
+                            **CONFIG['regrid']['regrid_dataset']
+                        )
 
-            # new domain name
-            ds_regrid.attrs['cat:domain']= f"{ds_input.attrs['cat:domain']}2rdrs"
+                        # new domain name
+                        ds_regrid.attrs['cat:domain']= domain
+                        ds_regrid.attrs['cat:variable'] = var
 
-            # save and update
-            xs.save_and_update(ds_regrid,
-                               pcat=pcat,
-                               path=CONFIG['paths']['work_comp'],
-                               )
+                        # save and update
+                        xs.save_and_update(ds_regrid,
+                                           pcat=pcat,
+                                           path=CONFIG['paths']['work_comp'],
+                                           )
 
         # scp to final destination
         comp_transfer(workdir=CONFIG['paths']['workdir'],
@@ -176,37 +202,50 @@ if __name__ == '__main__':
         # get each groups for which we want ensembles
         for group_name, group_inputs in CONFIG['ensembles']['groups'].items():
             group_cat = pcat.search(**group_inputs)
-            for level in group_cat.processing_level.df.unique():
-                ens_name = f'ensemble-{level}-{group_name}'
-                for experiment in group_cat.experiment.df.unique():
-                    sub_group_cat = group_cat.search(processing_level=level, experiment=experiment)
-                    for variable in sub_group_cat.variable.df.unique():
+            rechunk = {'lat': -1, 'lon': -1} if group_name in ['EMDNA', 'E5L'] else {
+                'rlat': -1, 'rlon': -1}
 
-                        if not pcat.exists_in_cat(processing_level=ens_name,
-                                                  variable=variable,
-                                                  experiment=experiment,):
-                            with (
-                                    dask.diagnostics.ProgressBar(),
-                                    xs.measure_time(name=f'ensemble {ens_name}', logger=logger)
-                            ):
-                                # get datasets to create 1 ensemble/file
-                                datasets = sub_group_cat.search(variable=variable).to_dataset_dict(**tdd)
+            for level in group_cat.df.processing_level.unique():
+                if 'ensemble' not in level:
+                    ens_name = f'ensemble-{level}-{group_name}'
+                    for experiment in group_cat.df.experiment.unique():
+                        sub_group_cat = group_cat.search(processing_level=level, experiment=experiment)
+                        for var in sub_group_cat.df.variable.unique():
 
-                                # weigths for ensemble
-                                weights = xs.ensembles.generate_weights(datasets=datasets)
+                            if not pcat.exists_in_cat(processing_level=ens_name,
+                                                      variable=f"{var[0]}_p50",
+                                                      experiment=experiment,):
+                                with (
+                                        ProgressBar(),
+                                        xs.measure_time(name=f'ensemble {ens_name}', logger=logger)
+                                ):
+                                    # get datasets to create 1 ensemble/file
+                                    datasets = sub_group_cat.search(variable=var).to_dataset_dict(**tdd)
 
-                                # calculate ensemble stats
-                                ds_ens = xs.ensemble_stats(datasets=datasets,
-                                                           weights=weights,
-                                                           to_level=ens_name)
+                                    # weigths for ensemble
+                                    weights = xs.ensembles.generate_weights(datasets=datasets)
 
-                                # save and update
-                                xs.save_and_update(ds_ens,
-                                                   pcat=pcat,
-                                                   path=CONFIG['paths']['work_comp'],
-                                                   )
+                                    # calculate ensemble stats
+                                    ds_ens = xs.ensemble_stats(datasets=datasets,
+                                                               weights=weights,
+                                                               to_level=ens_name)
 
-        # scp to final destination
+                                    # change units, should have done it in indicators...
+                                    for vv in ds_ens.data_vars:
+                                        if var[0] in ['tx_mean', 'tn_mean']:
+                                            ds_ens[vv] = xc.units.convert_units_to(ds_ens[vv], 'degC')
+
+                                    if 'cat:domain' not in ds_ens.attrs:
+                                        ds_ens.attrs['cat:domain']=f"QC-{group_name}2RDRS"
+
+                                    # save and update
+                                    xs.save_and_update(ds_ens,
+                                                       pcat=pcat,
+                                                       path=CONFIG['paths']['work_comp'],
+                                                       save_kwargs = dict(rechunk= rechunk),
+                                                       )
+
+        # # scp to final destination
         comp_transfer(workdir=CONFIG['paths']['workdir'],
                       final_dest=CONFIG['paths']['final_dest'],
                       pcat=pcat,

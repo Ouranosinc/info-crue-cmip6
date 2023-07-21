@@ -229,8 +229,8 @@ def python_scp(source_path, destination_path, server_address, user):
 
     my_folder = Path(source_path)  # folder being transferred
     destination_path =Path(destination_path)
-
-    if my_folder.exists():
+    final=destination_path/my_folder.name
+    if my_folder.exists() and not final.exists():
         if not destination_path.exists():
             with SSHClient() as ssh:
                 ssh.load_system_host_keys()  # loads any SSH keys. If keys are loaded, password not needed.
@@ -258,7 +258,7 @@ def python_scp(source_path, destination_path, server_address, user):
             return destination_path/my_folder.name
 
     else:
-        logging.info(f"{my_folder} doesn't exist.")
+        logging.info(f"{my_folder} doesn't exist OR already exist in final dest.")
         return None
 
 def save_and_update(ds, path, pcat, **save_kwargs):
@@ -278,12 +278,13 @@ def rotated_latlon(ds, path):
     return ds
 
 def comp_transfer(workdir, final_dest,pcat, scp_kwargs):
-    for f in glob.glob(f"{workdir}/*/*/*/*/*"):
+    for f in glob.glob(f"{workdir}/*/*/*/*/*.zarr"):
         ds = xr.open_zarr(f)
         final_dest_cur = Path(final_dest.format(
             **xs.utils.get_cat_attrs(ds)))
         out_path = python_scp(f, final_dest_cur, **scp_kwargs)
-        pcat.update_from_ds(ds=ds, path=out_path)
+        if  out_path is not None:
+            pcat.update_from_ds(ds=ds, path=out_path)
 
     dir_to_delete = workdir
     if Path(dir_to_delete).exists() and Path(dir_to_delete).is_dir():
