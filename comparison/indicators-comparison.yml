@@ -16,3 +16,28 @@ indicators:
     base: rx1day
     parameters:
       freq: QS-DEC
+  prcptot_ann:
+    base: prcptot
+    parameters:
+      freq: AS-JAN
+    cf_attrs:
+      var_name: prcptot
+  rx1day_ann:
+    base: rx1day
+    parameters:
+      freq: AS-JAN
+    cf_attrs:
+      var_name: rx1day
+  tx_mean_ann:
+    base: tx_mean
+    parameters:
+      freq: AS-JAN
+    cf_attrs:
+      var_name: tx_mean
+  tn_mean_ann:
+    base: tn_mean
+    parameters:
+      freq: AS-JAN
+    cf_attrs:
+      var_name: tn_mean
+

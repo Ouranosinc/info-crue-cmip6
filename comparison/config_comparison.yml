@@ -22,10 +22,15 @@ horizons:
       - ssp245
       - rcp45
     activity:
-      - CMIP5 # TODO: should I include only CMIP5 or also CORDEX?
+      - CMIP5 # GISS-E2-R is missing one member, but we decided that it is ok for the comp.
+      - CORDEX
+      - ClimEx #TDOD: not in 585 ? verify
       - ScenarioMIP
     domain:
       - QC
+      - QC-44
+      - QC-22
+      - QC-11
       - QC-RDRS
       - QC-EMDNA
     source:
@@ -38,34 +43,42 @@ horizons:
       - KACE-1-0-G
       - MIROC6
       - MRI-ESM2-0
-      # CMIP5
+        #atlas2022
       - ACCESS1.0
       - ACCESS1.3
-      - BCC-CSM1.1(m)
       - BCC-CSM1.1
+      - BCC-CSM1.1(m)
       - BNU-ESM
+      - CCCma-CanRCM4
+      - CMCC-CESM
       - CMCC-CM
       - CMCC-CMS
       - CNRM-CM5
+      - CSIRO-Mk3.6.0
+      - CanESM2
+      - DMI-HIRHAM5
       - FGOALS-g2
+      - GFDL-CM3
       - GFDL-ESM2G
       - GFDL-ESM2M
       - GISS-E2-H
+      - GISS-E2-R  # this one is supposed to have 2 members, but only one was found on our disks "nomenclature cQ2 ne permettait pas de distinguer ces 2 membres (r6i1p1 et r6i1p3)... Je sens qu'un des deux a juste été écrasé à un moment"
+      - INM-CM4
+      - IPSL-CM5A-LR
       - IPSL-CM5A-MR
       - IPSL-CM5B-LR
-      - INM-CM4
-      - MIROC-ESM-CHEM
+      - ISU-RegCM4
       - MIROC-ESM
-      - MRI-CGCM3
-      - NorESM1-M
-      - CanESM2
-      - CSIRO-Mk3.6.0
-      - GFDL-CM3
-      - GISS-E2-R # this one is supposed to have 2 members, but only one was found on our disks "nomenclature cQ2 ne permettait pas de distinguer ces 2 membres (r6i1p1 et r6i1p3)... Je sens qu'un des deux a juste été écrasé à un moment"
-      - IPSL-CM5A-LR
+      - MIROC-ESM-CHEM
       - MIROC5
-      - MPI-ESM-LR
+      - MPI-ESM-LR # UQAM-CRCM5 piloté par LR est juste un doublon de MR
       - MPI-ESM-MR
+      - MRI-CGCM3
+      - MRI-ESM1
+      - NorESM1-M
+      - OURANOS-CRCM5
+      - SMHI-RCA4
+      - UQAM-CRCM5
   chunks: {'time':-1, 'lat':30, 'lon':30}
   periods:
     - ['2071', '2100']
@@ -81,6 +94,9 @@ deltas:
       - QC-EMDNA
       - QC-E5L
       - QC-CM5
+      - QC-44
+      - QC-22
+      - QC-11
   reference:
     processing_level: comp-horizon1991-2020
 
@@ -94,9 +110,13 @@ regrid:
       - QC-EMDNA
       - QC-E5L
       - QC-CM5
+      - QC-44
+      - QC-22
+      - QC-11
   target:
     domain: QC-RDRS
     processing_level: comp-horizon2071-2100
+    xrfreq: AS-JAN
     id: CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1_global # just choose a random one
   regrid_dataset:
     regridder_kwargs:
@@ -129,6 +149,13 @@ ensembles:
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
     CM5:
       domain: QC-CM52rdrs
+      activity: CMIP5
+    ATLAS2022:
+      domain:
+        - QC-CM52rdrs
+        - QC-442rdrs
+        - QC-222rdrs
+        - QC-112rdrs
     CM6:
       domain:
         - QC-RDRS
