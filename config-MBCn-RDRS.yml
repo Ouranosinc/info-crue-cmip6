@@ -445,7 +445,7 @@ diagnostics_tmp:
   scen:
     input:
       id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
-      processing_level: final #adjusted_1981-2010 #TODO: replace
+      processing_level: adjusted_1981-2010
     dref_for_measure:
       processing_level: tmp-diag-ref-prop
     properties_and_measures:
