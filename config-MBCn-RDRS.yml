@@ -6,31 +6,27 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-#  - makeref
-#  - extract
-#  - regrid
-##  - ba-MBCn
-###  - ba-dOTC
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
-#  - clean_up
-#  - final_zarr
-#  - diagnostics
+  - makeref
+  - extract
+  - regrid
+  - ba-MBCn
+##  - ba-dOTC
+  - clean_up
+  - final_zarr
+  - diagnostics
 #  - individual_wl
 #  - horizons
 #  - deltas
-  - ensembles # check the domains
+#  - ensembles
 
 
 
 custom:
     delete_in_final_zarr: False
-    delete_in_diag: True
+    delete_in_diag: False #TODO: change
     regions:
-        QC-RDRS:
-          name: QC-RDRS
+        QC-MBCn-RDRS:
+          name: QC-MBCn-RDRS
           method: bbox
           bbox:
             lon_bnds: [ -83, -55 ]
@@ -50,7 +46,7 @@ custom:
       - '1989'
       - '2018'
     sim_period: &sim_period
-        - '1956'
+        - '1951'
         - '2100'
     encoding:
       tasmax:
@@ -96,8 +92,7 @@ extraction:
             periods : *ref_period
             other_search_criteria:
                 source: &ref_source
-                    #"ERA5-Land"
-                  RDRS # new-ref
+                  RDRS
         extract_dataset: {}
         properties_and_measures:
           period: *ref_period
@@ -129,7 +124,6 @@ extraction:
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
           other_search_criteria:
-            #require_all_on: ['source', 'member']
             processing_level: raw
 #            member:
 #              - r1i1p1f1
@@ -162,6 +156,7 @@ extraction:
             xr_combine_kwargs:
               combine_attrs: override
             xr_open_kwargs:
+              engine: h5netcdf
               drop_variables:
                 - height
                 - bnds
@@ -211,6 +206,12 @@ regrid:
           extrap_method: inverse_dist
           locstream_out: False
           reuse_weights: False
+
+biasadjust_MBCn:
+  attrs:
+    processing_level: biasadjusted
+    bias_adjust_institution: Ouranos
+    bias_adjust_project: info-crue-CMIP6
 
 biasadjust_dOTC:
   adjust: {}
@@ -411,6 +412,50 @@ diagnostics:
       rechunk: {'rlat':30, 'rlon':30, 'time':-1}
       period: *ref_period
       unstack: False
+
+
+diagnostics_tmp:
+  ref:
+    input:
+      source: RDRS
+      calendar: default
+      processing_level: extracted
+    properties_and_measures:
+      rechunk: { 'rlat': 30, 'rlon': 30, 'time': -1 }
+      period: [ '1981','2010' ]
+      unstack: *stack
+      change_units_arg:
+        tasmax: degC
+        tasmin: degC
+        pr: mm d-1
+  sim:
+    input:
+      id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
+      processing_level:  regridded
+    dref_for_measure:
+      processing_level: tmp-diag-ref-prop
+    properties_and_measures:
+      rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
+      period: ['1981','2010']
+      unstack: *stack
+      change_units_arg:
+        tasmax: degC
+        tasmin: degC
+        pr: mm d-1
+  scen:
+    input:
+      id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
+      processing_level: final #adjusted_1981-2010 #TODO: replace
+    dref_for_measure:
+      processing_level: tmp-diag-ref-prop
+    properties_and_measures:
+      rechunk: {'rlat':30, 'rlon':30, 'time':-1}
+      period: ['1981','2010']
+      unstack: True
+      change_units_arg:
+        tasmax: degC
+        tasmin: degC
+        pr: mm d-1
 
 
 

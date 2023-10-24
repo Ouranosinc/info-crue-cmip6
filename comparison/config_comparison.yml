@@ -60,17 +60,17 @@ horizons:
       - FGOALS-g2
       - GFDL-CM3
       - GFDL-ESM2G
-      - GFDL-ESM2M
+      #- GFDL-ESM2M #TODO: put back
       - GISS-E2-H
       - GISS-E2-R  # this one is supposed to have 2 members, but only one was found on our disks "nomenclature cQ2 ne permettait pas de distinguer ces 2 membres (r6i1p1 et r6i1p3)... Je sens qu'un des deux a juste été écrasé à un moment"
-      - INM-CM4
+      #- INM-CM4
       - IPSL-CM5A-LR
       - IPSL-CM5A-MR
       - IPSL-CM5B-LR
       - ISU-RegCM4
       - MIROC-ESM
       - MIROC-ESM-CHEM
-      - MIROC5
+      #- MIROC5 #TODO: put back
       - MPI-ESM-LR # UQAM-CRCM5 piloté par LR est juste un doublon de MR
       - MPI-ESM-MR
       - MRI-CGCM3
@@ -132,31 +132,31 @@ ensembles:
     statistics:
       ensemble_percentiles:
   groups:
-    RDRS: # basic groups don't include CanESM5
+    RDRS: # basic groups don't include CanESM5 #21
         domain: QC-RDRS
         source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    EMDNA:
+    EMDNA: #21
       domain: QC-EMDNA
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    E5L:
+    E5L: #21
       domain: QC-E5L
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    EMDNA2rdrs:
+    EMDNA2rdrs: #21
       domain: QC-EMDNA2rdrs
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    E5L2rdrs:
+    E5L2rdrs: #21
       domain: QC-E5L2rdrs
       source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-    CM5:
+    CM5: #51
       domain: QC-CM52rdrs
       activity: CMIP5
-    ATLAS2022:
+    ATLAS2022: #62
       domain:
         - QC-CM52rdrs
         - QC-442rdrs
         - QC-222rdrs
         - QC-112rdrs
-    CM6:
+    CM6: # 63
       domain:
         - QC-RDRS
         - QC-EMDNA2rdrs

@@ -280,8 +280,7 @@ def rotated_latlon(ds, path):
 def comp_transfer(workdir, final_dest,pcat, scp_kwargs):
     for f in glob.glob(f"{workdir}/*/*/*/*/*.zarr"):
         ds = xr.open_zarr(f)
-        final_dest_cur = Path(final_dest.format(
-            **xs.utils.get_cat_attrs(ds)))
+        final_dest_cur = Path(final_dest.format(**xs.utils.get_cat_attrs(ds)))
         out_path = python_scp(f, final_dest_cur, **scp_kwargs)
         if  out_path is not None:
             pcat.update_from_ds(ds=ds, path=out_path)

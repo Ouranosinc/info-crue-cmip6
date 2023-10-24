@@ -457,7 +457,7 @@ ensembles:
 #    delta-+3C-selection:
 #      processing_level: delta-+3C
 #      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp126-2081-2100-selection: # TODO: the delta for indicators ( need to redo has horizon first)
+#    delta-ssp126-2081-2100-selection:
 #      processing_level: delta-horizon2081-2100
 #      experiment: ssp126
 #      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
