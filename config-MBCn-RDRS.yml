@@ -23,7 +23,7 @@ tasks:
 
 custom:
     delete_in_final_zarr: False
-    delete_in_diag: False #TODO: change
+    delete_in_diag: True
     regions:
         QC-MBCn-RDRS:
           name: QC-MBCn-RDRS

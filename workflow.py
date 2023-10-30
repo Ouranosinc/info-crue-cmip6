@@ -291,7 +291,7 @@ if __name__ == '__main__':
 
                 from xclim.sdba import adjustment
 
-                # THIS WORKED on QC. not sure these are the best params, but it worked at least once.
+
                 # ---BA-MBCn ---
                 if (
                         "ba-MBCn" in CONFIG["tasks"]
@@ -302,21 +302,17 @@ if __name__ == '__main__':
                         # load hist ds (simulation)
                         sim = pcat.search(id=sim_id,
                                           processing_level='regridded',
-                                          domain=region_name).to_dask(
-                            # xarray_open_kwargs={'chunks':{'loc':5}}
-                        ).drop_vars('dtr')
-                        #sim = sim.chunk({'loc': 1})
+                                          domain=region_name).to_dask().drop_vars('dtr')
 
                         # load ref ds
                         # choose right calendar
                         simcal = get_calendar(sim)
                         refcal = minimum_calendar(simcal,
-                                                  CONFIG['custom'][
-                                                      'maximal_calendar'])
+                                                  CONFIG['custom']['maximal_calendar'])
                         dref = pcat.search(source=ref_source,
                                            calendar=refcal,
-                                           domain=region_name).to_dask(
-                        ).drop_vars('dtr')
+                                           domain=region_name
+                                           ).to_dask( ).drop_vars('dtr')
 
                         # convert calendar if necessary
                         maximal_calendar = "noleap"
@@ -329,10 +325,9 @@ if __name__ == '__main__':
                         if refcal != mincal:
                             dref = convert_calendar(dref, mincal, align_on=align_on)
 
-                        #dsim = sim.sel(time=sim_period)
                         dhist = sim.sel(time=ref_period)
 
-                        #TODO: add/remove time slice
+
                         for slice_per in [['1951', '1980'],['1981', '2010'],
                                           ['2011', '2040'],['2041', '2070'],
                                           ['2071', '2100']]:
@@ -352,6 +347,8 @@ if __name__ == '__main__':
                                 if not pcat.exists_in_cat(id=sim_id, domain=region_name,
                                                           processing_level='ba1-tasmax' ):
                                     with Client(n_workers=4, threads_per_worker=3,memory_limit="10GB", **daskkws) as C:
+                                        #TODO: issue here . it works before in not experimental env!!! need to fic this
+                                        # version of xarray ???
                                         print('ba 1 - tasmax')
                                         QDMtx = sdba.QuantileDeltaMapping.train(
                                             dref.tasmax, dhist.tasmax, nquantiles=nquantiles,
@@ -443,8 +440,7 @@ if __name__ == '__main__':
                                                      filename=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_pr_ba1.zarr",
                                                      mode='o')
 
-                                        scens_pr.attrs[
-                                            'cat:processing_level'] = 'ba1-pr'
+                                        scens_pr.attrs['cat:processing_level'] = 'ba1-pr'
 
                                         path_adj = f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_pr_ba1.zarr"
                                         save_to_zarr(ds=scens_pr,
@@ -488,20 +484,20 @@ if __name__ == '__main__':
                                         # Standardize
                                         ref, _, _ = sdba.processing.standardize(ref)
 
-                                        #TODO: short time
 
-                                        #TODO: put a fake time axis to be able to concat (issue when s overlaps with h)
+
+                                        #put a fake time axis to be able to concat (issue when s overlaps with h)
                                         scens_fake_time=scens.copy()
-                                        scens_fake_time['time']=scens.time -timedelta(days=365*100)
-
-
+                                        scens_fake_time['time']=scens.time -timedelta(days=365*200)
 
                                         allsim_std, _, _ = sdba.processing.standardize(
                                                 xr.concat((scenh, scens_fake_time), "time"))
 
                                         scenh_std = allsim_std.sel(time=scenh.time)
                                         scens_std = allsim_std.sel(time=scens_fake_time.time)
-                                        scens_std['time'] = scens_std.time + timedelta(days=365 * 100)
+
+                                        # undo fake axis
+                                        scens_std['time'] = scens_std.time + timedelta(days=365 * 200)
 
                                         ref = ref.to_dataset()
                                         ref.attrs.update(dref.attrs)
@@ -525,10 +521,12 @@ if __name__ == '__main__':
                                         pcat.update_from_ds(ds=scens_std, path=path_adj)
                                 # 3. Perform the N-dimensional probability density function transform
                                 if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                              processing_level=f'adjusted_{str_per}'):
+                                                              processing_level=f'NpdfT_{str_per}'):
                                     with Client(n_workers=2, threads_per_worker=3,
                                             memory_limit="25GB", **daskkws) as C:
-                                        print('npdf')
+
+
+                                        print('NpdfT')
                                         ref = xr.open_zarr(
                                             f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_ref_std.zarr")
                                         scens_std = xr.open_zarr(
@@ -554,96 +552,110 @@ if __name__ == '__main__':
                                                 base_kws={"nquantiles": nquantiles,
                                                           "group": "time"},
                                                 n_iter=n_iter,  # perform X iteration
-                                                n_escore=1000,
-                                                # only send 1000 points to the escore metric (it is realy slow)
+                                                n_escore=1, #1000, #TODO: try no escore
+                                                # only send 1000 points to the escore metric (it is really slow)
                                             )
 
 
                                         out.attrs.update(s_attrs)
+                                        out.attrs['cat:processing_level'] = f'NpdfT_{str_per}'
+                                        path_out=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_NpdfT_{str_per}.zarr"
+                                        xs.save_to_zarr(out,path_out)
 
 
                                         # 4. Restoring the trend
-                                        print('restore')
+                                        if not pcat.exists_in_cat(id=sim_id,
+                                                                  domain=region_name,
+                                                                  processing_level=f'adjusted_{str_per}'):
+                                            with Client(n_workers=2,
+                                                        threads_per_worker=3,
+                                                        memory_limit="25GB",
+                                                        **daskkws) as C:
+                                                print('restore')
+                                                out = xr.open_dataset(f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_NpdfT_{str_per}.zarr")
+                                                scenh_tx = xr.open_zarr(
+                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tx_ba1.zarr")
+                                                scenh_tn = xr.open_zarr(
+                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tn_ba1.zarr")
+                                                scenh_pr = xr.open_zarr(
+                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_pr_ba1.zarr")
+                                                scens_tx = xr.open_zarr(
+                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tx_ba1.zarr")
+                                                scens_tn = xr.open_zarr(
+                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tn_ba1.zarr")
+                                                scens_pr = xr.open_zarr(
+                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_pr_ba1.zarr")
 
-                                        scenh_tx = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tx_ba1.zarr")
-                                        scenh_tn = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tn_ba1.zarr")
-                                        scenh_pr = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_pr_ba1.zarr")
-                                        scens_tx = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tx_ba1.zarr")
-                                        scens_tn = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tn_ba1.zarr")
-                                        scens_pr = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_pr_ba1.zarr")
+                                                scenh = xr.Dataset(
+                                                    dict(tasmax=scenh_tx.scen, pr=scenh_pr.scen,
+                                                         tasmin=scenh_tn.scen))
+                                                scens = xr.Dataset(
+                                                    dict(tasmax=scens_tx.scen, pr=scens_pr.scen,
+                                                         tasmin=scens_tn.scen))
+                                                scenh = sdba.processing.stack_variables(scenh)
+                                                scens = sdba.processing.stack_variables(scens)
 
-                                        scenh = xr.Dataset(
-                                            dict(tasmax=scenh_tx.scen, pr=scenh_pr.scen,
-                                                 tasmin=scenh_tn.scen))
-                                        scens = xr.Dataset(
-                                            dict(tasmax=scens_tx.scen, pr=scens_pr.scen,
-                                                 tasmin=scens_tn.scen))
-                                        scenh = sdba.processing.stack_variables(scenh)
-                                        scens = sdba.processing.stack_variables(scens)
+                                                # TEST
+                                                # scenh=scenh.chunk({'loc':100})
+                                                # scens = scens.chunk({'loc': 100})
+                                                # out = out.chunk({'loc': 100})
 
-                                        # TEST
-                                        # scenh=scenh.chunk({'loc':100})
-                                        # scens = scens.chunk({'loc': 100})
-                                        # out = out.chunk({'loc': 100})
+                                                scenh_npdft = out.scenh.rename(
+                                                    time_hist="time")  # Bias-adjusted historical period
+                                                scens_npdft = out.scen  # Bias-adjusted future period
+                                                extra = out.drop_vars(["scenh", "scen"])
 
-                                        scenh_npdft = out.scenh.rename(
-                                            time_hist="time")  # Bias-adjusted historical period
-                                        scens_npdft = out.scen  # Bias-adjusted future period
-                                        extra = out.drop_vars(["scenh", "scen"])
+                                                scenh = sdba.processing.reordering(scenh_npdft,
+                                                                                   scenh,
+                                                                                   group="time")
+                                                scens = sdba.processing.reordering(scens_npdft,
+                                                                                   scens,
+                                                                                   group="time")
 
-                                        scenh = sdba.processing.reordering(scenh_npdft,
-                                                                           scenh,
-                                                                           group="time")
-                                        scens = sdba.processing.reordering(scens_npdft,
-                                                                           scens,
-                                                                           group="time")
+                                                scenh = sdba.processing.unstack_variables(scenh)
+                                                scens = sdba.processing.unstack_variables(scens)
 
-                                        scenh = sdba.processing.unstack_variables(scenh)
-                                        scens = sdba.processing.unstack_variables(scens)
+                                                # TODO: try no escore
+                                                #ds_scen, escores = dask.compute(scens,
+                                                                                #extra.escores)
+                                                ds_scen=scens
 
-                                        ds_scen, escores = dask.compute(scens,
-                                                                        extra.escores)
+                                                ds_scen.attrs.update(sim.attrs)
+                                                for attrs_k, attrs_v in CONFIG['biasadjust_MBCn'][
+                                                    'attrs'].items():
+                                                    ds_scen.attrs[f"cat:{attrs_k}"] = attrs_v
 
-                                        ds_scen.attrs.update(sim.attrs)
-                                        for attrs_k, attrs_v in CONFIG['biasadjust_MBCn'][
-                                            'attrs'].items():
-                                            ds_scen.attrs[f"cat:{attrs_k}"] = attrs_v
+                                                ds_scen.attrs["cat:variable"] = \
+                                                    xs.catutils.parse_from_ds(ds_scen,
+                                                                              ["variable"])[
+                                                        "variable"]
 
-                                        ds_scen.attrs["cat:variable"] = \
-                                            xs.catutils.parse_from_ds(ds_scen,
-                                                                      ["variable"])[
-                                                "variable"]
+                                                # save_to_zarr(ds=escores.to_dataset(),
+                                                #              filename=CONFIG['paths'][
+                                                #                  'escores'].format(
+                                                #                  sim_id=sim_id,
+                                                #                  period=str_per,
+                                                #                  region_name=region_name),
+                                                #              mode='o')
 
-                                        save_to_zarr(ds=escores.to_dataset(),
-                                                     filename=CONFIG['paths'][
-                                                         'escores'].format(
-                                                         sim_id=sim_id,
-                                                         period=str_per,
-                                                         region_name=region_name),
-                                                     mode='o')
+                                                # save and update
+                                                path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted_{str_per}.zarr"
+                                                ds_scen.attrs['cat:processing_level'] = f'adjusted_{str_per}'
+                                                save_to_zarr(
+                                                    ds=ds_scen.chunk(dict(time=-1, loc=50)),
+                                                    filename=path_adj,
+                                                    mode='o')
+                                                pcat.update_from_ds(ds=ds_scen, path=path_adj)
 
-                                        # save and update
-                                        path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted_{str_per}.zarr"
-                                        ds_scen.attrs['cat:processing_level'] = f'adjusted_{str_per}'
-                                        save_to_zarr(
-                                            ds=ds_scen.chunk(dict(time=-1, loc=50)),
-                                            filename=path_adj,
-                                            mode='o')
-                                        pcat.update_from_ds(ds=ds_scen, path=path_adj)
-
-                                        shutil.rmtree(f"{workdir}/tmp_{str_per}")
+                                                shutil.rmtree(f"{workdir}/tmp_{str_per}")
 
                         #4. concat time
                         if not pcat.exists_in_cat(id=sim_id, domain=region_name,
                                                   processing_level=f'biasadjusted'):
-                            ds_concat = pcat.search(id=sim_id, domain=region_name,
-                                             processing_level='^adjusted').to_dataset()
+                            dict_concat = pcat.search(id=sim_id, domain=region_name,
+                                             processing_level='^adjusted').to_dataset_dict(**tdd)
+                            ds_concat= xr.concat(dict_concat.values(), dim='time')
+                            ds_concat= ds_concat.chunk({'loc':50, 'time':-1})
                             ds_concat.attrs[
                                 'cat:processing_level'] = f'biasadjusted'
                             path_adj = f"{workdir}/{sim_id}_{region_name}_biasadjusted.zarr"
@@ -927,6 +939,8 @@ if __name__ == '__main__':
                                                      periods= CONFIG['custom']['sim_period']
                                                           )['D']
 
+                                #TODO: for mbcn, try to do it above
+                                ds= ds.chunk({'time':-1})
 
                                 ds = clean_up(ds = ds,
                                               **CONFIG['clean_up']['xscen_clean_up'])
