@@ -59,6 +59,8 @@ custom:
         dtype: float32
     maximal_calendar: &mcal
       noleap
+    align_on:
+      year
 
 
 
@@ -207,11 +209,38 @@ regrid:
           locstream_out: False
           reuse_weights: False
 
-biasadjust_MBCn:
+biasadjust_mbcn:
+  periods: [['1951', '1980'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
+  nquantiles: &nquantiles_mbcn
+    50
+  group: &group_mbcn
+    time # TODO; doy
+  variables:
+    tasmax:
+      kind: '+'
+      nquantiles: *nquantiles_mbcn
+      group: *group_mbcn
+    tasmin:
+      kind: '+'
+      nquantiles: *nquantiles_mbcn
+      group: *group_mbcn
+    pr:
+      kind: '*'
+      nquantiles: *nquantiles_mbcn
+      group: *group_mbcn
+  NpdfTransform:
+    base_kws:
+      nquantiles: *nquantiles_mbcn
+      group: *group_mbcn
+    n_iter: 30
+    n_escore: 1 #1000, #TODO: try no escore
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
     bias_adjust_project: info-crue-CMIP6
+  chunks:
+    loc: 50
+    time: -1
 
 biasadjust_dOTC:
   adjust: {}

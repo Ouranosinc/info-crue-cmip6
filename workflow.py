@@ -298,372 +298,238 @@ if __name__ == '__main__':
                         and not pcat.exists_in_cat(domain=region_name, id=sim_id,
                                                    processing_level='biasadjusted')
                 ):
-                    with measure_time(name=f'MBCn', logger=logger):
-                        # load hist ds (simulation)
-                        sim = pcat.search(id=sim_id,
-                                          processing_level='regridded',
-                                          domain=region_name).to_dask().drop_vars('dtr')
 
-                        # load ref ds
-                        # choose right calendar
-                        simcal = get_calendar(sim)
-                        refcal = minimum_calendar(simcal,
-                                                  CONFIG['custom']['maximal_calendar'])
-                        dref = pcat.search(source=ref_source,
-                                           calendar=refcal,
-                                           domain=region_name
-                                           ).to_dask( ).drop_vars('dtr')
+                    # load hist ds (simulation)
+                    sim = pcat.search(id=sim_id,
+                                      processing_level='regridded',
+                                      domain=region_name
+                                      ).to_dask(**tdd).drop_vars('dtr')
 
-                        # convert calendar if necessary
-                        maximal_calendar = "noleap"
-                        align_on = "year"
-                        simcal = get_calendar(sim)
-                        refcal = get_calendar(dref)
-                        mincal = minimum_calendar(simcal, maximal_calendar)
-                        if simcal != mincal:
-                            sim = convert_calendar(sim, mincal, align_on=align_on)
-                        if refcal != mincal:
-                            dref = convert_calendar(dref, mincal, align_on=align_on)
+                    # load ref ds
+                    # choose right calendar
+                    simcal = get_calendar(sim)
+                    refcal = minimum_calendar(simcal,
+                                              CONFIG['custom']['maximal_calendar'])
+                    dref = pcat.search(source=ref_source,
+                                       calendar=refcal,
+                                       processing_level='extracted',
+                                       domain=region_name
+                                       ).to_dask(**tdd).drop_vars('dtr')
 
-                        dhist = sim.sel(time=ref_period)
+                    # convert calendar if necessary
+                    # this is usually in in xscen
+                    maximal_calendar = CONFIG['custom']['maximal_calendar']
+                    align_on = CONFIG['custom']['align_on']
+                    simcal = get_calendar(sim)
+                    refcal = get_calendar(dref)
+                    mincal = minimum_calendar(simcal, maximal_calendar)
+                    if simcal != mincal:
+                        sim = convert_calendar(sim, mincal, align_on=align_on)
+                    if refcal != mincal:
+                        dref = convert_calendar(dref, mincal, align_on=align_on)
+
+                    # choose right ref period
+                    dhist = sim.sel(time=ref_period)
 
 
-                        for slice_per in [['1951', '1980'],['1981', '2010'],
-                                          ['2011', '2040'],['2041', '2070'],
-                                          ['2071', '2100']]:
-                            str_per = slice_per[0] + '-' + slice_per[1]
-                            if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          processing_level=f'adjusted_{str_per}'):
+                    dref["pr"] = sdba.processing.jitter_under_thresh(
+                        dref.pr, "0.01 mm d-1")
+                    dhist["pr"] = sdba.processing.jitter_under_thresh(
+                        dhist.pr, "0.01 mm d-1")
+                    sim["pr"] = sdba.processing.jitter_under_thresh(
+                        sim.pr, "0.01 mm d-1")
 
-                                Path(f"{workdir}/tmp_{str_per}").mkdir(
-                                    parents=True, exist_ok=True)
-                                dsim=sim.sel(time=slice(slice_per[0], slice_per[1]))
+                    # do bias_adjustment in periods of 30 years
+                    for slice_per in CONFIG['biasadjust_mbcn']['periods']:
+                        str_per = slice_per[0] + '-' + slice_per[1]
 
-                                nquantiles = 50
-                                n_iter = 30 # 2041-2070 with 50 # worked with 20 # looks like 20 should be ok
+                        if not pcat.exists_in_cat(
+                                id=sim_id, domain=region_name,
+                                processing_level=f'adjusted_{str_per}'):
 
-                                # 1. initial univariate
-                                # additive for tasmax
+                            # prepare tmp dir for this period
+                            Path(f"{workdir}/tmp_{str_per}").mkdir(parents=True,
+                                                                   exist_ok=True)
+
+                            dsim = sim.sel(time=slice(slice_per[0], slice_per[1]))
+                            path_dict=dict(str_per=str_per, sim_id= sim_id, region_name=region_name)
+
+                            # 1. initial univariate
+                            for var, conf in CONFIG['biasadjust_mbcn']['variables'].items():
+
                                 if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          processing_level='ba1-tasmax' ):
-                                    with Client(n_workers=4, threads_per_worker=3,memory_limit="10GB", **daskkws) as C:
-                                        #TODO: issue here . it works before in not experimental env!!! need to fic this
-                                        # version of xarray ???
-                                        print('ba 1 - tasmax')
+                                                          variable=var,
+                                                          processing_level=f'scens-ba1-{str_per}'):
+                                    with (Client(n_workers=4, threads_per_worker=3,
+                                                memory_limit="10GB", **daskkws),
+                                        measure_time(name=f'ba 1 - {var}', logger=logger)):
+
                                         QDMtx = sdba.QuantileDeltaMapping.train(
-                                            dref.tasmax, dhist.tasmax, nquantiles=nquantiles,
-                                            kind="+",
-                                            group="time"
-                                        )
+                                            dref[var], dhist[var],**conf)
+
                                         # Adjust both hist and sim, we'll feed both to the Npdf transform.
-                                        scenh_tx = QDMtx.adjust(dhist.tasmax)
+                                        for ds_input, name in zip([dhist, dsim],['scenh','scens']):
+                                            ds_output = QDMtx.adjust(ds_input[var])
+                                            ds_output = ds_output.to_dataset(name=var)
+                                            ds_output.attrs.update(dsim.attrs)
 
-                                        scenh_tx= scenh_tx.to_dataset()
-                                        scenh_tx.attrs.update(dsim.attrs)
-                                        save_to_zarr(ds=scenh_tx,
-                                                     filename=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tx_ba1.zarr",
-                                                     mode='o')
+                                            level=f'{name}-ba1-{str_per}'
+                                            ds_output.attrs['cat:processing_level'] = level
+                                            ds_output.attrs['cat:variable'] = var
+                                            path=CONFIG['paths']['tmp_mbcn'].format(
+                                                **path_dict|{'level':f"{var}_{level}",} )
+                                            xs.save_and_update(ds=ds_output,path=path, pcat=pcat)
 
-                                        scens_tx = QDMtx.adjust(dsim.tasmax)
-                                        scens_tx = scens_tx.to_dataset()
-                                        scens_tx.attrs.update(dsim.attrs)
-                                        scens_tx.attrs['cat:processing_level']='ba1-tasmax'
+                            # 2. std
+                            if not pcat.exists_in_cat(id=sim_id, domain=region_name,
+                                                      processing_level=f'std-scens-{str_per}'):
+                                with (Client(n_workers=4, threads_per_worker=3,
+                                            memory_limit="10GB", **daskkws),
+                                     measure_time(name=f'std-{str_per}', logger=logger)):
 
-                                        path_adj = f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tx_ba1.zarr"
-                                        save_to_zarr(ds=scens_tx,
-                                                     filename=path_adj,
-                                                     mode='o')
-                                        pcat.update_from_ds(ds=scens_tx, path=path_adj)
+                                    scenh = pcat.search(
+                                        processing_level=f"scenh-ba1-{str_per}",
+                                        id=sim_id, domain=region_name,).to_dataset(**tdd)
+                                    scens = pcat.search(
+                                        processing_level=f"scens-ba1-{str_per}",
+                                        id=sim_id, domain=region_name).to_dataset(**tdd)
 
-                                    # additive for tasmin
-                                if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          processing_level='ba1-tasmin'):
-                                    with Client(n_workers=4, threads_per_worker=3,
-                                                memory_limit="10GB", **daskkws) as C:
-                                        print('ba 1 - tasmin')
-                                        QDMtn = sdba.QuantileDeltaMapping.train(
-                                            dref.tasmin, dhist.tasmin, nquantiles=nquantiles,
-                                            kind="+",
-                                            group="time"
-                                        )
-                                        # Adjust both hist and sim, we'll feed both to the Npdf transform.
-                                        scenh_tn = QDMtn.adjust(dhist.tasmin)
-                                        scens_tn = QDMtn.adjust(dsim.tasmin)
+                                    # Stack the variables (tasmax and pr)
+                                    ref = sdba.processing.stack_variables(dref)
+                                    scenh = sdba.processing.stack_variables(scenh)
+                                    scens = sdba.processing.stack_variables(scens)
 
-                                        scenh_tn = scenh_tn.to_dataset()
-                                        scenh_tn.attrs.update(dsim.attrs)
-                                        scens_tn = scens_tn.to_dataset()
-                                        scens_tn.attrs.update(dsim.attrs)
+                                    # Standardize
+                                    ref, _, _ = sdba.processing.standardize(ref)
 
+                                    #put a fake time axis to be able to concat (issue when s overlaps with h)
+                                    scens_fake_time=scens.copy()
+                                    scens_fake_time['time']=scens.time -timedelta(days=365*200)
 
-                                        save_to_zarr(ds=scenh_tn,
-                                                     filename=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tn_ba1.zarr",
-                                                     mode='o')
+                                    allsim_std, _, _ = sdba.processing.standardize(
+                                            xr.concat((scenh, scens_fake_time), "time"))
 
-                                        scens_tn.attrs['cat:processing_level'] = 'ba1-tasmin'
+                                    scenh_std = allsim_std.sel(time=scenh.time)
+                                    scens_std = allsim_std.sel(time=scens_fake_time.time)
 
-                                        path_adj = f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tn_ba1.zarr"
-                                        save_to_zarr(ds=scens_tn,
-                                                     filename=path_adj,
-                                                     mode='o')
-                                        pcat.update_from_ds(ds=scens_tn, path=path_adj)
-
-                                # multiplicative for pr
-                                if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          processing_level='ba1-pr'):
-                                    with Client(n_workers=4, threads_per_worker=3,
-                                                memory_limit="10GB", **daskkws) as C:
-                                        print('ba 1 - pr')
-                                        # remove == 0 values in pr:
-                                        dref["pr"] = sdba.processing.jitter_under_thresh(dref.pr,
-                                                                                         "0.01 mm d-1")
-                                        dhist["pr"] = sdba.processing.jitter_under_thresh(dhist.pr,
-                                                                                          "0.01 mm d-1")
-                                        dsim["pr"] = sdba.processing.jitter_under_thresh(dsim.pr,
-                                                                                         "0.01 mm d-1")
+                                    # undo fake axis
+                                    scens_std['time'] = scens_std.time + timedelta(days=365 * 200)
 
 
-                                        QDMpr = sdba.QuantileDeltaMapping.train(
-                                            dref.pr, dhist.pr, nquantiles=nquantiles, kind="*",
-                                            group="time"
-                                        )
-                                        # Adjust both hist and sim, we'll feed both to the Npdf transform.
-                                        scenh_pr = QDMpr.adjust(dhist.pr)
-                                        scens_pr = QDMpr.adjust(dsim.pr)
-
-                                        scenh_pr = scenh_pr.to_dataset()
-                                        scenh_pr.attrs.update(dsim.attrs)
-                                        scens_pr = scens_pr.to_dataset()
-                                        scens_pr.attrs.update(dsim.attrs)
-
-                                        save_to_zarr(ds=scenh_pr,
-                                                     filename=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_pr_ba1.zarr",
-                                                     mode='o')
-
-                                        scens_pr.attrs['cat:processing_level'] = 'ba1-pr'
-
-                                        path_adj = f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_pr_ba1.zarr"
-                                        save_to_zarr(ds=scens_pr,
-                                                     filename=path_adj,
-                                                     mode='o')
-                                        pcat.update_from_ds(ds=scens_pr, path=path_adj)
+                                    for ds,name, ds_a in zip([ref,scenh_std, scens_std],
+                                                              ['ref', 'scenh', 'scens'],
+                                                              [dref, scenh, scens]):
+                                        ds=ds.to_dataset()
+                                        ds.attrs.update(ds_a.attrs)
+                                        ds.attrs['cat:processing_level'] = f"std-{name}-{str_per}" #TODO: change order
+                                        path = CONFIG['paths']['tmp_mbcn'].format(
+                                            **path_dict | {'level': f"{name}-std-{str_per}" })
+                                        xs.save_and_update(ds=ds,path=path, pcat=pcat)
 
 
 
-                                if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          processing_level='std'):
-                                    with Client(n_workers=4, threads_per_worker=3,
-                                                memory_limit="10GB", **daskkws) as C:
-                                        print('std')
-                                        scenh_tx= xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tx_ba1.zarr")
-                                        scenh_tn = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tn_ba1.zarr")
-                                        scenh_pr = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_pr_ba1.zarr")
-                                        scens_tx = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tx_ba1.zarr")
-                                        scens_tn = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tn_ba1.zarr")
-                                        scens_pr = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_pr_ba1.zarr")
 
-                                        scenh = xr.Dataset(
-                                            dict(tasmax=scenh_tx.scen, pr=scenh_pr.scen, tasmin=scenh_tn.scen))
-                                        scens = xr.Dataset(
-                                            dict(tasmax=scens_tx.scen, pr=scens_pr.scen, tasmin=scens_tn.scen))
+                            # 3. Perform the N-dimensional probability density function transform
+                            if not pcat.exists_in_cat(id=sim_id, domain=region_name,
+                                                          processing_level=f'NpdfT-{str_per}'):
+                                with (Client(n_workers=2, threads_per_worker=3,
+                                        memory_limit="25GB", **daskkws),
+                                    measure_time(name=f'NpdfT-{str_per}', logger=logger)):
 
+                                    # input
+                                    ref_std=pcat.search(
+                                        processing_level=f"std-ref-{str_per}").to_dataset(**tdd)
+                                    scenh_std = pcat.search(
+                                        processing_level=f"std-scenh-{str_per}").to_dataset(**tdd)
+                                    scens_std = pcat.search(
+                                        processing_level=f"std-scens-{str_per}").to_dataset(**tdd)
 
+                                    out = sdba.adjustment.NpdfTransform.adjust(
+                                        ref_std.multivariate,
+                                        scenh_std.multivariate,
+                                        scens_std.multivariate,
+                                        base=sdba.QuantileDeltaMapping,
+                                        **CONFIG['biasadjust_mbcn']['NpdfTransform']
+                                    )
 
-                                        # 2. stack and standardize
-                                        # Stack the variables (tasmax and pr)
-                                        ref = sdba.processing.stack_variables(dref)
-                                        scenh = sdba.processing.stack_variables(scenh)
-                                        scens = sdba.processing.stack_variables(scens)
-
-                                        # Standardize
-                                        ref, _, _ = sdba.processing.standardize(ref)
-
-
-
-                                        #put a fake time axis to be able to concat (issue when s overlaps with h)
-                                        scens_fake_time=scens.copy()
-                                        scens_fake_time['time']=scens.time -timedelta(days=365*200)
-
-                                        allsim_std, _, _ = sdba.processing.standardize(
-                                                xr.concat((scenh, scens_fake_time), "time"))
-
-                                        scenh_std = allsim_std.sel(time=scenh.time)
-                                        scens_std = allsim_std.sel(time=scens_fake_time.time)
-
-                                        # undo fake axis
-                                        scens_std['time'] = scens_std.time + timedelta(days=365 * 200)
-
-                                        ref = ref.to_dataset()
-                                        ref.attrs.update(dref.attrs)
-                                        scenh_std = scenh_std.to_dataset()
-                                        scenh_std.attrs.update(scenh_tx.attrs)
-                                        scens_std = scens_std.to_dataset()
-                                        scens_std.attrs.update(scenh_tx.attrs)
-
-                                        save_to_zarr(ds=ref,
-                                                     filename=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_ref_std.zarr",
-                                                     mode='o')
-                                        save_to_zarr(ds=scenh_std,
-                                                     filename=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_std.zarr",
-                                                     mode='o')
-
-                                        scens_std.attrs['cat:processing_level'] = 'std'
-                                        path_adj = f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_std.zarr"
-                                        save_to_zarr(ds=scens_std,
-                                                     filename=path_adj,
-                                                     mode='o')
-                                        pcat.update_from_ds(ds=scens_std, path=path_adj)
-                                # 3. Perform the N-dimensional probability density function transform
-                                if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                              processing_level=f'NpdfT_{str_per}'):
-                                    with Client(n_workers=2, threads_per_worker=3,
-                                            memory_limit="25GB", **daskkws) as C:
+                                    out= out.to_dataset().chunk(CONFIG['biasadjust_mbcn']['chunks'])
+                                    out.attrs.update(scens_std.attrs)
+                                    out.attrs['cat:processing_level'] = f'NpdfT-{str_per}'
+                                    path = CONFIG['paths']['tmp_mbcn'].format(
+                                        **path_dict | {'level': f'NpdfT-{str_per}'})
+                                    if 'chunks' in out.encoding:
+                                        del out.encoding['chunks']
+                                    for v in ['lat', 'lon','rlat','rlon','time']:
+                                        if 'chunks' in out[v].encoding:
+                                            del out[v].encoding['chunks']
+                                    xs.save_and_update(ds=out.chunk(CONFIG['biasadjust_mbcn']['chunks']), path=path, pcat=pcat)
 
 
-                                        print('NpdfT')
-                                        ref = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_ref_std.zarr")
-                                        scens_std = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_std.zarr")
-                                        scenh_std = xr.open_zarr(
-                                            f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_std.zarr")
+                            # 4. Restoring the trend
+                            if not pcat.exists_in_cat(id=sim_id,
+                                                      domain=region_name,
+                                                      processing_level=f'adjusted-{str_per}'):
+                                with (Client(n_workers=2,threads_per_worker=3,
+                                            memory_limit="25GB",**daskkws),
+                                    measure_time(name=f'restore-{str_per}',logger=logger)):
 
-                                        s_attrs= scenh_std.attrs
-
-                                        ref = ref.multivariate#.chunk({'loc':5})
-                                        scenh_std= scenh_std.multivariate#.chunk({'loc':5})
-                                        scens_std = scens_std.multivariate#.chunk({'loc':5})
-
-
-                                        # See the advanced notebook for details on how this option work
-                                        with xc.set_options(sdba_extra_output=True):
-                                            out = sdba.adjustment.NpdfTransform.adjust(
-                                                ref,
-                                                scenh_std,
-                                                scens_std,
-                                                base=sdba.QuantileDeltaMapping,
-                                                # Use QDM as the univariate adjustment.
-                                                base_kws={"nquantiles": nquantiles,
-                                                          "group": "time"},
-                                                n_iter=n_iter,  # perform X iteration
-                                                n_escore=1, #1000, #TODO: try no escore
-                                                # only send 1000 points to the escore metric (it is really slow)
-                                            )
+                                    # load input
+                                    out = pcat.search(processing_level=f"NpdfT-{str_per}").to_dataset(**tdd)
+                                    scens = pcat.search(
+                                        processing_level=f"scens-ba1-{str_per}",
+                                        id=sim_id, domain=region_name).to_dataset(**tdd)
+                                    scens = sdba.processing.stack_variables(scens)
 
 
-                                        out.attrs.update(s_attrs)
-                                        out.attrs['cat:processing_level'] = f'NpdfT_{str_per}'
-                                        path_out=f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_NpdfT_{str_per}.zarr"
-                                        xs.save_to_zarr(out,path_out)
+                                    # scenh_npdft = out.scenh.rename(time_hist="time")
+                                    scens_npdft = out.scen
+                                    # extra = out.drop_vars(["scenh", "scen"])
+
+                                    # scenh = sdba.processing.reordering(
+                                    #     scenh_npdft,scenh,group=CONFIG['biasadjust_mbcn']['group'])
+                                    scens = sdba.processing.reordering(
+                                        scens_npdft,scens,group=CONFIG['biasadjust_mbcn']['group'])
+
+                                    # scenh = sdba.processing.unstack_variables(scenh)
+                                    scens = sdba.processing.unstack_variables(scens)
+
+                                    # try no escore
+                                    #ds_scen, escores = dask.compute(scens,
+                                                                    #extra.escores)
+                                    ds_scen=scens
+
+                                    ds_scen.attrs.update(sim.attrs)
+                                    for attrs_k, attrs_v in CONFIG['biasadjust_mbcn']['attrs'].items():
+                                        ds_scen.attrs[f"cat:{attrs_k}"] = attrs_v
+                                    var=xs.catutils.parse_from_ds(ds_scen, ["variable"])["variable"]
+                                    ds_scen.attrs["cat:variable"] = var
 
 
-                                        # 4. Restoring the trend
-                                        if not pcat.exists_in_cat(id=sim_id,
-                                                                  domain=region_name,
-                                                                  processing_level=f'adjusted_{str_per}'):
-                                            with Client(n_workers=2,
-                                                        threads_per_worker=3,
-                                                        memory_limit="25GB",
-                                                        **daskkws) as C:
-                                                print('restore')
-                                                out = xr.open_dataset(f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_NpdfT_{str_per}.zarr")
-                                                scenh_tx = xr.open_zarr(
-                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tx_ba1.zarr")
-                                                scenh_tn = xr.open_zarr(
-                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_tn_ba1.zarr")
-                                                scenh_pr = xr.open_zarr(
-                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scenh_pr_ba1.zarr")
-                                                scens_tx = xr.open_zarr(
-                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tx_ba1.zarr")
-                                                scens_tn = xr.open_zarr(
-                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_tn_ba1.zarr")
-                                                scens_pr = xr.open_zarr(
-                                                    f"{workdir}/tmp_{str_per}/{sim_id}_{region_name}_scens_pr_ba1.zarr")
+                                    out.attrs['cat:processing_level'] = f'adjusted-{str_per}'
+                                    path = CONFIG['paths']['tmp_mbcn'].format(
+                                        **path_dict | {'level': f'adjusted-{str_per}'})
+                                    xs.save_and_update(
+                                        ds=ds_scen.chunk(CONFIG['biasadjust_mbcn']['chunks']),
+                                        path=path, pcat=pcat)
 
-                                                scenh = xr.Dataset(
-                                                    dict(tasmax=scenh_tx.scen, pr=scenh_pr.scen,
-                                                         tasmin=scenh_tn.scen))
-                                                scens = xr.Dataset(
-                                                    dict(tasmax=scens_tx.scen, pr=scens_pr.scen,
-                                                         tasmin=scens_tn.scen))
-                                                scenh = sdba.processing.stack_variables(scenh)
-                                                scens = sdba.processing.stack_variables(scens)
+                                    # rm tmp files
+                                    shutil.rmtree(f"{workdir}/tmp_{str_per}")
 
-                                                # TEST
-                                                # scenh=scenh.chunk({'loc':100})
-                                                # scens = scens.chunk({'loc': 100})
-                                                # out = out.chunk({'loc': 100})
-
-                                                scenh_npdft = out.scenh.rename(
-                                                    time_hist="time")  # Bias-adjusted historical period
-                                                scens_npdft = out.scen  # Bias-adjusted future period
-                                                extra = out.drop_vars(["scenh", "scen"])
-
-                                                scenh = sdba.processing.reordering(scenh_npdft,
-                                                                                   scenh,
-                                                                                   group="time")
-                                                scens = sdba.processing.reordering(scens_npdft,
-                                                                                   scens,
-                                                                                   group="time")
-
-                                                scenh = sdba.processing.unstack_variables(scenh)
-                                                scens = sdba.processing.unstack_variables(scens)
-
-                                                # TODO: try no escore
-                                                #ds_scen, escores = dask.compute(scens,
-                                                                                #extra.escores)
-                                                ds_scen=scens
-
-                                                ds_scen.attrs.update(sim.attrs)
-                                                for attrs_k, attrs_v in CONFIG['biasadjust_MBCn'][
-                                                    'attrs'].items():
-                                                    ds_scen.attrs[f"cat:{attrs_k}"] = attrs_v
-
-                                                ds_scen.attrs["cat:variable"] = \
-                                                    xs.catutils.parse_from_ds(ds_scen,
-                                                                              ["variable"])[
-                                                        "variable"]
-
-                                                # save_to_zarr(ds=escores.to_dataset(),
-                                                #              filename=CONFIG['paths'][
-                                                #                  'escores'].format(
-                                                #                  sim_id=sim_id,
-                                                #                  period=str_per,
-                                                #                  region_name=region_name),
-                                                #              mode='o')
-
-                                                # save and update
-                                                path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted_{str_per}.zarr"
-                                                ds_scen.attrs['cat:processing_level'] = f'adjusted_{str_per}'
-                                                save_to_zarr(
-                                                    ds=ds_scen.chunk(dict(time=-1, loc=50)),
-                                                    filename=path_adj,
-                                                    mode='o')
-                                                pcat.update_from_ds(ds=ds_scen, path=path_adj)
-
-                                                shutil.rmtree(f"{workdir}/tmp_{str_per}")
-
-                        #4. concat time
-                        if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                  processing_level=f'biasadjusted'):
-                            dict_concat = pcat.search(id=sim_id, domain=region_name,
-                                             processing_level='^adjusted').to_dataset_dict(**tdd)
-                            ds_concat= xr.concat(dict_concat.values(), dim='time')
-                            ds_concat= ds_concat.chunk({'loc':50, 'time':-1})
-                            ds_concat.attrs[
-                                'cat:processing_level'] = f'biasadjusted'
-                            path_adj = f"{workdir}/{sim_id}_{region_name}_biasadjusted.zarr"
-                            save_to_zarr(
-                                ds=ds_concat,
-                                filename=path_adj,
-                                mode='o')
-                            pcat.update_from_ds(ds=ds_concat, path=path_adj)
+                    #4. concat time
+                    if not pcat.exists_in_cat(id=sim_id, domain=region_name,
+                                              processing_level=f'biasadjusted'):
+                        dict_concat = pcat.search(id=sim_id, domain=region_name,
+                                         processing_level='^adjusted').to_dataset_dict(**tdd)
+                        ds_concat= xr.concat(dict_concat.values(), dim='time')
+                        ds_concat= ds_concat.chunk(CONFIG['biasadjust_mbcn']['chunks'])
+                        ds_concat.attrs[
+                            'cat:processing_level'] = f'biasadjusted'
+                        path_adj = f"{workdir}/{sim_id}_{region_name}_biasadjusted.zarr"
+                        save_to_zarr(
+                            ds=ds_concat,
+                            filename=path_adj,
+                            mode='o')
+                        pcat.update_from_ds(ds=ds_concat, path=path_adj)
 
 
 
