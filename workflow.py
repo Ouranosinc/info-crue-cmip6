@@ -345,7 +345,7 @@ if __name__ == '__main__':
 
                         if not pcat.exists_in_cat(
                                 id=sim_id, domain=region_name,
-                                processing_level=f'adjusted_{str_per}'):
+                                processing_level=f'adjusted-{str_per}'):
 
                             # prepare tmp dir for this period
                             Path(f"{workdir}/tmp_{str_per}").mkdir(parents=True,
@@ -382,7 +382,7 @@ if __name__ == '__main__':
 
                             # 2. std
                             if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                      processing_level=f'std-scens-{str_per}'):
+                                                      processing_level=f'scens-std-{str_per}'):
                                 with (Client(n_workers=4, threads_per_worker=3,
                                             memory_limit="10GB", **daskkws),
                                      measure_time(name=f'std-{str_per}', logger=logger)):
@@ -421,7 +421,7 @@ if __name__ == '__main__':
                                                               [dref, scenh, scens]):
                                         ds=ds.to_dataset()
                                         ds.attrs.update(ds_a.attrs)
-                                        ds.attrs['cat:processing_level'] = f"std-{name}-{str_per}" #TODO: change order
+                                        ds.attrs['cat:processing_level'] = f"{name}-std-{str_per}"
                                         path = CONFIG['paths']['tmp_mbcn'].format(
                                             **path_dict | {'level': f"{name}-std-{str_per}" })
                                         xs.save_and_update(ds=ds,path=path, pcat=pcat)
@@ -438,11 +438,11 @@ if __name__ == '__main__':
 
                                     # input
                                     ref_std=pcat.search(
-                                        processing_level=f"std-ref-{str_per}").to_dataset(**tdd)
+                                        processing_level=f"ref-std-{str_per}").to_dataset(**tdd)
                                     scenh_std = pcat.search(
-                                        processing_level=f"std-scenh-{str_per}").to_dataset(**tdd)
+                                        processing_level=f"scenh-std-{str_per}").to_dataset(**tdd)
                                     scens_std = pcat.search(
-                                        processing_level=f"std-scens-{str_per}").to_dataset(**tdd)
+                                        processing_level=f"scens-std-{str_per}").to_dataset(**tdd)
 
                                     out = sdba.adjustment.NpdfTransform.adjust(
                                         ref_std.multivariate,
@@ -457,6 +457,7 @@ if __name__ == '__main__':
                                     out.attrs['cat:processing_level'] = f'NpdfT-{str_per}'
                                     path = CONFIG['paths']['tmp_mbcn'].format(
                                         **path_dict | {'level': f'NpdfT-{str_per}'})
+                                    # needed to save properly
                                     if 'chunks' in out.encoding:
                                         del out.encoding['chunks']
                                     for v in ['lat', 'lon','rlat','rlon','time']:
@@ -480,36 +481,30 @@ if __name__ == '__main__':
                                         id=sim_id, domain=region_name).to_dataset(**tdd)
                                     scens = sdba.processing.stack_variables(scens)
 
-
-                                    # scenh_npdft = out.scenh.rename(time_hist="time")
                                     scens_npdft = out.scen
-                                    # extra = out.drop_vars(["scenh", "scen"])
-
-                                    # scenh = sdba.processing.reordering(
-                                    #     scenh_npdft,scenh,group=CONFIG['biasadjust_mbcn']['group'])
                                     scens = sdba.processing.reordering(
-                                        scens_npdft,scens,group=CONFIG['biasadjust_mbcn']['group'])
-
-                                    # scenh = sdba.processing.unstack_variables(scenh)
+                                        scens_npdft, scens,
+                                        group=CONFIG['biasadjust_mbcn']['group'])
                                     scens = sdba.processing.unstack_variables(scens)
 
-                                    # try no escore
-                                    #ds_scen, escores = dask.compute(scens,
-                                                                    #extra.escores)
-                                    ds_scen=scens
+                                    # don't save hist
+                                    # scenh_npdft = out.scenh.rename(time_hist="time")
+                                    # scenh = sdba.processing.reordering(
+                                    #     scenh_npdft,scenh,group=CONFIG['biasadjust_mbcn']['group'])
+                                    # scenh = sdba.processing.unstack_variables(scenh)
 
-                                    ds_scen.attrs.update(sim.attrs)
+                                    #fix attrs
+                                    scens.attrs.update(sim.attrs)
                                     for attrs_k, attrs_v in CONFIG['biasadjust_mbcn']['attrs'].items():
-                                        ds_scen.attrs[f"cat:{attrs_k}"] = attrs_v
-                                    var=xs.catutils.parse_from_ds(ds_scen, ["variable"])["variable"]
-                                    ds_scen.attrs["cat:variable"] = var
+                                        scens.attrs[f"cat:{attrs_k}"] = attrs_v
+                                    var=xs.catutils.parse_from_ds(scens, ["variable"])["variable"]
+                                    scens.attrs["cat:variable"] = var
+                                    scens.attrs['cat:processing_level'] = f'adjusted-{str_per}'
 
-
-                                    out.attrs['cat:processing_level'] = f'adjusted-{str_per}'
-                                    path = CONFIG['paths']['tmp_mbcn'].format(
+                                    path = CONFIG['paths']['adj_mbcn'].format(
                                         **path_dict | {'level': f'adjusted-{str_per}'})
                                     xs.save_and_update(
-                                        ds=ds_scen.chunk(CONFIG['biasadjust_mbcn']['chunks']),
+                                        ds=scens.chunk(CONFIG['biasadjust_mbcn']['chunks']),
                                         path=path, pcat=pcat)
 
                                     # rm tmp files
