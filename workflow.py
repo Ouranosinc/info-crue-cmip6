@@ -8,6 +8,7 @@ import logging
 import dask
 import scipy
 import os
+import numpy as np
 from datetime import timedelta
 from dask.diagnostics import ProgressBar
 
@@ -302,7 +303,7 @@ if __name__ == '__main__':
                     # load hist ds (simulation)
                     sim = pcat.search(id=sim_id,
                                       processing_level='regridded',
-                                      domain=region_name
+                                      domain=CONFIG['biasadjust_mbcn']['regridded_dom']
                                       ).to_dask(**tdd).drop_vars('dtr')
 
                     # load ref ds
@@ -360,9 +361,9 @@ if __name__ == '__main__':
                                 if not pcat.exists_in_cat(id=sim_id, domain=region_name,
                                                           variable=var,
                                                           processing_level=f'scens-ba1-{str_per}'):
-                                    with (Client(n_workers=4, threads_per_worker=3,
-                                                memory_limit="10GB", **daskkws),
+                                    with (Client(**CONFIG['biasadjust_mbcn']['daskUni'],**daskkws),
                                         measure_time(name=f'ba 1 - {var}', logger=logger)):
+
 
                                         QDMtx = sdba.QuantileDeltaMapping.train(
                                             dref[var], dhist[var],**conf)
@@ -376,6 +377,7 @@ if __name__ == '__main__':
                                             level=f'{name}-ba1-{str_per}'
                                             ds_output.attrs['cat:processing_level'] = level
                                             ds_output.attrs['cat:variable'] = var
+                                            ds_output.attrs['cat:domain'] = region_name
                                             path=CONFIG['paths']['tmp_mbcn'].format(
                                                 **path_dict|{'level':f"{var}_{level}",} )
                                             xs.save_and_update(ds=ds_output,path=path, pcat=pcat)
@@ -383,8 +385,7 @@ if __name__ == '__main__':
                             # 2. std
                             if not pcat.exists_in_cat(id=sim_id, domain=region_name,
                                                       processing_level=f'scens-std-{str_per}'):
-                                with (Client(n_workers=4, threads_per_worker=3,
-                                            memory_limit="10GB", **daskkws),
+                                with (Client(**CONFIG['biasadjust_mbcn']['daskUni'], **daskkws),
                                      measure_time(name=f'std-{str_per}', logger=logger)):
 
                                     scenh = pcat.search(
@@ -432,8 +433,7 @@ if __name__ == '__main__':
                             # 3. Perform the N-dimensional probability density function transform
                             if not pcat.exists_in_cat(id=sim_id, domain=region_name,
                                                           processing_level=f'NpdfT-{str_per}'):
-                                with (Client(n_workers=2, threads_per_worker=3,
-                                        memory_limit="25GB", **daskkws),
+                                with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'], **daskkws),
                                     measure_time(name=f'NpdfT-{str_per}', logger=logger)):
 
                                     # input
@@ -470,8 +470,7 @@ if __name__ == '__main__':
                             if not pcat.exists_in_cat(id=sim_id,
                                                       domain=region_name,
                                                       processing_level=f'adjusted-{str_per}'):
-                                with (Client(n_workers=2,threads_per_worker=3,
-                                            memory_limit="25GB",**daskkws),
+                                with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'],**daskkws),
                                     measure_time(name=f'restore-{str_per}',logger=logger)):
 
                                     # load input
@@ -515,6 +514,8 @@ if __name__ == '__main__':
                                               processing_level=f'biasadjusted'):
                         dict_concat = pcat.search(id=sim_id, domain=region_name,
                                          processing_level='^adjusted').to_dataset_dict(**tdd)
+                        # sort to have time in right order
+                        dict_concat = dict(sorted(dict_concat.items()))
                         ds_concat= xr.concat(dict_concat.values(), dim='time')
                         ds_concat= ds_concat.chunk(CONFIG['biasadjust_mbcn']['chunks'])
                         ds_concat.attrs[
@@ -872,7 +873,28 @@ if __name__ == '__main__':
                                                  [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
                                                   [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
                                                  pcat=pcat)
+                #TODO: put env ic6-mbcn
 
+                # --- HEALTH CHECKS ---
+                if (
+                        "health_checks" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                   processing_level='health_checks')
+                ):
+                    with (
+                            Client(n_workers=8, threads_per_worker=5,
+                                   memory_limit="5GB", **daskkws),
+                            measure_time(name=f'health_checks', logger=logger)
+                    ):
+                        ds_input = pcat.search(id=sim_id,processing_level='final',
+                                               domain=region_name).to_dataset(**tdd)
+
+                        hc = xs.diagnostics.health_checks(
+                            ds=ds_input,
+                            **CONFIG['diagnostics']['health_checks'])
+
+                        path = CONFIG['paths']['checks'].format(**fmtkws)
+                        xs.save_and_update(ds=hc,path=path, pcat=pcat)
 
 
                 # ---DIAGNOSTICS ---
@@ -885,7 +907,7 @@ if __name__ == '__main__':
                             measure_time(name=f'diagnostics', logger=logger)
                     ):
 
-                        for step, step_dict in CONFIG['diagnostics'].items():
+                        for step, step_dict in CONFIG['diagnostics']['steps'].items():
                             ds_input = pcat.search(
                                 id=sim_id,
                                 domain=region_name,

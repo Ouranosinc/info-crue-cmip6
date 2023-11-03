@@ -7,8 +7,8 @@ project:
 tasks:
 #  ####- initialize_pcat
   - makeref
-  - extract
-  - regrid
+  #- extract
+  #- regrid
   - ba-MBCn
 ##  - ba-dOTC
   - clean_up
@@ -210,6 +210,15 @@ regrid:
           reuse_weights: False
 
 biasadjust_mbcn:
+  daskUni:
+    n_workers: 8
+    threads_per_worker: 3
+    memory_limit: "5GB"
+  daskNpdf:
+    n_workers: 4
+    threads_per_worker: 3
+    memory_limit: "15GB"
+  regridded_dom: QC-RDRS
   periods: [['1951', '1980'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   nquantiles: &nquantiles_mbcn
     50
@@ -233,7 +242,7 @@ biasadjust_mbcn:
       nquantiles: *nquantiles_mbcn
       group: *group_mbcn
     n_iter: 30
-    n_escore: 1 #1000, #TODO: try no escore
+    n_escore: -1
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
@@ -419,28 +428,76 @@ rechunk:
 
 
 diagnostics:
-  sim:
-    input:
-      processing_level:  regridded
-    dref_for_measure:
-      processing_level: diag-ref-prop
-    properties_and_measures:
-      rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
-      period: *ref_period
-      unstack: *stack
-      change_units_arg:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
-  scen:
-    input:
-      processing_level: final
-    dref_for_measure:
-      processing_level: diag-ref-prop
-    properties_and_measures:
-      rechunk: {'rlat':30, 'rlon':30, 'time':-1}
-      period: *ref_period
-      unstack: False
+  steps:
+    sim:
+      input:
+        processing_level:  regridded
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
+        period: *ref_period
+        unstack: *stack
+        change_units_arg:
+          tasmax: degC
+          tasmin: degC
+          pr: mm d-1
+    scen:
+      input:
+        processing_level: final
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'rlat':30, 'rlon':30, 'time':-1}
+        period: *ref_period
+        unstack: False
+  health_checks:
+    structure:
+      coords:
+        - rotated_pole
+        - rlat
+        - rlon
+        - lat
+        - lon
+        - time
+      dims:
+        - rlat
+        - rlon
+        - time
+    start_date: "1951-01-01"
+    end_date: "2100-12-30"
+    variables_and_units:
+      tasmax: "°C"
+      tasmin": "°C"
+      pr: "mm d-1"
+    cfchecks:
+      tasmax:
+        cfcheck_from_name:
+      tasmin:
+        cfcheck_from_name:
+      pr:
+        cfcheck_from_name:
+    freq: D
+    flags:
+      tasmax:
+        temperature_extremely_high:
+          thresh: '60 degC'
+        tasmax_below_tasmin":
+      tasmin:
+        temperature_extremely_low:
+          thresh: '-70 degC'
+      pr:
+        negative_accumulation_values:
+        very_large_precipitation_events:
+          thresh: '300 mm/d'
+    return_flags: True
+    raise_on:
+      - structure
+      - start_date
+      - end_date
+      - variables_and_units
+      - cfchecks
+      - freq
 
 
 diagnostics_tmp:
