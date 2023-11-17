@@ -15,10 +15,11 @@ from dask.diagnostics import ProgressBar
 import xclim as xc
 from xclim import sdba
 from xclim.core.calendar import convert_calendar, get_calendar
-
 from xclim.sdba import  construct_moving_yearly_window, unpack_moving_yearly_window
 
 
+if 'ESMFMKFILE' not in os.environ:
+    os.environ['ESMFMKFILE'] = str(Path(os.__file__).parent.parent / 'esmf.mk')
 import xscen as xs
 from xscen.utils import minimum_calendar, stack_drop_nans
 from xscen.io import rechunk
@@ -43,7 +44,7 @@ from utils import (
     save_and_update,
     )
 
-path = 'paths_n.yml'
+path = 'paths_l.yml'
 config = 'config-MBCn-RDRS.yml'
 
 # Load configuration
@@ -59,6 +60,23 @@ refdir = Path(CONFIG['paths']['refdir'])
 
 
 if __name__ == '__main__':
+    # TODO: remove when update xscen
+    import warnings
+
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        module="intake_esm",
+        message="The default of observed=False is deprecated and will be changed to True in a future version of pandas. "
+                "Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        module="intake_esm",
+        message="DataFrame.applymap has been deprecated. Use DataFrame.map instead.",
+    )
+
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
     atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
@@ -204,15 +222,15 @@ if __name__ == '__main__':
             final_task = 'diagnostics' if 'diagnostics' in CONFIG[
                 "tasks"] else 'final_zarr'
             if not pcat.exists_in_cat(**final[final_task]):
-                fmtkws = {'region_name': region_name, 'sim_id': sim_id}
+                cur_dict = {'region_name': region_name, 'sim_id': sim_id}
                 logger.info('Adding config to log file')
                 f1 = open(CONFIG['logging']['handlers']['file']['filename'], 'a+')
-                f2 = open('config.yml', 'r')
+                f2 = open(config, 'r')
                 f1.write(f2.read())
                 f1.close()
                 f2.close()
 
-                logger.info(fmtkws)
+                logger.info(cur_dict)
 
                 # ---EXTRACT---
                 if (
@@ -292,6 +310,7 @@ if __name__ == '__main__':
 
                 from xclim.sdba import adjustment
 
+                #TODO: put domain instead of region_name everywhere and put dict everywhere
 
                 # ---BA-MBCn ---
                 if (
@@ -345,22 +364,24 @@ if __name__ == '__main__':
                         str_per = slice_per[0] + '-' + slice_per[1]
 
                         if not pcat.exists_in_cat(
-                                id=sim_id, domain=region_name,
-                                processing_level=f'adjusted-{str_per}'):
+                                processing_level=f'adjusted-{str_per}', id=sim_id,
+                                                      domain=region_name,):
 
                             # prepare tmp dir for this period
                             Path(f"{workdir}/tmp_{str_per}").mkdir(parents=True,
                                                                    exist_ok=True)
 
                             dsim = sim.sel(time=slice(slice_per[0], slice_per[1]))
-                            path_dict=dict(str_per=str_per, sim_id= sim_id, region_name=region_name)
+                            path_dict=dict(str_per=str_per, **cur_dict)
 
                             # 1. initial univariate
                             for var, conf in CONFIG['biasadjust_mbcn']['variables'].items():
 
-                                if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          variable=var,
-                                                          processing_level=f'scens-ba1-{str_per}'):
+                                if not pcat.exists_in_cat(
+                                        variable=var,
+                                        processing_level=f'scens-ba1-{str_per}',
+                                        id=sim_id,
+                                        domain=region_name):
                                     with (Client(**CONFIG['biasadjust_mbcn']['daskUni'],**daskkws),
                                         measure_time(name=f'ba 1 - {var}', logger=logger)):
 
@@ -390,10 +411,12 @@ if __name__ == '__main__':
 
                                     scenh = pcat.search(
                                         processing_level=f"scenh-ba1-{str_per}",
-                                        id=sim_id, domain=region_name,).to_dataset(**tdd)
+                                        id=sim_id,
+                                        domain=region_name,).to_dataset(**tdd)
                                     scens = pcat.search(
                                         processing_level=f"scens-ba1-{str_per}",
-                                        id=sim_id, domain=region_name).to_dataset(**tdd)
+                                        id=sim_id,
+                                        domain=region_name,).to_dataset(**tdd)
 
                                     # Stack the variables (tasmax and pr)
                                     ref = sdba.processing.stack_variables(dref)
@@ -420,7 +443,7 @@ if __name__ == '__main__':
                                     for ds,name, ds_a in zip([ref,scenh_std, scens_std],
                                                               ['ref', 'scenh', 'scens'],
                                                               [dref, scenh, scens]):
-                                        ds=ds.to_dataset()
+                                        ds=ds.to_dataset().chunk({"loc":5})# TODO: chunk is test
                                         ds.attrs.update(ds_a.attrs)
                                         ds.attrs['cat:processing_level'] = f"{name}-std-{str_per}"
                                         path = CONFIG['paths']['tmp_mbcn'].format(
@@ -431,18 +454,22 @@ if __name__ == '__main__':
 
 
                             # 3. Perform the N-dimensional probability density function transform
-                            if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                          processing_level=f'NpdfT-{str_per}'):
+                            if not pcat.exists_in_cat(
+                                    processing_level=f'NpdfT-{str_per}', id=sim_id,
+                                                      domain=region_name,):
                                 with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'], **daskkws),
                                     measure_time(name=f'NpdfT-{str_per}', logger=logger)):
 
                                     # input
                                     ref_std=pcat.search(
-                                        processing_level=f"ref-std-{str_per}").to_dataset(**tdd)
+                                        processing_level=f"ref-std-{str_per}",
+                                                      domain=region_name,).to_dataset(**tdd)
                                     scenh_std = pcat.search(
-                                        processing_level=f"scenh-std-{str_per}").to_dataset(**tdd)
+                                        processing_level=f"scenh-std-{str_per}", id=sim_id,
+                                                      domain=region_name,).to_dataset(**tdd)
                                     scens_std = pcat.search(
-                                        processing_level=f"scens-std-{str_per}").to_dataset(**tdd)
+                                        processing_level=f"scens-std-{str_per}", id=sim_id,
+                                                      domain=region_name,).to_dataset(**tdd)
 
                                     out = sdba.adjustment.NpdfTransform.adjust(
                                         ref_std.multivariate,
@@ -452,7 +479,7 @@ if __name__ == '__main__':
                                         **CONFIG['biasadjust_mbcn']['NpdfTransform']
                                     )
 
-                                    out= out.to_dataset().chunk(CONFIG['biasadjust_mbcn']['chunks'])
+                                    out= out.to_dataset()#.chunk(CONFIG['biasadjust_mbcn']['chunks'])
                                     out.attrs.update(scens_std.attrs)
                                     out.attrs['cat:processing_level'] = f'NpdfT-{str_per}'
                                     path = CONFIG['paths']['tmp_mbcn'].format(
@@ -477,7 +504,8 @@ if __name__ == '__main__':
                                     out = pcat.search(processing_level=f"NpdfT-{str_per}").to_dataset(**tdd)
                                     scens = pcat.search(
                                         processing_level=f"scens-ba1-{str_per}",
-                                        id=sim_id, domain=region_name).to_dataset(**tdd)
+                                        id=sim_id,
+                                        domain=region_name,).to_dataset(**tdd)
                                     scens = sdba.processing.stack_variables(scens)
 
                                     scens_npdft = out.scen
@@ -498,6 +526,7 @@ if __name__ == '__main__':
                                         scens.attrs[f"cat:{attrs_k}"] = attrs_v
                                     var=xs.catutils.parse_from_ds(scens, ["variable"])["variable"]
                                     scens.attrs["cat:variable"] = var
+                                    scens.attrs["cat:domain"] = region_name
                                     scens.attrs['cat:processing_level'] = f'adjusted-{str_per}'
 
                                     path = CONFIG['paths']['adj_mbcn'].format(
@@ -830,7 +859,7 @@ if __name__ == '__main__':
                             measure_time(name=f'final zarr rechunk', logger=logger)
                     ):
                         #rechunk and move to final destination
-                        fi_path = Path(f"{CONFIG['paths']['output']}".format(**fmtkws))
+                        fi_path = Path(f"{CONFIG['paths']['output']}".format(**cur_dict))
                         fi_path.parent.mkdir(exist_ok=True, parents=True)
 
                         rechunk(path_in=f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr",
@@ -850,8 +879,8 @@ if __name__ == '__main__':
 
                             if server == 'n':
                                 for name, paths in CONFIG['scp_list'].items():
-                                    source_path = Path(paths['source'].format(**fmtkws))
-                                    dest = Path(paths['dest'].format(**fmtkws))
+                                    source_path = Path(paths['source'].format(**cur_dict))
+                                    dest = Path(paths['dest'].format(**cur_dict))
                                     python_scp(source_path= source_path,
                                             destination_path=dest,
                                             **CONFIG['scp'])
@@ -871,9 +900,10 @@ if __name__ == '__main__':
                                 move_then_delete(dirs_to_delete=[workdir],
                                                  moving_files=
                                                  [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
-                                                  [path_log, CONFIG['paths']['logging'].format(**fmtkws)]],
+                                                  [path_log, CONFIG['paths']['logging'].format(**cur_dict)]],
                                                  pcat=pcat)
                 #TODO: put env ic6-mbcn
+                #TODO: uodate xscen to avoid thousand warnings
 
                 # --- HEALTH CHECKS ---
                 if (
@@ -893,7 +923,7 @@ if __name__ == '__main__':
                             ds=ds_input,
                             **CONFIG['diagnostics']['health_checks'])
 
-                        path = CONFIG['paths']['checks'].format(**fmtkws)
+                        path = CONFIG['paths']['checks'].format(**cur_dict)
                         xs.save_and_update(ds=hc,path=path, pcat=pcat)
 
 
@@ -961,11 +991,9 @@ if __name__ == '__main__':
                                       f'{sim_id}.{region_name}.diag-scen-meas.fx']
                         meas_datasets = {k: meas_datasets[k] for k in order_keys}
 
-                        hm = xs.diagnostics.measures_heatmap(meas_datasets) # TODO: because id change, this is never transfered
-
                         ip = xs.diagnostics.measures_improvement(meas_datasets)
 
-                        for ds in [hm, ip]:
+                        for ds in [ ip]:
                             path_diag = Path(
                                 CONFIG['paths']['diagnostics'].format(
                                     region_name=ds.attrs['cat:domain'],
@@ -983,8 +1011,8 @@ if __name__ == '__main__':
 
                             if server == 'n':
                                 for name, paths in CONFIG['scp_list'].items():
-                                    source_path = Path(paths['source'].format(**fmtkws))
-                                    dest = Path(paths['dest'].format(**fmtkws))
+                                    source_path = Path(paths['source'].format(**cur_dict))
+                                    dest = Path(paths['dest'].format(**cur_dict))
                                     python_scp(source_path= source_path,
                                             destination_path=dest,
                                             **CONFIG['scp'])
@@ -1009,7 +1037,7 @@ if __name__ == '__main__':
                                     ],
                                                  moving_files =
                                                  [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
-                                                  [path_log, CONFIG['paths']['logging'].format(**fmtkws)]
+                                                  [path_log, CONFIG['paths']['logging'].format(**cur_dict)]
                                                   ],
                                                   pcat=pcat)
 

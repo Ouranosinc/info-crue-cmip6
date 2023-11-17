@@ -6,7 +6,7 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-  - makeref
+  #- makeref
   #- extract
   #- regrid
   - ba-MBCn
@@ -14,6 +14,7 @@ tasks:
   - clean_up
   - final_zarr
   - diagnostics
+  - health_checks
 #  - individual_wl
 #  - horizons
 #  - deltas
@@ -213,17 +214,17 @@ biasadjust_mbcn:
   daskUni:
     n_workers: 8
     threads_per_worker: 3
-    memory_limit: "5GB"
+    memory_limit: "7GB"
   daskNpdf:
     n_workers: 4
     threads_per_worker: 3
-    memory_limit: "15GB"
+    memory_limit: "20GB"
   regridded_dom: QC-RDRS
   periods: [['1951', '1980'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   nquantiles: &nquantiles_mbcn
     50
   group: &group_mbcn
-    time # TODO; doy
+    time.month
   variables:
     tasmax:
       kind: '+'
@@ -241,7 +242,7 @@ biasadjust_mbcn:
     base_kws:
       nquantiles: *nquantiles_mbcn
       group: *group_mbcn
-    n_iter: 30
+    n_iter: 20
     n_escore: -1
   attrs:
     processing_level: biasadjusted
@@ -251,110 +252,6 @@ biasadjust_mbcn:
     loc: 50
     time: -1
 
-biasadjust_dOTC:
-  adjust: {}
-  attrs:
-    processing_level: biasadjusted
-    bias_adjust_institution: Ouranos
-    bias_adjust_project: info-crue-CMIP6
-
-
-biasadjust_qm:
-    variables:
-        dtr:
-            training_args:
-                period: *ref_period
-                method: DetrendedQuantileMapping
-                group:
-                    group: time.dayofyear
-                    window: 31
-                xclim_train_args:
-                    kind: "*"
-                    nquantiles: 50
-            adjusting_args:
-                periods: *sim_period
-                xclim_adjust_args:
-                    detrend:
-                        LoessDetrend:
-                          f: 0.2
-                          niter: 1
-                          d: 0
-                          weights: tricube
-                    interp: nearest
-                    extrapolation: constant
-                bias_adjust_institution: &b_a_inst
-                  Ouranos
-                bias_adjust_project: &b_a_pro
-                  info-crue-CMIP6
-        tasmax:
-            training_args:
-                period: *ref_period
-                method: DetrendedQuantileMapping
-                group:
-                    group: time.dayofyear
-                    window: 31
-                xclim_train_args:
-                    kind: "+"
-                    nquantiles: 50
-            adjusting_args:
-                periods: *sim_period
-                xclim_adjust_args:
-                  detrend:
-                    LoessDetrend:
-                      f: 0.2
-                      niter: 1
-                      d: 0
-                      weights: tricube
-                  interp: nearest
-                  extrapolation: constant
-                bias_adjust_institution: *b_a_inst
-                bias_adjust_project: *b_a_pro
-        pr:
-            training_args:
-                period: *ref_period
-                method: DetrendedQuantileMapping
-                group:
-                    group: time.dayofyear
-                    window: 31
-                jitter_under:
-                    thresh: 0.05 mm d-1
-                xclim_train_args:
-                    kind: "*"
-                    nquantiles: 50
-            adjusting_args:
-                periods: *sim_period
-                xclim_adjust_args:
-                  detrend:
-                    LoessDetrend:
-                      f: 0.2
-                      niter: 1
-                      d: 0
-                      weights: tricube
-                  interp: nearest
-                  extrapolation: constant
-                bias_adjust_institution: *b_a_inst
-                bias_adjust_project: *b_a_pro
-
-
-biasadjust_ex:
-    moving_yearly_window:
-        window: 40
-        step: 15
-    variables:
-        pr:
-            training_args:
-                period: *ref_period
-                method: ExtremeValues
-                jitter_under:
-                    thresh: 0.05 mm d-1
-                group: False
-                xclim_train_args:
-                    cluster_thresh: 1 mm d-1 #0.00001157407 kg m-2 s-1 #
-                    q_thresh: 0.95
-            adjusting_args:
-                periods: *sim_period
-                bias_adjust_institution: *b_a_inst
-                bias_adjust_project: *b_a_pro
 clean_up:
   search_data_catalogs:
     variables_and_freqs:
@@ -468,21 +365,21 @@ diagnostics:
     end_date: "2100-12-30"
     variables_and_units:
       tasmax: "°C"
-      tasmin": "°C"
+      tasmin: "°C"
       pr: "mm d-1"
     cfchecks:
       tasmax:
-        cfcheck_from_name:
+        cfcheck_from_name: {}
       tasmin:
-        cfcheck_from_name:
+        cfcheck_from_name: {}
       pr:
-        cfcheck_from_name:
+        cfcheck_from_name: {}
     freq: D
     flags:
       tasmax:
         temperature_extremely_high:
           thresh: '60 degC'
-        tasmax_below_tasmin":
+        tasmax_below_tasmin:
       tasmin:
         temperature_extremely_low:
           thresh: '-70 degC'
