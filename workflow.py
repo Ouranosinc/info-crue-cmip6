@@ -323,7 +323,7 @@ if __name__ == '__main__':
                     sim = pcat.search(id=sim_id,
                                       processing_level='regridded',
                                       domain=CONFIG['biasadjust_mbcn']['regridded_dom']
-                                      ).to_dask(**tdd).drop_vars('dtr')
+                                      ).to_dask(**tdd)
 
                     # load ref ds
                     # choose right calendar
@@ -333,8 +333,9 @@ if __name__ == '__main__':
                     dref = pcat.search(source=ref_source,
                                        calendar=refcal,
                                        processing_level='extracted',
-                                       domain=region_name
-                                       ).to_dask(**tdd).drop_vars('dtr')
+                                       domain=region_name,
+                                       variable = list(CONFIG['biasadjust_mbcn']['variables'].keys()),
+                                       ).to_dask(**tdd)
 
                     # convert calendar if necessary
                     # this is usually in in xscen
@@ -353,11 +354,18 @@ if __name__ == '__main__':
 
 
                     dref["pr"] = sdba.processing.jitter_under_thresh(
-                        dref.pr, "0.01 mm d-1")
+                        dref.pr, "0.05 mm d-1")
                     dhist["pr"] = sdba.processing.jitter_under_thresh(
-                        dhist.pr, "0.01 mm d-1")
+                        dhist.pr, "0.05 mm d-1")
                     sim["pr"] = sdba.processing.jitter_under_thresh(
-                        sim.pr, "0.01 mm d-1")
+                        sim.pr, "0.05 mm d-1")
+
+                    dref["dtr"] = sdba.processing.jitter_under_thresh(
+                        dref.dtr, "1e-4 K")
+                    dhist["dtr"] = sdba.processing.jitter_under_thresh(
+                        dhist.dtr, "1e-4 K")
+                    sim["dtr"] = sdba.processing.jitter_under_thresh(
+                        sim.dtr, "1e-4 K")
 
                     # do bias_adjustment in periods of 30 years
                     for slice_per in CONFIG['biasadjust_mbcn']['periods']:
@@ -418,7 +426,7 @@ if __name__ == '__main__':
                                         id=sim_id,
                                         domain=region_name,).to_dataset(**tdd)
 
-                                    # Stack the variables (tasmax and pr)
+                                    # Stack the variables
                                     ref = sdba.processing.stack_variables(dref)
                                     scenh = sdba.processing.stack_variables(scenh)
                                     scens = sdba.processing.stack_variables(scens)
@@ -443,9 +451,17 @@ if __name__ == '__main__':
                                     for ds,name, ds_a in zip([ref,scenh_std, scens_std],
                                                               ['ref', 'scenh', 'scens'],
                                                               [dref, scenh, scens]):
-                                        ds=ds.to_dataset().chunk({"loc":5})# TODO: chunk is test
+                                        ds=ds.to_dataset().chunk({"loc":5})# TODO: test if this is the most optimal
                                         ds.attrs.update(ds_a.attrs)
                                         ds.attrs['cat:processing_level'] = f"{name}-std-{str_per}"
+
+                                        # needed to save properly
+                                        if 'chunks' in ds.encoding:
+                                            del ds.encoding['chunks']
+                                        for v in ['lat', 'lon', 'rlat', 'rlon', 'time']:
+                                            if 'chunks' in ds[v].encoding:
+                                                del ds[v].encoding['chunks']
+
                                         path = CONFIG['paths']['tmp_mbcn'].format(
                                             **path_dict | {'level': f"{name}-std-{str_per}" })
                                         xs.save_and_update(ds=ds,path=path, pcat=pcat)
@@ -923,6 +939,9 @@ if __name__ == '__main__':
                             ds=ds_input,
                             **CONFIG['diagnostics']['health_checks'])
 
+                        hc.attrs.update(ds_input.attrs)
+                        hc.attrs['cat:processing_level'] = 'health_checks'
+                        print(hc.attrs)
                         path = CONFIG['paths']['checks'].format(**cur_dict)
                         xs.save_and_update(ds=hc,path=path, pcat=pcat)
 
@@ -938,9 +957,16 @@ if __name__ == '__main__':
                     ):
 
                         for step, step_dict in CONFIG['diagnostics']['steps'].items():
+
+                            # trick because regridde QC-MBCn-RDRS doesn't exist
+                            if step =='sim' and region_name=='QC-MBCn-RDRS':
+                                diag_reg = 'QC-RDRS'
+                            else:
+                                diag_reg=region_name
+
                             ds_input = pcat.search(
                                 id=sim_id,
-                                domain=region_name,
+                                domain=diag_reg,
                                 **step_dict['input']
                             ).to_dask().chunk({'time': -1})
 
@@ -959,6 +985,7 @@ if __name__ == '__main__':
                             )
 
                             for ds in [prop, meas]:
+                                ds.attrs['cat:domain']=region_name
                                 path_diag = Path(
                                     CONFIG['paths']['diagnostics'].format(
                                         region_name=region_name,
@@ -1010,6 +1037,10 @@ if __name__ == '__main__':
                             logger.info('Move files and delete workdir.')
 
                             if server == 'n':
+                                # rename log with details of current dataset
+                                os.rename(f"{workdir}/logger.log",f"{workdir}/logger_{sim_id}_{region_name}.log")
+
+                                # scp files
                                 for name, paths in CONFIG['scp_list'].items():
                                     source_path = Path(paths['source'].format(**cur_dict))
                                     dest = Path(paths['dest'].format(**cur_dict))

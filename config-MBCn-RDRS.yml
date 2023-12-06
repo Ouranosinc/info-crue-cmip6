@@ -10,11 +10,10 @@ tasks:
   #- extract
   #- regrid
   - ba-MBCn
-##  - ba-dOTC
   - clean_up
   - final_zarr
-  - diagnostics
   - health_checks
+  - diagnostics
 #  - individual_wl
 #  - horizons
 #  - deltas
@@ -141,7 +140,7 @@ extraction:
               - CanESM5
               - EC-Earth3
               - FGOALS-g3
-              - IPSL-CM6A-LR
+              #- IPSL-CM6A-LR #TODO: put back, but check don't erase old, check the first 2 ( mbcn time, and mbcn mixed up)
               - KACE-1-0-G
               - MIROC6
               - MRI-ESM2-0
@@ -224,16 +223,20 @@ biasadjust_mbcn:
   nquantiles: &nquantiles_mbcn
     50
   group: &group_mbcn
-    time.month
+    time.dayofyear
   variables:
     tasmax:
       kind: '+'
       nquantiles: *nquantiles_mbcn
       group: *group_mbcn
-    tasmin:
-      kind: '+'
-      nquantiles: *nquantiles_mbcn
-      group: *group_mbcn
+#    tasmin:
+#      kind: '+'
+#      nquantiles: *nquantiles_mbcn
+#      group: *group_mbcn
+    dtr:
+          kind: '*'
+          nquantiles: *nquantiles_mbcn
+          group: *group_mbcn
     pr:
       kind: '*'
       nquantiles: *nquantiles_mbcn
@@ -241,7 +244,7 @@ biasadjust_mbcn:
   NpdfTransform:
     base_kws:
       nquantiles: *nquantiles_mbcn
-      group: *group_mbcn
+      group: time.month #*group_mbcn
     n_iter: 20
     n_escore: -1
   attrs:
@@ -251,6 +254,17 @@ biasadjust_mbcn:
   chunks:
     loc: 50
     time: -1
+
+# placeholder
+biasadjust_qm:
+  variables:
+    tasmax: False
+    dtr: False
+    pr: False
+
+biasadjust_ex:
+  variables:
+    pr: False
 
 clean_up:
   search_data_catalogs:
@@ -298,14 +312,9 @@ clean_up:
       pr: *attrs_to_keep
     add_attrs:
       global:
+        # TODO: add more info, check also attrs of variables.
         Notes: |
-          Regridded on the grid of RDRS v2.1, then bias-adjusted with detrended
-          quantile mapping on a day-of-year basis with a window of 31 days,
-          LOESS detrending and 50 quantiles.
-          There is a second bias adjustement for pr's extreme values.
-          The variables tasmax, dtr and pr were adjusted, tasmin was computed
-          from tasmax and dtr after the adjustment.
-          The reference was RDRS v2.1 over the 1989-2018 period.
+          Regridded on the grid of RDRS v2.1, then MBCn.
         version: "1.0.0"
       tasmax:
           standard_name: air_temperature
@@ -361,7 +370,7 @@ diagnostics:
         - rlat
         - rlon
         - time
-    start_date: "1951-01-01"
+    start_date: "1956-01-01"
     end_date: "2100-12-30"
     variables_and_units:
       tasmax: "°C"
@@ -397,48 +406,48 @@ diagnostics:
       - freq
 
 
-diagnostics_tmp:
-  ref:
-    input:
-      source: RDRS
-      calendar: default
-      processing_level: extracted
-    properties_and_measures:
-      rechunk: { 'rlat': 30, 'rlon': 30, 'time': -1 }
-      period: [ '1981','2010' ]
-      unstack: *stack
-      change_units_arg:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
-  sim:
-    input:
-      id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
-      processing_level:  regridded
-    dref_for_measure:
-      processing_level: tmp-diag-ref-prop
-    properties_and_measures:
-      rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
-      period: ['1981','2010']
-      unstack: *stack
-      change_units_arg:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
-  scen:
-    input:
-      id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
-      processing_level: adjusted_1981-2010
-    dref_for_measure:
-      processing_level: tmp-diag-ref-prop
-    properties_and_measures:
-      rechunk: {'rlat':30, 'rlon':30, 'time':-1}
-      period: ['1981','2010']
-      unstack: True
-      change_units_arg:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
+#diagnostics_tmp:
+#  ref:
+#    input:
+#      source: RDRS
+#      calendar: default
+#      processing_level: extracted
+#    properties_and_measures:
+#      rechunk: { 'rlat': 30, 'rlon': 30, 'time': -1 }
+#      period: [ '1981','2010' ]
+#      unstack: *stack
+#      change_units_arg:
+#        tasmax: degC
+#        tasmin: degC
+#        pr: mm d-1
+#  sim:
+#    input:
+#      id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
+#      processing_level:  regridded
+#    dref_for_measure:
+#      processing_level: tmp-diag-ref-prop
+#    properties_and_measures:
+#      rechunk: {'rlat': 30, 'rlon': 30, 'time': -1}
+#      period: ['1981','2010']
+#      unstack: *stack
+#      change_units_arg:
+#        tasmax: degC
+#        tasmin: degC
+#        pr: mm d-1
+#  scen:
+#    input:
+#      id: CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1_global
+#      processing_level: adjusted_1981-2010
+#    dref_for_measure:
+#      processing_level: tmp-diag-ref-prop
+#    properties_and_measures:
+#      rechunk: {'rlat':30, 'rlon':30, 'time':-1}
+#      period: ['1981','2010']
+#      unstack: True
+#      change_units_arg:
+#        tasmax: degC
+#        tasmin: degC
+#        pr: mm d-1
 
 
 
