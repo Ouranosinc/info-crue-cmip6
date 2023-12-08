@@ -352,20 +352,62 @@ if __name__ == '__main__':
                     # choose right ref period
                     dhist = sim.sel(time=ref_period)
 
+                    group_uni=CONFIG['biasadjust_mbcn'].get('group_uni','time')
+                    if isinstance(group_uni, dict):
+                        group_uni = sdba.Grouper.from_kwargs(**group_uni)["group"]
+                    elif isinstance(group_uni, str):
+                        group_uni = sdba.Grouper(group_uni)
 
-                    dref["pr"] = sdba.processing.jitter_under_thresh(
-                        dref.pr, "0.05 mm d-1")
-                    dhist["pr"] = sdba.processing.jitter_under_thresh(
-                        dhist.pr, "0.05 mm d-1")
-                    sim["pr"] = sdba.processing.jitter_under_thresh(
-                        sim.pr, "0.05 mm d-1")
+                    # jitter under threshold
+                    for v, t in CONFIG['biasadjust_mbcn']['jitter_under_thresh'].items():
+                        dref[v] = sdba.processing.jitter_under_thresh(dref[v], t)
+                        dhist[v] = sdba.processing.jitter_under_thresh(dhist[v], t)
+                        sim[v] = sdba.processing.jitter_under_thresh(sim[v], t)
 
-                    dref["dtr"] = sdba.processing.jitter_under_thresh(
-                        dref.dtr, "1e-4 K")
-                    dhist["dtr"] = sdba.processing.jitter_under_thresh(
-                        dhist.dtr, "1e-4 K")
-                    sim["dtr"] = sdba.processing.jitter_under_thresh(
-                        sim.dtr, "1e-4 K")
+
+                    #adapt_freq
+                    for v, t in CONFIG['biasadjust_mbcn']['adapt_freq'].items():
+                        dhist[v],  _, _ = sdba.processing.adapt_freq(
+                            dref[v], dhist[v],thresh= t, group=group_uni)
+
+                    # train univariate and adjust hist (only once)
+                    for var, conf in CONFIG['biasadjust_mbcn']['variables'].items():
+
+                        if not pcat.exists_in_cat(
+                                variable=var,
+                                processing_level=f'ba1-scenh',
+                                id=sim_id,
+                                domain=region_name):
+                            with (
+                            Client(**CONFIG['biasadjust_mbcn']['daskUni'], **daskkws),
+                            measure_time(name=f'train ba 1 - {var}', logger=logger)):
+                                #train
+                                QDMtx = sdba.QuantileDeltaMapping.train(
+                                    dref[var], dhist[var], **conf['train'],
+                                    group=group_uni)
+
+                                # save train
+                                QDMtx = QDMtx.to_dataset(name=var)
+                                QDMtx.attrs.update(dhist.attrs)
+                                level = f'ba1-train'
+                                QDMtx.attrs['cat:processing_level'] = level
+                                QDMtx.attrs['cat:variable'] = var
+                                QDMtx.attrs['cat:domain'] = region_name
+                                path = CONFIG['paths']['tmp_mbcn'].format(
+                                    **path_dict | {'level': level, })
+                                xs.save_and_update(ds=QDMtx, path=path, pcat=pcat)
+
+                                # adjust hist
+                                ds_output = QDMtx.adjust(dhist[var], **conf['adjust'])
+
+                                # save adjusted hist
+                                ds_output = ds_output.to_dataset(name=var)
+                                ds_output.attrs.update(QDMtx.attrs)
+                                level = f'ba1-scenh'
+                                ds_output.attrs['cat:processing_level'] = level
+                                path = CONFIG['paths']['tmp_mbcn'].format(
+                                    **path_dict | {'level': level, })
+                                xs.save_and_update(ds=ds_output, path=path, pcat=pcat)
 
                     # do bias_adjustment in periods of 30 years
                     for slice_per in CONFIG['biasadjust_mbcn']['periods']:
@@ -387,29 +429,33 @@ if __name__ == '__main__':
 
                                 if not pcat.exists_in_cat(
                                         variable=var,
-                                        processing_level=f'scens-ba1-{str_per}',
+                                        processing_level=f'ba1-{str_per}',
                                         id=sim_id,
                                         domain=region_name):
                                     with (Client(**CONFIG['biasadjust_mbcn']['daskUni'],**daskkws),
                                         measure_time(name=f'ba 1 - {var}', logger=logger)):
 
+                                        QDMtx = pcat.search(
+                                            variable=var,domain=region_name,id=sim_id,
+                                            processing_level=f'ba1-train'
+                                        ).to_dataset(**tdd)
 
-                                        QDMtx = sdba.QuantileDeltaMapping.train(
-                                            dref[var], dhist[var],**conf)
 
-                                        # Adjust both hist and sim, we'll feed both to the Npdf transform.
-                                        for ds_input, name in zip([dhist, dsim],['scenh','scens']):
-                                            ds_output = QDMtx.adjust(ds_input[var])
-                                            ds_output = ds_output.to_dataset(name=var)
-                                            ds_output.attrs.update(dsim.attrs)
+                                        #QDMtx = sdba.QuantileDeltaMapping.train(
+                                        #    dref[var], dhist[var],**conf['train'],
+                                        #    group=group_uni)
 
-                                            level=f'{name}-ba1-{str_per}'
-                                            ds_output.attrs['cat:processing_level'] = level
-                                            ds_output.attrs['cat:variable'] = var
-                                            ds_output.attrs['cat:domain'] = region_name
-                                            path=CONFIG['paths']['tmp_mbcn'].format(
-                                                **path_dict|{'level':f"{var}_{level}",} )
-                                            xs.save_and_update(ds=ds_output,path=path, pcat=pcat)
+                                        # Adjust sim
+                                        ds_output = QDMtx.adjust(dsim[var], **conf['adjust'])
+
+                                        #save adjust sim
+                                        ds_output = ds_output.to_dataset(name=var)
+                                        ds_output.attrs.update(QDMtx.attrs)
+                                        level=f'ba1-{str_per}'
+                                        ds_output.attrs['cat:processing_level'] = level
+                                        path=CONFIG['paths']['tmp_mbcn'].format(
+                                            **path_dict|{'level':level} )
+                                        xs.save_and_update(ds=ds_output,path=path, pcat=pcat)
 
                             # 2. std
                             if not pcat.exists_in_cat(id=sim_id, domain=region_name,
@@ -418,11 +464,11 @@ if __name__ == '__main__':
                                      measure_time(name=f'std-{str_per}', logger=logger)):
 
                                     scenh = pcat.search(
-                                        processing_level=f"scenh-ba1-{str_per}",
+                                        processing_level=f"ba1-scenh",
                                         id=sim_id,
                                         domain=region_name,).to_dataset(**tdd)
                                     scens = pcat.search(
-                                        processing_level=f"scens-ba1-{str_per}",
+                                        processing_level=f"ba1-{str_per}",
                                         id=sim_id,
                                         domain=region_name,).to_dataset(**tdd)
 
@@ -519,7 +565,7 @@ if __name__ == '__main__':
                                     # load input
                                     out = pcat.search(processing_level=f"NpdfT-{str_per}").to_dataset(**tdd)
                                     scens = pcat.search(
-                                        processing_level=f"scens-ba1-{str_per}",
+                                        processing_level=f"ba1-{str_per}",
                                         id=sim_id,
                                         domain=region_name,).to_dataset(**tdd)
                                     scens = sdba.processing.stack_variables(scens)
@@ -527,14 +573,9 @@ if __name__ == '__main__':
                                     scens_npdft = out.scen
                                     scens = sdba.processing.reordering(
                                         scens_npdft, scens,
-                                        group=CONFIG['biasadjust_mbcn']['group'])
+                                        group=group_uni)
                                     scens = sdba.processing.unstack_variables(scens)
 
-                                    # don't save hist
-                                    # scenh_npdft = out.scenh.rename(time_hist="time")
-                                    # scenh = sdba.processing.reordering(
-                                    #     scenh_npdft,scenh,group=CONFIG['biasadjust_mbcn']['group'])
-                                    # scenh = sdba.processing.unstack_variables(scenh)
 
                                     #fix attrs
                                     scens.attrs.update(sim.attrs)

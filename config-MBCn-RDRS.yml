@@ -219,32 +219,44 @@ biasadjust_mbcn:
     threads_per_worker: 3
     memory_limit: "20GB"
   regridded_dom: QC-RDRS
+  group_uni:
+    group: time.dayofyear
+    window: 31
+  jitter_under_thresh:
+    pr: 0.05 mm d-1
+    dtr: "1e-4 K"
+  adapt_freq:
+    pr: "0.05 mm d-1"
   periods: [['1951', '1980'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   nquantiles: &nquantiles_mbcn
     50
-  group: &group_mbcn
-    time.dayofyear
   variables:
     tasmax:
-      kind: '+'
-      nquantiles: *nquantiles_mbcn
-      group: *group_mbcn
+      train:
+        kind: '+'
+        nquantiles: *nquantiles_mbcn
+      adjust:
+        interp: linear
 #    tasmin:
 #      kind: '+'
 #      nquantiles: *nquantiles_mbcn
 #      group: *group_mbcn
     dtr:
+      train:
           kind: '*'
           nquantiles: *nquantiles_mbcn
-          group: *group_mbcn
+      adjust:
+        interp: linear
     pr:
-      kind: '*'
-      nquantiles: *nquantiles_mbcn
-      group: *group_mbcn
+      train:
+        kind: '*'
+        nquantiles: *nquantiles_mbcn
+      adjust:
+        interp: linear
   NpdfTransform:
     base_kws:
       nquantiles: *nquantiles_mbcn
-      group: time.month #*group_mbcn
+      group: time.month
     n_iter: 20
     n_escore: -1
   attrs:
