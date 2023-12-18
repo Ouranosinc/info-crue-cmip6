@@ -219,17 +219,15 @@ biasadjust_mbcn:
     threads_per_worker: 5
     memory_limit: "5GB"
   daskNpdf:
-    n_workers: 30
-    threads_per_worker: 3 #TODO: next raise this
-    memory_limit: "3GB"
+    n_workers: 20
+    threads_per_worker: 5
+    memory_limit: "5GB"
   regridded_dom: QC-RDRS
   group:
     group: time.dayofyear
     window: 31
-
   periods: [
-   # ['1956', '1985'], #TODO: put back later
-    ['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
+    ['1951', '1980'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   ba1:
     pr:
       train:
@@ -282,15 +280,25 @@ biasadjust_mbcn:
         bias_adjust_institution: *b_a_inst
         bias_adjust_project: *b_a_pro
   NpdfTransform:
+# orginal branch
 #    base_kws:
-#      nquantiles: *nquantiles_mbcn # TODO: put back when in not npdf_np branch
+#      nquantiles: *nquantiles_mbcn
 #      group:
 #        group: time.dayofyear
 #        window: 31
-    adj_kws:
-      interp: linear
+#    n_escore: -1
+# npdf_np branch
+#    adj_kws:
+#      interp: linear
+#    n_iter: 20
+# npdf_bdd branch
     n_iter: 20
-    #n_escore: -1 # TODO: put back when in not npdf_np branch
+    base_kws:
+      nquantiles: *nquantiles
+      group:
+        group: time.dayofyear
+        window: 31
+    adj_kws: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
   reorder:
     group: time.dayofyear
   attrs:

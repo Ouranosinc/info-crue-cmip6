@@ -359,21 +359,7 @@ if __name__ == '__main__':
                     #TODO: should input to npdft be pre-process (jitter, adapt_freq, etc) or not?
                     # I don't think so because they are standardized anyway ( mean to 0)
 
-                    #replaced by xscen
-                    # # jitter under threshold
-                    # for v, t in CONFIG['biasadjust_mbcn']['jitter_under_thresh'].items():
-                    #     dref[v] = sdba.processing.jitter_under_thresh(dref[v], t)
-                    #     dhist[v] = sdba.processing.jitter_under_thresh(dhist[v], t)
-                    #     sim[v] = sdba.processing.jitter_under_thresh(sim[v], t)
-                    #
-                    #
-                    # #adapt_freq
-                    # for v, t in CONFIG['biasadjust_mbcn']['adapt_freq'].items():
-                    #     dhist[v], pth, dP0 = sdba.processing.adapt_freq(
-                    #         dref[v], dhist[v],thresh= t, group=group_uni)
 
-
-                    # TODO: think of putting this in xscen
                     # train univariate and adjust hist (only once)
                     for var, conf in CONFIG['biasadjust_mbcn']['ba1'].items():
 
@@ -393,29 +379,7 @@ if __name__ == '__main__':
                                     **conf['train'],
                                 )
 
-                                # replaced by xscen
-                                # QDMtx = sdba.QuantileDeltaMapping.train(
-                                #     dref[var], dhist[var], **conf['train'],
-                                #     group=group_uni)
-
-                                # ds_train = QDMtx.ds.assign(pth=pth, dP0=dP0)
-                                #
-                                # # Arguments that need to be transferred to the adjust() function
-                                # ds_train.attrs["train_params"] = {
-                                #     "var": var,
-                                #     "maximal_calendar": maximal_calendar,
-                                #     "adapt_freq": CONFIG['biasadjust_mbcn']['adapt_freq'],
-                                #     "jitter_under": CONFIG['biasadjust_mbcn']['jitter_under_thresh'],
-                                #     "jitter_over":None
-                                # }
-
-                                #TODO: verify attrs are ok with xscen
-
                                 # save train
-                                # ds_train.attrs.update(dhist.attrs)
-                                # level = f'ba1-train-{var}'
-                                # ds_train.attrs['cat:processing_level'] = level
-                                #ds_train.attrs['cat:variable'] = var
                                 path = CONFIG['paths']['adj_mbcn'].format(
                                     **cur_dict | {'level': f"training_{var}", })
                                 xs.save_and_update(ds=ds_train, path=path, pcat=pcat)
@@ -428,13 +392,6 @@ if __name__ == '__main__':
                                     to_level= "ba1-scenh",
                                     **conf['adjust'],
                                 )
-                                # ds_output = QDMtx.adjust(dhist[var], **conf['adjust'])
-                                #
-                                # # save adjusted hist
-                                # ds_output = ds_output.to_dataset(name=var)
-                                # ds_output.attrs.update(ds_train.attrs)
-                                # level = f'ba1-scenh'
-                                # ds_output.attrs['cat:processing_level'] = level
                                 path = CONFIG['paths']['adj_mbcn'].format(
                                     **cur_dict | {'level': f"{var}_ba1-scenh", })
                                 xs.save_and_update(ds=ds_output, path=path, pcat=pcat)
@@ -471,20 +428,6 @@ if __name__ == '__main__':
                                             processing_level=f"training_{var}",
                                         ).to_dataset(**tdd)
 
-                                        # in xscen
-                                        # QDMtx = sdba.adjustment.TrainAdjust.from_dataset(
-                                        #     ds_train)
-                                        # if not isinstance(ds_train.attrs["train_params"],
-                                        #                   dict):
-                                        #     ds_train.attrs["train_params"] = eval(
-                                        #         ds_train.attrs["train_params"])
-
-
-                                        #QDMtx = sdba.QuantileDeltaMapping.train(
-                                        #    dref[var], dhist[var],**conf['train'],
-                                        #    group=group_uni)
-
-
                                         # Adjust sim
                                         ds_output= xs.adjust(
                                             dtrain=ds_train,
@@ -493,81 +436,71 @@ if __name__ == '__main__':
                                             to_level=f'ba1-{str_per}',
                                             **conf['adjust'],
                                         )
-                                        # ds_output = QDMtx.adjust(dsim[var], **conf['adjust'])
-                                        #
-                                        # xs.biasadjust._add_preprocessing_attr(
-                                        #     ds_output, ds_train.attrs["train_params"])
-                                        #
-                                        # #save adjust sim
-                                        # ds_output = ds_output.to_dataset(name=var)
-                                        # ds_output.attrs.update(ds_train.attrs)
+
                                         path=CONFIG['paths']['tmp_mbcn'].format(
                                             **path_dict|{'level':f"{var}_ba1-{str_per}"} )
                                         xs.save_and_update(ds=ds_output,path=path, pcat=pcat)
 
-                            # 2. std
-                            if not pcat.exists_in_cat(id=sim_id, domain=region_name,
-                                                      processing_level=f'scens-std-{str_per}'):
-                                with (Client(**CONFIG['biasadjust_mbcn']['daskUni'], **daskkws),
-                                     measure_time(name=f'std-{str_per}', logger=logger)):
+                            #TODO: branch npdf_bdd does stacking and standadized inside the function
 
-
-                                    # Note that this is different from the xclim example.
-                                    # Here the input of Npdft is the raw sim, not the adjusted (ba1) one.
-                                    # We think this reflects better step d on the MBCn paper.
-                                    # TODO: maybe eventually change the scenh, scens vocab because they are not accurate.
-                                    scenh =dhist
-                                    scens= dsim
-
-                                    # scenh = pcat.search(
-                                    #     processing_level=f"ba1-scenh",
-                                    #     id=sim_id,
-                                    #     domain=region_name,).to_dataset(**tdd)
-                                    # scens = pcat.search(
-                                    #     processing_level=f"ba1-{str_per}",
-                                    #     id=sim_id,
-                                    #     domain=region_name,).to_dataset(**tdd)
-
-                                    # Stack the variables
-                                    ref = sdba.processing.stack_variables(dref)
-                                    scenh = sdba.processing.stack_variables(scenh)
-                                    scens = sdba.processing.stack_variables(scens)
-
-                                    # Standardize
-                                    ref, _, _ = sdba.processing.standardize(ref)
-
-                                    #put a fake time axis to be able to concat (issue when s overlaps with h)
-                                    scens_fake_time=scens.copy()
-                                    scens_fake_time['time']=scens.time -timedelta(days=365*200)
-
-                                    allsim_std, _, _ = sdba.processing.standardize(
-                                            xr.concat((scenh, scens_fake_time), "time"))
-
-                                    scenh_std = allsim_std.sel(time=scenh.time)
-                                    scens_std = allsim_std.sel(time=scens_fake_time.time)
-
-                                    # undo fake axis
-                                    scens_std['time'] = scens_std.time + timedelta(days=365 * 200)
-
-
-                                    for ds,name, ds_a in zip([ref,scenh_std, scens_std],
-                                                              ['ref', 'scenh', 'scens'],
-                                                              [dref, scenh, scens]):
-                                        ds=ds.to_dataset() # TODO: test if this is the most optimal
-                                        ds.attrs.update(ds_a.attrs)
-                                        level= f"{name}-std-{str_per}"
-                                        ds.attrs['cat:processing_level'] = level
-
-                                        # needed to save properly
-                                        if 'chunks' in ds.encoding:
-                                            del ds.encoding['chunks']
-                                        for v in ['lat', 'lon', 'rlat', 'rlon', 'time']:
-                                            if 'chunks' in ds[v].encoding:
-                                                del ds[v].encoding['chunks']
-
-                                        path = CONFIG['paths']['tmp_mbcn'].format(
-                                            **path_dict | {'level':level })
-                                        xs.save_and_update(ds=ds,path=path, pcat=pcat)
+                            # # 2. std
+                            # if not pcat.exists_in_cat(id=sim_id, domain=region_name,
+                            #                           processing_level=f'scens-std-{str_per}'):
+                            #     with (Client(**CONFIG['biasadjust_mbcn']['daskUni'], **daskkws),
+                            #          measure_time(name=f'std-{str_per}', logger=logger)):
+                            #
+                            #
+                            #         # Note that this is different from the xclim example.
+                            #         # Here the input of Npdft is the raw sim, not the adjusted (ba1) one.
+                            #         # We think this reflects better step d on the MBCn paper.
+                            #         # TODO: maybe eventually change the scenh, scens vocab because they are not accurate.
+                            #         scenh =dhist
+                            #         scens= dsim
+                            #
+                            #
+                            #         # Stack the variables
+                            #         ref = sdba.processing.stack_variables(dref)
+                            #         scenh = sdba.processing.stack_variables(scenh)
+                            #         scens = sdba.processing.stack_variables(scens)
+                            #
+                            #
+                            #
+                            #
+                            #         # Standardize
+                            #         ref, _, _ = sdba.processing.standardize(ref)
+                            #
+                            #         #put a fake time axis to be able to concat (issue when s overlaps with h)
+                            #         scens_fake_time=scens.copy()
+                            #         scens_fake_time['time']=scens.time -timedelta(days=365*200)
+                            #
+                            #         allsim_std, _, _ = sdba.processing.standardize(
+                            #                 xr.concat((scenh, scens_fake_time), "time"))
+                            #
+                            #         scenh_std = allsim_std.sel(time=scenh.time)
+                            #         scens_std = allsim_std.sel(time=scens_fake_time.time)
+                            #
+                            #         # undo fake axis
+                            #         scens_std['time'] = scens_std.time + timedelta(days=365 * 200)
+                            #
+                            #
+                            #         for ds,name, ds_a in zip([ref,scenh_std, scens_std],
+                            #                                   ['ref', 'scenh', 'scens'],
+                            #                                   [dref, scenh, scens]):
+                            #             ds=ds.to_dataset() # TODO: test if this is the most optimal
+                            #             ds.attrs.update(ds_a.attrs)
+                            #             level= f"{name}-std-{str_per}"
+                            #             ds.attrs['cat:processing_level'] = level
+                            #
+                            #             # # needed to save properly
+                            #             # if 'chunks' in ds.encoding:
+                            #             #     del ds.encoding['chunks']
+                            #             # for v in ['lat', 'lon', 'rlat', 'rlon', 'time']:
+                            #             #     if 'chunks' in ds[v].encoding:
+                            #             #         del ds[v].encoding['chunks']
+                            #
+                            #             path = CONFIG['paths']['tmp_mbcn'].format(
+                            #                 **path_dict | {'level':level })
+                            #             xs.save_and_update(ds=ds,path=path, pcat=pcat)
 
 
 
@@ -579,18 +512,22 @@ if __name__ == '__main__':
                                 with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'], **daskkws),
                                     measure_time(name=f'NpdfT-{str_per}', logger=logger)):
 
-                                    # input
-                                    ref_std=pcat.search(
-                                        processing_level=f"ref-std-{str_per}",
-                                                      domain=region_name,).to_dataset(**tdd)
-                                    scenh_std = pcat.search(
-                                        processing_level=f"scenh-std-{str_per}", id=sim_id,
-                                                      domain=region_name,).to_dataset(**tdd)
-                                    scens_std = pcat.search(
-                                        processing_level=f"scens-std-{str_per}", id=sim_id,
-                                                      domain=region_name,).to_dataset(**tdd)
+                                    # TODO: branch npdf_bdd does stacking and standadized inside the function
 
-                                    # TODO: depends on the branch
+                                    # # input
+                                    # ref_std=pcat.search(
+                                    #     processing_level=f"ref-std-{str_per}",
+                                    #                   domain=region_name,).to_dataset(**tdd)
+                                    # scenh_std = pcat.search(
+                                    #     processing_level=f"scenh-std-{str_per}", id=sim_id,
+                                    #                   domain=region_name,).to_dataset(**tdd)
+                                    # scens_std = pcat.search(
+                                    #     processing_level=f"scens-std-{str_per}", id=sim_id,
+                                    #                   domain=region_name,).to_dataset(**tdd)
+
+                                    # TODO: choose code for the right branch
+
+                                    #  for xclim original branch
                                     # out = sdba.adjustment.NpdfTransform.adjust(
                                     #     ref_std.multivariate,
                                     #     scenh_std.multivariate,
@@ -600,14 +537,25 @@ if __name__ == '__main__':
                                     # )
                                     #out= out.to_dataset()#.chunk(CONFIG['biasadjust_mbcn']['chunks'])
 
-                                    scenh_npdft, scens_npdft = sdba._adjustment.fast_npdf(
-                                        ref_std.multivariate,
-                                        scenh_std.multivariate,
-                                        scens_std.multivariate,
-                                        base_kws={"nquantiles": 50, "group": group}, # TODO: check this ( but probably month doesnt work)
+                                    # for branch  npdf_np
+                                    # scenh_npdft, scens_npdft = sdba._adjustment.fast_npdf(
+                                    #     ref_std.multivariate,
+                                    #     scenh_std.multivariate,
+                                    #     scens_std.multivariate,
+                                    #     base_kws={"nquantiles": 50, "group": group}, # TODO: check this ( but probably month doesnt work)
+                                    #     **CONFIG['biasadjust_mbcn']['NpdfTransform']
+                                    # )
+                                    # out =scens_npdft.to_dataset(name='scen')
+
+
+                                    # for branch npdf_bdd
+                                    ADJ = sdba.NpdfTransform.train(
+                                        dref,
+                                        dhist,
                                         **CONFIG['biasadjust_mbcn']['NpdfTransform']
                                     )
-                                    out =scens_npdft.to_dataset(name='scen')
+
+                                    scens_std = ADJ.adjust(dsim)
 
                                     # if first period, cut the extra bit
                                     # we want all 30 years periods, but regrid is missing 1951-1955
@@ -621,11 +569,11 @@ if __name__ == '__main__':
                                     path = CONFIG['paths']['tmp_mbcn'].format(
                                         **path_dict | {'level': f'NpdfT-{str_per}'})
                                     # needed to save properly
-                                    if 'chunks' in out.encoding:
-                                        del out.encoding['chunks']
-                                    for v in ['lat', 'lon','rlat','rlon','time']:
-                                        if 'chunks' in out[v].encoding:
-                                            del out[v].encoding['chunks']
+                                    # if 'chunks' in out.encoding:
+                                    #     del out.encoding['chunks']
+                                    # for v in ['lat', 'lon','rlat','rlon','time']:
+                                    #     if 'chunks' in out[v].encoding:
+                                    #         del out[v].encoding['chunks']
 
                                     #out = out.chunk(CONFIG['biasadjust_mbcn']['chunks'])
                                     xs.save_and_update(ds=out, path=path, pcat=pcat)
