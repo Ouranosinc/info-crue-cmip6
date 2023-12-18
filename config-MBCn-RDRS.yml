@@ -216,49 +216,20 @@ regrid:
 biasadjust_mbcn:
   daskUni:
     n_workers: 15
-    threads_per_worker: 3
+    threads_per_worker: 5
     memory_limit: "5GB"
   daskNpdf:
-    n_workers: 10
-    threads_per_worker: 3
-    memory_limit: "7GB"
+    n_workers: 30
+    threads_per_worker: 3 #TODO: next raise this
+    memory_limit: "3GB"
   regridded_dom: QC-RDRS
   group:
     group: time.dayofyear
     window: 31
-#  jitter_under_thresh:
-#    pr: 0.05 mm d-1
-#    dtr: "1e-4 K"
-#  adapt_freq:
-#    pr: "0.05 mm d-1"
+
   periods: [
    # ['1956', '1985'], #TODO: put back later
     ['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
-#  nquantiles: &nquantiles_mbcn
-#    50
-#  variables:
-#    tasmax:
-#      train:
-#        kind: '+'
-#        nquantiles: *nquantiles_mbcn
-#      adjust:
-#        interp: linear
-##    tasmin:
-##      kind: '+'
-##      nquantiles: *nquantiles_mbcn
-##      group: *group_mbcn
-#    dtr:
-#      train:
-#          kind: '*'
-#          nquantiles: *nquantiles_mbcn
-#      adjust:
-#        interp: linear
-#    pr:
-#      train:
-#        kind: '*'
-#        nquantiles: *nquantiles_mbcn
-#      adjust:
-#        interp: linear
   ba1:
     pr:
       train:
@@ -277,13 +248,11 @@ biasadjust_mbcn:
           nquantiles: &nquantiles
             50
       adjust:
-        periods: *ref_period
         xclim_adjust_args:
           interp: &interp
             linear
         bias_adjust_institution: *b_a_inst
         bias_adjust_project: *b_a_pro
-        to_level: ba1-scenh
     dtr:
       train:
         period: *ref_period
@@ -295,12 +264,10 @@ biasadjust_mbcn:
           kind: "*"
           nquantiles: *nquantiles
       adjust:
-        periods: *ref_period
         xclim_adjust_args:
           interp: *interp
         bias_adjust_institution: *b_a_inst
         bias_adjust_project: *b_a_pro
-        to_level: ba1-scenh
     tasmax: #TODO: consider tas and dtr instead like cannon ?
       train:
         period: *ref_period
@@ -310,12 +277,10 @@ biasadjust_mbcn:
           kind: "+"
           nquantiles: *nquantiles
       adjust:
-        periods: *ref_period
         xclim_adjust_args:
           interp: *interp
         bias_adjust_institution: *b_a_inst
         bias_adjust_project: *b_a_pro
-        to_level: ba1-scenh
   NpdfTransform:
 #    base_kws:
 #      nquantiles: *nquantiles_mbcn # TODO: put back when in not npdf_np branch

@@ -424,6 +424,8 @@ if __name__ == '__main__':
                                 ds_output= xs.adjust(
                                     dtrain=ds_train,
                                     dsim=dhist,
+                                    periods=CONFIG['custom']['ref_period'],
+                                    to_level= "ba1-scenh",
                                     **conf['adjust'],
                                 )
                                 # ds_output = QDMtx.adjust(dhist[var], **conf['adjust'])
@@ -440,6 +442,7 @@ if __name__ == '__main__':
                     # do bias_adjustment in periods of 30 years
                     for slice_per in CONFIG['biasadjust_mbcn']['periods']:
                         str_per = slice_per[0] + '-' + slice_per[1]
+                        print(str_per)
 
                         if not pcat.exists_in_cat(
                                 processing_level=f'adjusted-{str_per}', id=sim_id,
@@ -486,6 +489,8 @@ if __name__ == '__main__':
                                         ds_output= xs.adjust(
                                             dtrain=ds_train,
                                             dsim=dsim,
+                                            periods=slice_per,
+                                            to_level=f'ba1-{str_per}',
                                             **conf['adjust'],
                                         )
                                         # ds_output = QDMtx.adjust(dsim[var], **conf['adjust'])
@@ -496,10 +501,8 @@ if __name__ == '__main__':
                                         # #save adjust sim
                                         # ds_output = ds_output.to_dataset(name=var)
                                         # ds_output.attrs.update(ds_train.attrs)
-                                        level=f'ba1-{str_per}'
-                                        ds_output.attrs['cat:processing_level'] = level
                                         path=CONFIG['paths']['tmp_mbcn'].format(
-                                            **path_dict|{'level':f"{var}_{level}"} )
+                                            **path_dict|{'level':f"{var}_ba1-{str_per}"} )
                                         xs.save_and_update(ds=ds_output,path=path, pcat=pcat)
 
                             # 2. std
