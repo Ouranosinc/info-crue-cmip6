@@ -9,7 +9,8 @@ tasks:
   #- makeref
   #- extract
   #- regrid
-  - ba-MBCn
+  #- ba-MBCn
+  - npdf-bdd
   - clean_up
   - final_zarr
   - health_checks
@@ -140,7 +141,7 @@ extraction:
               - ssp126
             source:
               # chosen
-              - ACCESS-ESM1-5
+              #- ACCESS-ESM1-5 #TODO: put back
               - CanESM5
               - EC-Earth3
               - FGOALS-g3
@@ -216,18 +217,17 @@ regrid:
 biasadjust_mbcn:
   daskUni:
     n_workers: 15
-    threads_per_worker: 5
+    threads_per_worker: 3
     memory_limit: "5GB"
   daskNpdf:
-    n_workers: 20
+    n_workers: 15
     threads_per_worker: 5
     memory_limit: "5GB"
   regridded_dom: QC-RDRS
   group:
     group: time.dayofyear
     window: 31
-  periods: [
-    ['1951', '1980'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
+  periods: [['1956', '1985'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   ba1:
     pr:
       train:
@@ -280,25 +280,9 @@ biasadjust_mbcn:
         bias_adjust_institution: *b_a_inst
         bias_adjust_project: *b_a_pro
   NpdfTransform:
-# orginal branch
-#    base_kws:
-#      nquantiles: *nquantiles_mbcn
-#      group:
-#        group: time.dayofyear
-#        window: 31
-#    n_escore: -1
-# npdf_np branch
-#    adj_kws:
-#      interp: linear
-#    n_iter: 20
-# npdf_bdd branch
     n_iter: 20
-    base_kws:
-      nquantiles: *nquantiles
-      group:
-        group: time.dayofyear
-        window: 31
-    adj_kws: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
+    adj_kws:
+      interp: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
   reorder:
     group: time.dayofyear
   attrs:
@@ -308,6 +292,20 @@ biasadjust_mbcn:
   chunks:
     loc: 50
     time: -1
+
+#keep for now in case we go back
+#NpdfTransform:
+# #orginal branch
+#    base_kws:
+#      nquantiles: *nquantiles_mbcn
+#      group:
+#        group: time.dayofyear
+#        window: 31
+#    n_escore: -1
+# #npdf_np branch
+#    adj_kws:
+#      interp: linear
+#    n_iter: 20
 
 # placeholder
 biasadjust_qm:

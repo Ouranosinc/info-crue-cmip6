@@ -310,7 +310,227 @@ if __name__ == '__main__':
 
                 from xclim.sdba import adjustment
 
-                #TODO: put domain instead of region_name everywhere and put dict everywhere
+                # ---BA-MBCn npdf-bdd ---
+
+                if (
+                        "npdf-bdd" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                   processing_level='biasadjusted')
+                ):
+
+                    # load hist ds (simulation)
+                    sim = pcat.search(
+                        domain=CONFIG['biasadjust_mbcn']['regridded_dom'],
+                        variable=list(CONFIG['biasadjust_mbcn']['ba1'].keys()),
+                        id=sim_id, processing_level='regridded').to_dask(**tdd)
+                    # because we took regridded from other domain
+                    sim.attrs['cat:domain'] = region_name
+
+                    # choose right calendar and convert
+                    refcal = minimum_calendar(get_calendar(sim),
+                                              CONFIG['custom']['maximal_calendar'])
+                    sim = convert_calendar(sim, refcal,
+                                           align_on=CONFIG['custom']['align_on'])
+                    # load ref ds
+                    dref = pcat.search(
+                        source=ref_source,calendar=refcal,processing_level='extracted',
+                        variable=list(CONFIG['biasadjust_mbcn']['ba1'].keys()),
+                        domain=region_name,).to_dask(**tdd)
+
+                    # choose right ref period for hist
+                    dhist = sim.sel(time=ref_period)
+
+                    # create group
+                    group = CONFIG['biasadjust_mbcn'].get('group')
+                    if isinstance(group, dict):
+                        group = sdba.Grouper.from_kwargs(**group)["group"]
+                    elif isinstance(group, str):
+                        group = sdba.Grouper(group)
+
+
+                    # UNIVARIATE
+                    # train
+                    for var, conf in CONFIG['biasadjust_mbcn']['ba1'].items():
+                        if not pcat.exists_in_cat(processing_level=f"training_{var}",
+                                                  id=sim_id,domain=region_name,):
+                            with (Client(**CONFIG['biasadjust_mbcn']['daskUni'],**daskkws),
+                                    measure_time(name=f'train ba 1 - {var}',logger=logger)):
+
+                                ds_train = xs.train(
+                                    dref=dref,
+                                    dhist=dhist,
+                                    var=[var],
+                                    **conf['train'],
+                                )
+
+                                # save
+                                path = CONFIG['paths']['adj_mbcn'].format(
+                                    **cur_dict | {'level': f"training_{var}", })
+                                xs.save_and_update(ds=ds_train, path=path, pcat=pcat)
+
+
+                    # do  univariate bias_adjustment in periods of 30 years
+                    # TODO: consider doing it all at once with window
+                    for slice_per in CONFIG['biasadjust_mbcn']['periods']:
+                        str_per = slice_per[0] + '-' + slice_per[1]
+
+                        dsim = sim.sel(time=slice(slice_per[0], slice_per[1]))
+                        path_dict = dict(str_per=str_per, **cur_dict)
+
+                        for var, conf in CONFIG['biasadjust_mbcn']['ba1'].items():
+
+                            if not pcat.exists_in_cat(processing_level=f'ba1-{str_per}',
+                                    variable=var,id=sim_id,domain=region_name):
+                                with (Client(**CONFIG['biasadjust_mbcn']['daskUni'], **daskkws),
+                                measure_time(name=f'ba1-{var}-{str_per}',logger=logger)):
+
+                                    #load train
+                                    ds_train = pcat.search(
+                                        domain=region_name, id=sim_id,
+                                        processing_level=f"training_{var}",
+                                    ).to_dataset(**tdd)
+
+                                    # Adjust sim
+                                    ds_output = xs.adjust(
+                                        dtrain=ds_train,
+                                        dsim=dsim,
+                                        periods=slice_per,
+                                        to_level=f'ba1-{str_per}',
+                                        **conf['adjust'],
+                                    )
+
+                                    #save
+                                    path = CONFIG['paths']['adj_mbcn'].format(
+                                        **path_dict | {'level': f"{var}_ba1-{str_per}"})
+                                    xs.save_and_update(ds=ds_output,path=path,pcat=pcat)
+
+                    # NPDF
+                    #train
+                    if not pcat.exists_in_cat(processing_level=f'training_npdf',
+                                              id=sim_id,domain=region_name, ):
+                        with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'], **daskkws),
+                        measure_time(name=f'training_npdf', logger=logger)):
+
+                            # stack var
+                            dref_stack = sdba.processing.stack_variables(dref)
+                            dhist_stack = sdba.processing.stack_variables(dhist)
+
+                            # train npdf
+                            dtrain = sdba.NpdfTransform.train(
+                                dref_stack,
+                                dhist_stack,
+                                base_kws={'nquantiles': 50, 'group': group},
+                                **CONFIG['biasadjust_mbcn']['NpdfTransform']
+                            ).ds
+
+                            # attrs
+                            dtrain.attrs.update(dhist.attrs)
+                            dtrain.attrs['cat:processing_level'] = f"training_npdf"
+
+                            #save
+                            path = CONFIG['paths']['adj_mbcn'].format(
+                                **path_dict | {'level': f"training_npdf"})
+                            xs.save_and_update(ds=dtrain, path=path, pcat=pcat)
+
+                    # do  npdf bias_adjustment in periods of 30 years
+                    # TODO: consider doing it all at once with window
+                    for slice_per in CONFIG['biasadjust_mbcn']['periods']:
+                        str_per = slice_per[0] + '-' + slice_per[1]
+
+                        dsim = sim.sel(time=slice(slice_per[0], slice_per[1]))
+                        path_dict = dict(str_per=str_per, **cur_dict)
+
+                        # adjust
+                        if not pcat.exists_in_cat(processing_level=f'NpdfT-{str_per}',
+                                                  id=sim_id,domain=region_name, ):
+                            with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'], **daskkws),
+                            measure_time(name=f'NpdfT-{str_per}', logger=logger)):
+
+                                #load train
+                                dtrain = pcat.search(processing_level=f"training_npdf",
+                                                     domain=region_name, id=sim_id,
+                                                     ).to_dataset(**tdd)
+
+                                # stack var
+                                dsim_stack = sdba.processing.stack_variables(dsim)
+
+                                # adjust
+                                ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
+                                out = ADJ.adjust(dsim_stack).to_dataset(name='scen')
+
+                                # attrs
+                                out.attrs.update(dsim.attrs)
+                                out.attrs['cat:processing_level'] = f'NpdfT-{str_per}'
+                                path = CONFIG['paths']['tmp_mbcn'].format(
+                                    **path_dict | {'level': f'NpdfT-{str_per}'})
+
+                                #save
+                                xs.save_and_update(ds=out, path=path, pcat=pcat)
+
+                        # Restoring the trend #TODO: put it in npdf function
+                        if not pcat.exists_in_cat(processing_level=f'adjusted-{str_per}',
+                                                  id=sim_id,domain=region_name, ):
+                            with (Client(**CONFIG['biasadjust_mbcn']['daskNpdf'], **daskkws),
+                            measure_time(name=f'restore-{str_per}',logger=logger)):
+
+                                # load input
+                                scens_npdft = pcat.search(processing_level=f"NpdfT-{str_per}"
+                                                  ).to_dataset(**tdd).scen
+                                scens = pcat.search(processing_level=f"ba1-{str_per}",
+                                                    id=sim_id,domain=region_name,
+                                                    ).to_dataset(**tdd)
+                                scens = sdba.processing.stack_variables(scens)
+
+                                # reorder and unstack
+                                scens = sdba.processing.reordering(
+                                    scens_npdft, scens,
+                                    **CONFIG['biasadjust_mbcn']['reorder'])  # TODO: fix when PR is merged
+                                scens = sdba.processing.unstack_variables(scens)
+
+                                # if first period, cut the extra bit
+                                # we want all 30 years periods, but regrid is missing 1951-1955
+                                # we are doing ba on 1956-1985 and 1981-2010, so we cut the extra bit
+                                if str_per == '1956-1985':
+                                    scens = scens.sel(time=slice('1956', '1980'))
+
+                                # fix attrs
+                                scens.attrs.update(sim.attrs)
+                                for attrs_k, attrs_v in CONFIG['biasadjust_mbcn']['attrs'].items():
+                                    scens.attrs[f"cat:{attrs_k}"] = attrs_v
+                                var = xs.catutils.parse_from_ds(scens, ["variable"])["variable"]
+                                scens.attrs["cat:variable"] = var
+                                scens.attrs["cat:domain"] = region_name
+                                scens.attrs['cat:processing_level'] = f'adjusted-{str_per}'
+
+                                # save
+                                path = CONFIG['paths']['adj_mbcn'].format(
+                                    **path_dict | {'level': f'adjusted-{str_per}'})
+                                xs.save_and_update(ds=scens,path=path, pcat=pcat)
+
+
+
+                    # 4. concat time
+                    if not pcat.exists_in_cat(id=sim_id, domain=region_name,
+                                              processing_level=f'biasadjusted'):
+                        dict_concat = pcat.search(processing_level='^adjusted',
+                                                  id=sim_id, domain=region_name,
+                                                  ).to_dataset_dict(**tdd)
+
+                        # sort to have time in right order
+                        dict_concat = dict(sorted(dict_concat.items()))
+
+                        # concat periods
+                        ds_concat = xr.concat(dict_concat.values(), dim='time')
+
+                        # attrs
+                        ds_concat.attrs['cat:processing_level'] = f'biasadjusted'
+
+                        # save
+                        ds_concat = ds_concat.chunk(CONFIG['biasadjust_mbcn']['chunks'])
+                        path = CONFIG['paths']['adj_mbcn'].format(
+                            **path_dict | {'level': 'biasadjusted'})
+                        xs.save_and_update(ds=ds_concat, path=path, pcat=pcat)
+
 
                 # ---BA-MBCn ---
                 if (
@@ -548,14 +768,20 @@ if __name__ == '__main__':
                                     # out =scens_npdft.to_dataset(name='scen')
 
 
+                                    dref=sdba.processing.stack_variables(dref)
+                                    dhist=sdba.processing.stack_variables(dhist)
+                                    dsim = sdba.processing.stack_variables(dsim)
+
                                     # for branch npdf_bdd
                                     ADJ = sdba.NpdfTransform.train(
                                         dref,
                                         dhist,
+                                        base_kws={ 'nquantiles': 50, 'group':group},
+                                        #rot_matrices=rot_matrices,
                                         **CONFIG['biasadjust_mbcn']['NpdfTransform']
                                     )
 
-                                    scens_std = ADJ.adjust(dsim)
+                                    out = ADJ.adjust(dsim).to_dataset(name='scen')
 
                                     # if first period, cut the extra bit
                                     # we want all 30 years periods, but regrid is missing 1951-1955
@@ -564,7 +790,7 @@ if __name__ == '__main__':
                                         out = out.sel(time=slice('1956', '1980'))
 
 
-                                    out.attrs.update(scens_std.attrs)
+                                    out.attrs.update(dsim.attrs)
                                     out.attrs['cat:processing_level'] = f'NpdfT-{str_per}'
                                     path = CONFIG['paths']['tmp_mbcn'].format(
                                         **path_dict | {'level': f'NpdfT-{str_per}'})
