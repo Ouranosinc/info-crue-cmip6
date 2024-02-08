@@ -10,7 +10,8 @@ tasks:
   #- extract
   #- regrid
   #- ba-MBCn
-  - npdf-bdd
+  #- npdf-bdd
+  - npdf-gpies
   - clean_up
   - final_zarr
   - health_checks
@@ -215,83 +216,47 @@ regrid:
           reuse_weights: False
 
 biasadjust_mbcn:
-  daskUni:
-    n_workers: 15
-    threads_per_worker: 3
-    memory_limit: "5GB"
   daskNpdf:
-    n_workers: 12
+    n_workers: 3
     threads_per_worker: 3
-    memory_limit: "8GB"
+    memory_limit: "27GB"
   regridded_dom: QC-RDRS
   group:
     group: time.dayofyear
     window: 31
   periods: [['1956', '1985'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
-  ba1:
-    pr:
-      train:
-        period: *ref_period
-        method: &method
-          QuantileDeltaMapping
-        group: &group_ba1
-          group: time.dayofyear
-          window: 31
-        jitter_under:
-          thresh: 0.05 mm d-1
-        adapt_freq: #TODO: should this be done inside xclim train ?
-            thresh: 1 mm d-1
-        xclim_train_args:
-          kind: "*"
-          nquantiles: &nquantiles
-            50
-      adjust:
-        xclim_adjust_args:
-          interp: &interp
-            linear
-        bias_adjust_institution: *b_a_inst
-        bias_adjust_project: *b_a_pro
-    dtr:
-      train:
-        period: *ref_period
-        method: *method
-        group: *group_ba1
-        jitter_under:
-          thresh: 1e-4 K
-        xclim_train_args:
-          kind: "*"
-          nquantiles: *nquantiles
-      adjust:
-        xclim_adjust_args:
-          interp: *interp
-        bias_adjust_institution: *b_a_inst
-        bias_adjust_project: *b_a_pro
-    tasmax: #TODO: consider tas and dtr instead like cannon ?
-      train:
-        period: *ref_period
-        method: *method
-        group: *group_ba1
-        xclim_train_args:
-          kind: "+"
-          nquantiles: *nquantiles
-      adjust:
-        xclim_adjust_args:
-          interp: *interp
-        bias_adjust_institution: *b_a_inst
-        bias_adjust_project: *b_a_pro
-  NpdfTransform:
+  variable:
+    - tasmax
+    - pr
+    - dtr
+  train:
     n_iter: 20
     adj_kws:
       interp: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
-  reorder:
-    group: time.dayofyear
+      extrapolation: constant
+      n_escore: -1
+  adjust:
+    base_kws_vars:
+      pr:
+        kind: "*"
+        jitter_under_thresh_value: "0.05 mm d-1"
+        adapt_freq_thresh: "1 mm d-1"
+      dtr:
+        kind: "*"
+        jitter_under_thresh_value: "1e-4 K"
+      tasmax:
+        kind: "+"
+    adj_kws:
+      interp: nearest
+      extrapolation: constant
+  chunks:
+    loc: 50
+    time: -1
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
     bias_adjust_project: info-crue-CMIP6
-  chunks:
-    loc: 50
-    time: -1
+
 
 #keep for now in case we go back
 #NpdfTransform:
@@ -306,6 +271,62 @@ biasadjust_mbcn:
 #    adj_kws:
 #      interp: linear
 #    n_iter: 20
+
+#  daskUni:
+#    n_workers: 15
+#    threads_per_worker: 3
+#    memory_limit: "5GB"
+#  ba1:
+#    pr:
+#      train:
+#        period: *ref_period
+#        method: &method
+#          QuantileDeltaMapping
+#        group: &group_ba1
+#          group: time.dayofyear
+#          window: 31
+#        jitter_under:
+#          thresh: 0.05 mm d-1
+#        adapt_freq: #TODO: should this be done inside xclim train ?
+#            thresh: 1 mm d-1
+#        xclim_train_args:
+#          kind: "*"
+#          nquantiles: &nquantiles
+#            50
+#      adjust:
+#        xclim_adjust_args:
+#          interp: &interp
+#            linear
+#        bias_adjust_institution: *b_a_inst
+#        bias_adjust_project: *b_a_pro
+#    dtr:
+#      train:
+#        period: *ref_period
+#        method: *method
+#        group: *group_ba1
+#        jitter_under:
+#          thresh: 1e-4 K
+#        xclim_train_args:
+#          kind: "*"
+#          nquantiles: *nquantiles
+#      adjust:
+#        xclim_adjust_args:
+#          interp: *interp
+#        bias_adjust_institution: *b_a_inst
+#        bias_adjust_project: *b_a_pro
+#    tasmax: #TODO: consider tas and dtr instead like cannon ?
+#      train:
+#        period: *ref_period
+#        method: *method
+#        group: *group_ba1
+#        xclim_train_args:
+#          kind: "+"
+#          nquantiles: *nquantiles
+#      adjust:
+#        xclim_adjust_args:
+#          interp: *interp
+#        bias_adjust_institution: *b_a_inst
+#        bias_adjust_project: *b_a_pro
 
 # placeholder
 biasadjust_qm:
@@ -710,7 +731,7 @@ scripting:
 dask:
     client:
         dashboard_address: 6785
-    array.slicing.split_large_chunks: False
+    #array.slicing.split_large_chunks: False #TODO: test
 
 logging:
     formatters:
