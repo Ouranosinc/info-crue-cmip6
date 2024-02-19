@@ -271,6 +271,7 @@ if __name__ == '__main__':
                         else:
                             break
                 # ---REGRID---
+                # note: works well with xesmf 0.7.1. scheduler explodes with 0.8.2.
                 if (
                         "regrid" in CONFIG["tasks"]
                         and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
@@ -284,13 +285,16 @@ if __name__ == '__main__':
                         ds_input = pcat.search(id=sim_id,
                                                processing_level='extracted',
                                                domain=region_name).to_dask()
+                        print(ds_input.chunks)
 
                         ds_target = pcat.search(**CONFIG['regrid']['target'],
                                                 domain=region_name).to_dask()
 
+                        print(ds_target.chunks)
+
                         ds_regrid = regrid_dataset(
                             ds=ds_input,
-                            ds_grid=ds_target,
+                            ds_grid=ds_target.isel(time=0),
                             **CONFIG['regrid']['regrid_dataset']
                         )
 

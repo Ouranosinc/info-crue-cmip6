@@ -17,7 +17,7 @@ tasks:
   - adjust_ex
   - clean_up
   - final_zarr
-  - diagnostics
+#  - diagnostics
 #  - individual_wl
 #  - horizons
 #  - deltas
@@ -29,8 +29,8 @@ custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        QC-NRCAN:
-          name: QC-NRCAN
+        QC-NRCANv2018:
+          name: QC-NRCANv2018
           method: bbox
           bbox:
             lon_bnds: [ -83, -55 ]
@@ -97,7 +97,10 @@ extraction:
             other_search_criteria:
                 source: &ref_source
                     NRCAN
-        extract_dataset: {}
+                version: v2
+        extract_dataset:
+          xr_open_kwargs:
+            engine: h5netcdf
         properties_and_measures:
           period: *ref_period
           unstack: False
@@ -112,7 +115,7 @@ extraction:
           match_hist_and_fut: True
           allow_conversion: True
           allow_resampling: False
-          periods: *sim_period
+          #periods: *sim_period
           exclusions:
             id:
               - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r2i1p1f1_global
@@ -152,6 +155,7 @@ extraction:
               combine_attrs: override
             xr_open_kwargs:
               engine: h5netcdf
+              use_cftime: True
               drop_variables:
                 - height
                 - bnds
@@ -347,13 +351,13 @@ clean_up:
     add_attrs:
       global:
         Notes: |
-          Regridded on the grid of NRCAN, then bias-adjusted with detrended
+          Regridded on the grid of NRCANv2018, then bias-adjusted with detrended
           quantile mapping on a day-of-year basis with a window of 31 days,
           LOESS detrending and 50 quantiles.
           There is a second bias adjustement for pr's extreme values.
           The variables tasmax, dtr and pr were adjusted, tasmin was computed
           from tasmax and dtr after the adjustment.
-          The reference was NRCAN over the 1988-2017 period.
+          The reference was NRCANv2018 over the 1988-2017 period.
         version: "1.0.0"
       tasmax:
           standard_name: air_temperature
