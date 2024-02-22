@@ -294,7 +294,7 @@ if __name__ == '__main__':
 
                         ds_regrid = regrid_dataset(
                             ds=ds_input,
-                            ds_grid=ds_target.isel(time=0),
+                            ds_grid=ds_target,
                             **CONFIG['regrid']['regrid_dataset']
                         )
 
@@ -1325,6 +1325,9 @@ if __name__ == '__main__':
 
 
                             if server == 'n':
+                                # rename log with details of current dataset
+                                os.rename(f"{workdir}/logger.log",f"{workdir}/logger_{sim_id}_{region_name}.log")
+
                                 for name, paths in CONFIG['scp_list'].items():
                                     source_path = Path(paths['source'].format(**cur_dict))
                                     dest = Path(paths['dest'].format(**cur_dict))

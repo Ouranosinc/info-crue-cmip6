@@ -26,8 +26,8 @@ tasks:
 
 
 custom:
-    delete_in_final_zarr: False
-    delete_in_diag: True
+    delete_in_final_zarr: True
+    delete_in_diag: False
     regions:
         QC-NRCANv2018:
           name: QC-NRCANv2018
