@@ -104,6 +104,12 @@ if __name__ == '__main__':
               timeout(**timeout_kw)):
             yield
 
+
+    def do_task(task, **kwargs):
+        task_in_list = task in CONFIG["tasks"]
+        not_already_done = not pcat.exists_in_cat(**kwargs)
+        return task_in_list and not_already_done
+
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
         pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'])
@@ -119,7 +125,6 @@ if __name__ == '__main__':
         ):
             # default
             if not pcat.exists_in_cat(domain=region_name, calendar='default', source=ref_source):
-                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
@@ -164,7 +169,6 @@ if __name__ == '__main__':
 
             # noleap
             if not pcat.exists_in_cat(domain=region_name, calendar='noleap', source=ref_source):
-                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
@@ -197,7 +201,6 @@ if __name__ == '__main__':
             # diag
             if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
                                        source=ref_source)) and ('diagnostics' in CONFIG['tasks']):
-                #with (Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws)):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
@@ -262,18 +265,15 @@ if __name__ == '__main__':
 
                 logger.info(cur_dict)
 
+
+                # inside the loops, we have a default id and domain
+                def do_task_loop(task,id=sim_id, domain=region_name, **kwargs):
+                    return do_task(task,id=id, domain=domain, **kwargs)
+
                 # ---EXTRACT---
-                if (
-                        "extract" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, processing_level='extracted', id=sim_id)
-                ):
+                if do_task_loop(task="extract", processing_level='extracted'):
                     while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
                         try:
-                            # with (
-                            #         Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws),
-                            #         measure_time(name='extract', logger=logger),
-                            #         timeout(10600, task='extract')
-                            # ):
                             with context(**CONFIG['extraction']['simulation']['context']):
 
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
@@ -302,14 +302,7 @@ if __name__ == '__main__':
                             break
                 # ---REGRID---
                 # note: works well with xesmf 0.7.1. scheduler explodes with 0.8.2.
-                if (
-                        "regrid" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
-                ):
-                    # with (
-                    #         Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
-                    #         measure_time(name='regrid', logger=logger)
-                    # ):
+                if do_task_loop(task='regrid', processing_level='regridded'):
                     with context(**CONFIG['regrid']['context']):
 
 
@@ -1035,93 +1028,11 @@ if __name__ == '__main__':
                         pcat.update_from_ds(ds=ds_concat, path=path_adj)
 
 
-
-
-                # ---BA-dOTC ---
-                if (
-                        "ba-dOTC" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                   processing_level='biasadjusted')
-                ):
-                    with (
-                            Client(n_workers=2, threads_per_worker=3,
-                                   memory_limit="30GB", **daskkws),
-                            measure_time(name=f'dOTC', logger=logger)
-                    ):
-                        # load hist ds (simulation)
-                        sim = pcat.search(id=sim_id,
-                                          processing_level='regridded',
-                                          domain=region_name).to_dask().drop_vars('dtr')
-
-                        # load ref ds
-                        # choose right calendar
-                        simcal = get_calendar(sim)
-                        refcal = minimum_calendar(simcal,
-                                                  CONFIG['custom']['maximal_calendar'])
-                        ds_ref = pcat.search(source=ref_source,
-                                             calendar=refcal,
-                                             domain=region_name).to_dask().drop_vars('dtr')
-
-                        # convert calendar if necessary
-                        maximal_calendar = "noleap"
-                        align_on = "year"
-                        simcal = get_calendar(sim)
-                        refcal = get_calendar(ds_ref)
-                        mincal = minimum_calendar(simcal, maximal_calendar)
-                        if simcal != mincal:
-                            sim = convert_calendar(sim, mincal, align_on=align_on)
-                        if refcal != mincal:
-                            ds_ref = convert_calendar(ds_ref, mincal, align_on=align_on)
-
-                        # TODO: maybe it would work to do it by season!
-                        # TODO: careful with order of dimensions fed to sbck. wants (n_samples,n_features)
-                        ds_sim = sim.sel(time=slice('2071', '2100')) #sim_period) # TODO: put back
-                        ds_hist = sim.sel(time=ref_period)
-                        # TODO: jitter???
-
-                        # stack_var
-                        ds_ref = xc.sdba.processing.stack_variables(ds_ref).transpose()
-                        ds_hist = xc.sdba.processing.stack_variables(ds_hist).transpose()
-                        ds_sim = xc.sdba.processing.stack_variables(ds_sim).transpose()
-
-                        ds_ref = ds_ref.chunk({'loc':1})
-                        ds_hist = ds_hist.chunk({'loc': 1})
-                        ds_sim = ds_sim.chunk({'loc': 1})
-
-                        ds_scen = adjustment.SBCK_dOTC.adjust(
-                            ds_ref,
-                            ds_hist,
-                            ds_sim,
-                            multi_dim="multivar",
-                            **CONFIG['biasadjust_dOTC']['adjust'],
-                        )
-                        ds_scen = xc.sdba.processing.unstack_variables(ds_scen).load()
-
-                        for k, v in CONFIG['biasadjust_dOTC']['attrs'].items():
-                            ds_scen.attrs[f"cat_{k}"]= v
-
-                        ds_scen.attrs["cat:variable"] = xs.catalog.parse_from_ds(ds_scen, ["variable"])["variable"]
-
-                        # save and update
-                        path_adj = f"{workdir}/{sim_id}_{region_name}_adjusted.zarr"
-                        save_to_zarr(ds=ds_scen,
-                                     filename=path_adj,
-                                     mode='o')
-                        pcat.update_from_ds(ds=ds_scen, path=path_adj)
-
-
                 # --- UNIVARIATE ---
                 for var, conf in CONFIG['biasadjust_qm']['variables'].items():
 
                     # ---TRAIN QM ---
-                    if (
-                            "train_qm" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_qm_{var}")
-                    ):
-                        # with (
-                        #         Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                        #         measure_time(name=f'train_qm {var}', logger=logger)
-                        # ):
+                    if do_task_loop(task="train_qm", id=f"{sim_id}_training_qm_{var}"):
                         with context(**CONFIG['biasadjust_qm']['context']['train']):
                             # load hist ds (simulation)
                             ds_hist = pcat.search(id=sim_id,
@@ -1158,16 +1069,8 @@ if __name__ == '__main__':
                                                 path=path_tr)
 
                     # ---ADJUST QM---
-                    if (
-                            "adjust_qm" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                       processing_level= ['biasadjusted','half_biasadjusted'],
-                                                       variable=var)
-                    ):
-                        # with (
-                        #         Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                        #         measure_time(name=f'adjust_qm {var}', logger=logger)
-                        # ):
+                    if do_task_loop(task='adjust_qm', variable=var,
+                            processing_level= ['biasadjusted','half_biasadjusted'],):
                         with context(**CONFIG['biasadjust_qm']['context']['adjust']):
                             # load sim ds and training dataset
                             ds_sim = pcat.search(id=sim_id,
@@ -1196,14 +1099,7 @@ if __name__ == '__main__':
 
                 for var, conf in CONFIG['biasadjust_ex']['variables'].items():
                     # ---TRAIN EXTREME---
-                    if (
-                            "train_ex" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_ex_{var}")
-                    ):
-                        # with (
-                        #         Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                        #         measure_time(name=f'train_ex {var}', logger=logger)
-                        # ):
+                    if do_task_loop(task='train_ex',id=f"{sim_id}_training_ex_{var}"):
                         with context(**CONFIG['biasadjust_ex']['context']['train']):
                             # load hist and ref
                             ds_hist = pcat.search(id=sim_id, domain=region_name,
@@ -1237,16 +1133,7 @@ if __name__ == '__main__':
                                                 path=path_tr)
 
                     # ---ADJUST EXTREME---
-                    if (
-                            "adjust_ex" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                       processing_level='biasadjusted',
-                                                       variable=var)
-                    ):
-                        # with (
-                        #         Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                        #         measure_time(name=f'adjust_ex {var}', logger=logger)
-                        # ):
+                    if do_task_loop(task='adjust_ex', variable=var,processing_level='biasadjusted'):
                         with context(**CONFIG['biasadjust_ex']['context']['adjust']):
                             # load scen from quantile mapping
                             ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
@@ -1290,17 +1177,9 @@ if __name__ == '__main__':
                             pcat.update_from_ds(ds=ds_scen_ex, path=path_adj)
 
                 # ---CLEAN UP ---
-                if (
-                        "clean_up" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='cleaned_up')
-                ):
+                if do_task_loop(task= "clean_up",processing_level='cleaned_up'):
                     while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
                         try:
-                            # with (
-                            #         Client(n_workers=4, threads_per_worker=3, memory_limit="15GB", **daskkws),
-                            #         measure_time(name=f'cleanup', logger=logger),
-                            #         timeout(7200, task='clean_up')
-                            # ):
                             with context(**CONFIG['clean_up']['context']):
                                 #get all adjusted data
                                 cat = search_data_catalogs(**CONFIG['clean_up']['search_data_catalogs'],
@@ -1332,15 +1211,7 @@ if __name__ == '__main__':
                             break
 
                 # ---FINAL ZARR ---
-                if (
-                        "final_zarr" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='final',
-                                                   format='zarr')
-                ):
-                    # with (
-                    #         Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
-                    #         measure_time(name=f'final zarr rechunk', logger=logger)
-                    # ):
+                if do_task_loop(task='final_zarr', processing_level='final',format='zarr' ):
                     with context(**CONFIG['final_zarr']['context']):
                         #rechunk and move to final destination
                         fi_path = Path(f"{CONFIG['paths']['output']}".format(**cur_dict))
@@ -1389,20 +1260,9 @@ if __name__ == '__main__':
                                                  [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
                                                   [path_log, CONFIG['paths']['logging'].format(**cur_dict)]],
                                                  pcat=pcat)
-                #TODO: put env ic6-mbcn
-                #TODO: uodate xscen to avoid thousand warnings
 
                 # --- HEALTH CHECKS ---
-                if (
-                        "health_checks" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                   processing_level='health_checks')
-                ):
-                    # with (
-                    #         Client(n_workers=8, threads_per_worker=5,
-                    #                memory_limit="5GB", **daskkws),
-                    #         measure_time(name=f'health_checks', logger=logger)
-                    # ):
+                if do_task_loop(task='health_checks', processing_level='health_checks'):
                     with context(**CONFIG['diagnostics']['context'],
                                  measure_time_kw=dict(name=f'health_checks')):
                         ds_input = pcat.search(id=sim_id,processing_level='final',
@@ -1418,14 +1278,7 @@ if __name__ == '__main__':
 
 
                 # ---DIAGNOSTICS ---
-                if (
-                        "diagnostics" in CONFIG["tasks"]
-                        and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='diag-improved')
-                ):
-                    # with (
-                    #         Client(n_workers=8, threads_per_worker=5, memory_limit="5GB", **daskkws),
-                    #         measure_time(name=f'diagnostics', logger=logger)
-                    # ):
+                if do_task_loop(task='diagnostics', processing_level='diag-improved'):
                     with context(**CONFIG['diagnostics']['context'],
                                  measure_time_kw=dict(name=f'diagnostics')):
 

@@ -290,3 +290,5 @@ def comp_transfer(workdir, final_dest,pcat, scp_kwargs):
         logger.info(f"Deleting content inside {dir_to_delete}.")
         sh.rmtree(dir_to_delete)
         os.mkdir(dir_to_delete)
+
+
