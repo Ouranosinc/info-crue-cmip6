@@ -47,8 +47,8 @@ from utils import (
     save_and_update,
     )
 
-path = 'paths_l.yml'
-config = 'config-PCICBlend.yml'
+path = 'configuration/paths_l.yml'
+config = 'configuration/config-PCICBlend.yml'
 
 # Load configuration
 load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
@@ -121,47 +121,22 @@ if __name__ == '__main__':
             if not pcat.exists_in_cat(domain=region_name, calendar='default', source=ref_source):
                 #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
                 with context(**CONFIG['extraction']['reference']['context']):
-                    #TODO: tmp
-                    dspcic_min = xr.open_dataset(
-                        'https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/dodsC/birdhouse/disk2/pcic/PCIC_Blended_Observations_v1/tasmin_day_PCIC_Blended_Observations_v1_1950-2012.nc',
-                        chunks={'lon': 10, 'lat': 10, 'time': 365})
-                    dspcic_max = xr.open_dataset(
-                        'https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/dodsC/birdhouse/disk2/pcic/PCIC_Blended_Observations_v1/tasmax_day_PCIC_Blended_Observations_v1_1950-2012.nc',
-                        chunks={'lon': 10, 'lat': 10, 'time': 365})
-                    dspcic_pr = xr.open_dataset(
-                        'https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/dodsC/birdhouse/disk2/pcic/PCIC_Blended_Observations_v1/pr_day_PCIC_Blended_Observations_v1_1950-2012.nc',
-                        chunks={'lon': 10, 'lat': 10, 'time': 365})
-                    ds_pb = xr.merge([dspcic_min, dspcic_max, dspcic_pr])
-                    ds_pb = ds_pb.sel(time=ref_period)
-                    ds_pb.attrs['cat:type']='reconstruction'
-                    ds_pb.attrs['cat:institution'] = 'PCIC'
-                    ds_pb.attrs['cat:source'] = 'PCIC-Blend'
-                    ds_pb.attrs['cat:xrfreq'] = 'D'
-                    ds_pb.attrs['cat:version'] = 'v1'
-                    ds_pb.attrs['cat:id'] = xs.catalog.generate_id(ds_pb).iloc[0]
 
-                    ds_ref = xs.spatial.subset(ds=ds_pb, name='QC-PB',method='bbox',
-                                               lon_bnds=[-83, -55], lat_bnds=[42, 63])
+                    # search
+                    cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
 
-                    # # search
-                    # cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
-                    #
-                    # # extract
-                    # dc = cat_ref.popitem()[1]
-                    # ds_ref = extract_dataset(catalog=dc,
-                    #                          region=region_dict,
-                    #                          **CONFIG['extraction']['reference']['extract_dataset']
-                    #                          )['D']
+                    # extract
+                    dc = cat_ref.popitem()[1]
+                    ds_ref = extract_dataset(catalog=dc,
+                                             region=region_dict,
+                                             **CONFIG['extraction']['reference']['extract_dataset']
+                                             )['D']
 
-                    #TODO: maybe remove
+                    #standardize units
                     ds_ref = xs.clean_up(ds_ref, **CONFIG['extraction']['reference']['clean_up'])
                     ds_ref['pr'] = xc.core.units.convert_units_to(ds_ref['pr'],
                                                                   'kg m-2 s-1',
                                                                   context='hydro')
-
-                    #ds_ref['dtr']= xc.atmos.daily_temperature_range(ds=ds_ref)
-                    ds_ref['dtr']=ds_ref['tasmax'] - ds_ref['tasmin']
-                    ds_ref['dtr'].attrs["units"] = "K"
 
 
                     ds_ref = ds_ref.chunk(

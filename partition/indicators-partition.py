@@ -8,7 +8,7 @@ from dask.distributed import Client
 from dask import config as dskconf
 from xscen import CONFIG
 import logging
-path = '../paths_l.yml'
+path = '../configuration/paths_l.yml'
 config = '../config-MBCn-RDRS.yml'
 xs.load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
 logger = logging.getLogger('xscen')
