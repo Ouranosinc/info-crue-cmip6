@@ -96,7 +96,7 @@ if __name__ == '__main__':
         # set default
         client_kw = client_kw or {'n_workers': 4, 'threads_per_worker': 3, 'memory_limit': "7GB"}
         measure_time_kw = measure_time_kw or {'name': "undefined task"}
-        timeout_kw = timeout_kw or {'seconds': 1e5, 'task': "undefined task"}
+        timeout_kw = timeout_kw or {'seconds': int(1e5), 'task': "undefined task"}
 
         # call context
         with (Client(**client_kw, **daskkws),

@@ -7,7 +7,7 @@ project:
 tasks:
 #  ####- initialize_pcat
   - makeref
-#  - extract
+  - extract
   - regrid
   - train_qm
   - adjust_qm
@@ -89,7 +89,7 @@ extraction:
             n_workers: 3
             threads_per_worker: 5
             memory_limit: "15GB"
-          measure_time:
+          measure_time_kw:
             name: makeref
         search_data_catalogs:
             variables_and_freqs: &var_and_freq
@@ -126,7 +126,7 @@ extraction:
             n_workers: 2
             threads_per_worker: 5
             memory_limit: "30GB"
-          measure_time:
+          measure_time_kw:
             name: extract
           timeout_kw:
             seconds: 10600
@@ -557,6 +557,7 @@ logging:
             class : logging.StreamHandler
             formatter: default
             level : INFO
+            stream: ext://sys.stdout #needed to have the right color in pycharm
         file:
             class: logging.FileHandler
             formatter: default
