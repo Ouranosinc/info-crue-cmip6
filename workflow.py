@@ -12,6 +12,8 @@ import numpy as np
 from datetime import timedelta
 from dask.diagnostics import ProgressBar
 import cftime
+from contextlib import contextmanager
+
 
 import xclim as xc
 from xclim import sdba
@@ -46,7 +48,7 @@ from utils import (
     )
 
 path = 'paths_l.yml'
-config = 'config-NRCAN.yml'
+config = 'config-PCICBlend.yml'
 
 # Load configuration
 load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
@@ -88,6 +90,20 @@ if __name__ == '__main__':
     ref_source = CONFIG['extraction']['ref_source']
     tdd = CONFIG['tdd']
 
+    @contextmanager
+    def context(client_kw=None, measure_time_kw=None, timeout_kw=None):
+        """ Set up context for each task."""
+        # set default
+        client_kw = client_kw or {'n_workers': 4, 'threads_per_worker': 3, 'memory_limit': "7GB"}
+        measure_time_kw = measure_time_kw or {'name': "undefined task"}
+        timeout_kw = timeout_kw or {'seconds': 1e5, 'task': "undefined task"}
+
+        # call context
+        with (Client(**client_kw, **daskkws),
+              measure_time(**measure_time_kw, logger=logger),
+              timeout(**timeout_kw)):
+            yield
+
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
         pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'])
@@ -103,16 +119,51 @@ if __name__ == '__main__':
         ):
             # default
             if not pcat.exists_in_cat(domain=region_name, calendar='default', source=ref_source):
-                with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
-                    # search
-                    cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
+                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
+                with context(**CONFIG['extraction']['reference']['context']):
+                    #TODO: tmp
+                    dspcic_min = xr.open_dataset(
+                        'https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/dodsC/birdhouse/disk2/pcic/PCIC_Blended_Observations_v1/tasmin_day_PCIC_Blended_Observations_v1_1950-2012.nc',
+                        chunks={'lon': 10, 'lat': 10, 'time': 365})
+                    dspcic_max = xr.open_dataset(
+                        'https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/dodsC/birdhouse/disk2/pcic/PCIC_Blended_Observations_v1/tasmax_day_PCIC_Blended_Observations_v1_1950-2012.nc',
+                        chunks={'lon': 10, 'lat': 10, 'time': 365})
+                    dspcic_pr = xr.open_dataset(
+                        'https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/dodsC/birdhouse/disk2/pcic/PCIC_Blended_Observations_v1/pr_day_PCIC_Blended_Observations_v1_1950-2012.nc',
+                        chunks={'lon': 10, 'lat': 10, 'time': 365})
+                    ds_pb = xr.merge([dspcic_min, dspcic_max, dspcic_pr])
+                    ds_pb = ds_pb.sel(time=ref_period)
+                    ds_pb.attrs['cat:type']='reconstruction'
+                    ds_pb.attrs['cat:institution'] = 'PCIC'
+                    ds_pb.attrs['cat:source'] = 'PCIC-Blend'
+                    ds_pb.attrs['cat:xrfreq'] = 'D'
+                    ds_pb.attrs['cat:version'] = 'v1'
+                    ds_pb.attrs['cat:id'] = xs.catalog.generate_id(ds_pb).iloc[0]
 
-                    # extract
-                    dc = cat_ref.popitem()[1]
-                    ds_ref = extract_dataset(catalog=dc,
-                                             region=region_dict,
-                                             **CONFIG['extraction']['reference']['extract_dataset']
-                                             )['D']
+                    ds_ref = xs.spatial.subset(ds=ds_pb, name='QC-PB',method='bbox',
+                                               lon_bnds=[-83, -55], lat_bnds=[42, 63])
+
+                    # # search
+                    # cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
+                    #
+                    # # extract
+                    # dc = cat_ref.popitem()[1]
+                    # ds_ref = extract_dataset(catalog=dc,
+                    #                          region=region_dict,
+                    #                          **CONFIG['extraction']['reference']['extract_dataset']
+                    #                          )['D']
+
+                    #TODO: maybe remove
+                    ds_ref = xs.clean_up(ds_ref, **CONFIG['extraction']['reference']['clean_up'])
+                    ds_ref['pr'] = xc.core.units.convert_units_to(ds_ref['pr'],
+                                                                  'kg m-2 s-1',
+                                                                  context='hydro')
+
+                    #ds_ref['dtr']= xc.atmos.daily_temperature_range(ds=ds_ref)
+                    ds_ref['dtr']=ds_ref['tasmax'] - ds_ref['tasmin']
+                    ds_ref['dtr'].attrs["units"] = "K"
+
+
                     ds_ref = ds_ref.chunk(
                         {d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
 
@@ -138,7 +189,8 @@ if __name__ == '__main__':
 
             # noleap
             if not pcat.exists_in_cat(domain=region_name, calendar='noleap', source=ref_source):
-                with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
+                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)):
+                with context(**CONFIG['extraction']['reference']['context']):
 
                     ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
 
@@ -153,7 +205,8 @@ if __name__ == '__main__':
                                      **CONFIG['scp'])
             # 360_day
             if not pcat.exists_in_cat(domain=region_name, calendar='360_day', source=ref_source):
-                with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)) :
+                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)) :
+                with context(**CONFIG['extraction']['reference']['context']):
 
                     ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
 
@@ -169,7 +222,8 @@ if __name__ == '__main__':
             # diag
             if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
                                        source=ref_source)) and ('diagnostics' in CONFIG['tasks']):
-                with (Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws)):
+                #with (Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws)):
+                with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
                     cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
@@ -240,11 +294,12 @@ if __name__ == '__main__':
                 ):
                     while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
                         try:
-                            with (
-                                    Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws),
-                                    measure_time(name='extract', logger=logger),
-                                    timeout(10600, task='extract')
-                            ):
+                            # with (
+                            #         Client(n_workers=2, threads_per_worker=5, memory_limit="30GB", **daskkws),
+                            #         measure_time(name='extract', logger=logger),
+                            #         timeout(10600, task='extract')
+                            # ):
+                            with context(**CONFIG['extraction']['simulation']['context']):
 
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
                                 # domain will be cut to the right shape during the regrid
@@ -276,10 +331,11 @@ if __name__ == '__main__':
                         "regrid" in CONFIG["tasks"]
                         and not pcat.exists_in_cat(domain=region_name, processing_level='regridded', id=sim_id)
                 ):
-                    with (
-                            Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
-                            measure_time(name='regrid', logger=logger)
-                    ):
+                    # with (
+                    #         Client(n_workers=2, threads_per_worker=5, memory_limit="25GB", **daskkws),
+                    #         measure_time(name='regrid', logger=logger)
+                    # ):
+                    with context(**CONFIG['regrid']['context']):
 
 
                         ds_input = pcat.search(id=sim_id,
@@ -1087,10 +1143,11 @@ if __name__ == '__main__':
                             "train_qm" in CONFIG["tasks"]
                             and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_qm_{var}")
                     ):
-                        with (
-                                Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                                measure_time(name=f'train_qm {var}', logger=logger)
-                        ):
+                        # with (
+                        #         Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
+                        #         measure_time(name=f'train_qm {var}', logger=logger)
+                        # ):
+                        with context(**CONFIG['biasadjust_qm']['context']['train']):
                             # load hist ds (simulation)
                             ds_hist = pcat.search(id=sim_id,
                                                   processing_level='regridded',
@@ -1132,10 +1189,11 @@ if __name__ == '__main__':
                                                        processing_level= ['biasadjusted','half_biasadjusted'],
                                                        variable=var)
                     ):
-                        with (
-                                Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                                measure_time(name=f'adjust_qm {var}', logger=logger)
-                        ):
+                        # with (
+                        #         Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                        #         measure_time(name=f'adjust_qm {var}', logger=logger)
+                        # ):
+                        with context(**CONFIG['biasadjust_qm']['context']['adjust']):
                             # load sim ds and training dataset
                             ds_sim = pcat.search(id=sim_id,
                                                  processing_level = 'regridded',
@@ -1167,10 +1225,11 @@ if __name__ == '__main__':
                             "train_ex" in CONFIG["tasks"]
                             and not pcat.exists_in_cat(domain=region_name, id=f"{sim_id}_training_ex_{var}")
                     ):
-                        with (
-                                Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
-                                measure_time(name=f'train_ex {var}', logger=logger)
-                        ):
+                        # with (
+                        #         Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws),
+                        #         measure_time(name=f'train_ex {var}', logger=logger)
+                        # ):
+                        with context(**CONFIG['biasadjust_ex']['context']['train']):
                             # load hist and ref
                             ds_hist = pcat.search(id=sim_id, domain=region_name,
                                                  processing_level='regridded').to_dask()
@@ -1209,10 +1268,11 @@ if __name__ == '__main__':
                                                        processing_level='biasadjusted',
                                                        variable=var)
                     ):
-                        with (
-                                Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
-                                measure_time(name=f'adjust_ex {var}', logger=logger)
-                        ):
+                        # with (
+                        #         Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
+                        #         measure_time(name=f'adjust_ex {var}', logger=logger)
+                        # ):
+                        with context(**CONFIG['biasadjust_ex']['context']['adjust']):
                             # load scen from quantile mapping
                             ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
                                                  processing_level='half_biasadjusted').to_dask()
@@ -1261,11 +1321,12 @@ if __name__ == '__main__':
                 ):
                     while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
                         try:
-                            with (
-                                    Client(n_workers=4, threads_per_worker=3, memory_limit="15GB", **daskkws),
-                                    measure_time(name=f'cleanup', logger=logger),
-                                    timeout(7200, task='clean_up')
-                            ):
+                            # with (
+                            #         Client(n_workers=4, threads_per_worker=3, memory_limit="15GB", **daskkws),
+                            #         measure_time(name=f'cleanup', logger=logger),
+                            #         timeout(7200, task='clean_up')
+                            # ):
+                            with context(**CONFIG['clean_up']['context']):
                                 #get all adjusted data
                                 cat = search_data_catalogs(**CONFIG['clean_up']['search_data_catalogs'],
                                                            other_search_criteria= { 'id': [sim_id],
@@ -1301,10 +1362,11 @@ if __name__ == '__main__':
                         and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='final',
                                                    format='zarr')
                 ):
-                    with (
-                            Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
-                            measure_time(name=f'final zarr rechunk', logger=logger)
-                    ):
+                    # with (
+                    #         Client(n_workers=3, threads_per_worker=5, memory_limit="20GB", **daskkws),
+                    #         measure_time(name=f'final zarr rechunk', logger=logger)
+                    # ):
+                    with context(**CONFIG['final_zarr']['context']):
                         #rechunk and move to final destination
                         fi_path = Path(f"{CONFIG['paths']['output']}".format(**cur_dict))
                         fi_path.parent.mkdir(exist_ok=True, parents=True)
@@ -1361,14 +1423,15 @@ if __name__ == '__main__':
                         and not pcat.exists_in_cat(domain=region_name, id=sim_id,
                                                    processing_level='health_checks')
                 ):
-                    with (
-                            Client(n_workers=8, threads_per_worker=5,
-                                   memory_limit="5GB", **daskkws),
-                            measure_time(name=f'health_checks', logger=logger)
-                    ):
+                    # with (
+                    #         Client(n_workers=8, threads_per_worker=5,
+                    #                memory_limit="5GB", **daskkws),
+                    #         measure_time(name=f'health_checks', logger=logger)
+                    # ):
+                    with context(**CONFIG['diagnostics']['context'],
+                                 measure_time_kw=dict(name=f'health_checks')):
                         ds_input = pcat.search(id=sim_id,processing_level='final',
                                                domain=region_name).to_dataset(**tdd)
-
                         hc = xs.diagnostics.health_checks(
                             ds=ds_input,
                             **CONFIG['diagnostics']['health_checks'])
@@ -1384,10 +1447,12 @@ if __name__ == '__main__':
                         "diagnostics" in CONFIG["tasks"]
                         and not pcat.exists_in_cat(domain=region_name, id=sim_id, processing_level='diag-improved')
                 ):
-                    with (
-                            Client(n_workers=8, threads_per_worker=5, memory_limit="5GB", **daskkws),
-                            measure_time(name=f'diagnostics', logger=logger)
-                    ):
+                    # with (
+                    #         Client(n_workers=8, threads_per_worker=5, memory_limit="5GB", **daskkws),
+                    #         measure_time(name=f'diagnostics', logger=logger)
+                    # ):
+                    with context(**CONFIG['diagnostics']['context'],
+                                 measure_time_kw=dict(name=f'diagnostics')):
 
                         for step, step_dict in CONFIG['diagnostics']['steps'].items():
 

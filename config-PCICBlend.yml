@@ -1,0 +1,579 @@
+project:
+    name: Info-Crue CMIP6
+    version: 1.0.0
+    description: Jeux de données CMIP6 corrigés pour Info-Crue
+    id: ic6
+
+tasks:
+#  ####- initialize_pcat
+  - makeref
+#  - extract
+  - regrid
+  - train_qm
+  - adjust_qm
+  - train_ex
+  - adjust_ex
+  - clean_up
+  - final_zarr
+#  - health_checks
+#  - diagnostics
+#  - individual_wl
+#  - horizons
+#  - deltas
+#  - ensembles # check the domains and not including refs
+
+
+
+custom:
+    delete_in_final_zarr: True
+    delete_in_diag: False
+    regions:
+        QC-PB:
+          name: QC-PB
+          method: bbox
+          bbox:
+            lon_bnds: [ -83, -55 ]
+            lat_bnds: [ 42, 63 ]
+    stack_drop_nans: &stack
+        True
+    chunks:
+        lat: 15
+        lon: 15
+        loc: 50
+        time: -1
+    out_chunks:
+        lat: 30
+        lon: 30
+        time: 4year
+    ref_period : &ref_period # new-ref
+      - '1983'
+      - '2012'
+    sim_period: &sim_period
+        - '1956'
+        - '2100'
+    encoding:
+      tasmax:
+        dtype: float32
+      tasmin:
+        dtype: float32
+      dtr:
+        dtype: float32
+      pr:
+        dtype: float32
+    maximal_calendar: &mcal
+      noleap
+
+
+
+
+extract:
+    sim_chunks: {'time': 365, 'lat':-1, 'lon':-1}
+    subset_warming_level:
+      ignore_member: True
+      window: 20
+      wl_dim: "+{wl}C"
+    ref_chunk:
+      time: -1
+    ref_prop_chunk:
+      lat: 30
+      lon: 30
+
+
+
+
+
+extraction:
+    reference:
+        context:
+          client_kw:
+            n_workers: 3
+            threads_per_worker: 5
+            memory_limit: "15GB"
+          measure_time:
+            name: makeref
+        search_data_catalogs:
+            variables_and_freqs: &var_and_freq
+                tasmax: D
+                tasmin: D
+                pr: D
+                dtr: D
+            allow_resampling: False
+            allow_conversion: True
+            periods : *ref_period
+            other_search_criteria:
+                source: &ref_source
+                    PCIC-Blend
+        extract_dataset:
+          xr_open_kwargs:
+            engine: h5netcdf
+        clean_up:
+          to_level: extracted
+          variables_and_units:
+            tasmax: K
+            tasmin: K
+            #pr: kg m-2 s-1
+        properties_and_measures:
+          period: *ref_period
+          unstack: False
+          to_level_prop: diag-ref-prop
+          change_units_arg:
+            tasmax: degC
+            tasmin: degC
+            pr: mm d-1
+    simulation:
+        context:
+          client_kw:
+            n_workers: 2
+            threads_per_worker: 5
+            memory_limit: "30GB"
+          measure_time:
+            name: extract
+          timeout_kw:
+            seconds: 10600
+            task: extract
+        search_data_catalogs:
+          variables_and_freqs: *var_and_freq
+          match_hist_and_fut: True
+          allow_conversion: True
+          allow_resampling: False
+          #periods: *sim_period
+          exclusions:
+            id:
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r3i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
+              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
+          other_search_criteria:
+            processing_level: raw
+            experiment:
+              - ssp585
+              - ssp245
+              - ssp370
+              - ssp126
+            source:
+              # chosen
+              - ACCESS-ESM1-5
+              - CanESM5
+              - EC-Earth3
+              - FGOALS-g3
+              - IPSL-CM6A-LR
+              - KACE-1-0-G
+              - MIROC6
+              - MRI-ESM2-0
+            mip_era: CMIP6
+            member: r1i1p1f1
+        extract_dataset:
+            periods : *sim_period
+            xr_combine_kwargs:
+              combine_attrs: override
+            xr_open_kwargs:
+              engine: h5netcdf
+              use_cftime: True
+              drop_variables:
+                - height
+                - bnds
+                - time_bnds
+                - lat_bnds
+                - lon_bnds
+              chunks:
+                lat: 30
+                lon: 30
+                time: 365
+    ref_source: *ref_source
+
+regrid:
+  context:
+    client_kw:
+      n_workers: 2
+      threads_per_worker: 5
+      memory_limit: "25GB"
+    measure_time_kw:
+      name: regrid
+  target:
+    source: *ref_source
+    calendar: noleap
+  regrid_dataset:
+    regridder_kwargs:
+      method: bilinear
+      extrap_method: inverse_dist
+      locstream_out: *stack
+      reuse_weights: False
+    intermediate_grids:
+      reg1:
+        cf_grid_2d:
+          lon0_b: 274.75
+          lon1_b: 305.2
+          d_lon: 1
+          lat0_b: 39.75
+          lat1_b: 64
+          d_lat: 1
+        regridder_kwargs:
+          method: bilinear
+          extrap_method: inverse_dist
+          locstream_out: False
+          reuse_weights: False
+      reg2:
+        cf_grid_2d:
+          lon0_b: 274.74
+          lon1_b: 305.2
+          d_lon: 0.5
+          lat0_b: 39.74
+          lat1_b: 64
+          d_lat: 0.5
+        regridder_kwargs:
+          method: bilinear
+          extrap_method: inverse_dist
+          locstream_out: False
+          reuse_weights: False
+
+
+
+biasadjust_qm:
+    context:
+      train:
+        client_kw:
+            n_workers: 7
+            threads_per_worker: 3
+            memory_limit: "9GB"
+        measure_time_kw:
+            name: train qm
+      adjust:
+        client_kw:
+          n_workers: 6
+          threads_per_worker: 3
+          memory_limit: "10GB"
+        measure_time_kw:
+          name: adjust qm
+    variables:
+        dtr:
+            training_args:
+                period: *ref_period
+                method: DetrendedQuantileMapping
+                group:
+                    group: time.dayofyear
+                    window: 31
+                xclim_train_args:
+                    kind: "*"
+                    nquantiles: 50
+            adjusting_args:
+                periods: *sim_period
+                xclim_adjust_args:
+                    detrend:
+                        LoessDetrend:
+                          f: 0.2
+                          niter: 1
+                          d: 0
+                          weights: tricube
+                    interp: nearest
+                    extrapolation: constant
+                bias_adjust_institution: &b_a_inst
+                  Ouranos
+                bias_adjust_project: &b_a_pro
+                  info-crue-CMIP6
+        tasmax:
+            training_args:
+                period: *ref_period
+                method: DetrendedQuantileMapping
+                group:
+                    group: time.dayofyear
+                    window: 31
+                xclim_train_args:
+                    kind: "+"
+                    nquantiles: 50
+            adjusting_args:
+                periods: *sim_period
+                xclim_adjust_args:
+                  detrend:
+                    LoessDetrend:
+                      f: 0.2
+                      niter: 1
+                      d: 0
+                      weights: tricube
+                  interp: nearest
+                  extrapolation: constant
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
+        pr:
+            training_args:
+                period: *ref_period
+                method: DetrendedQuantileMapping
+                group:
+                    group: time.dayofyear
+                    window: 31
+                jitter_under:
+                    thresh: 0.05 mm d-1
+                xclim_train_args:
+                    kind: "*"
+                    nquantiles: 50
+            adjusting_args:
+                periods: *sim_period
+                xclim_adjust_args:
+                  detrend:
+                    LoessDetrend:
+                      f: 0.2
+                      niter: 1
+                      d: 0
+                      weights: tricube
+                  interp: nearest
+                  extrapolation: constant
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
+
+
+biasadjust_ex:
+    context:
+      train:
+        client_kw:
+            n_workers: 9
+            threads_per_worker: 3
+            memory_limit: "7GB"
+        measure_time_kw:
+            name: train ex
+      adjust:
+        client_kw:
+          n_workers: 6
+          threads_per_worker: 3
+          memory_limit: "10GB"
+        measure_time_kw:
+          name: adjust ex
+    moving_yearly_window:
+        window: 40
+        step: 15
+    variables:
+        pr:
+            training_args:
+                period: *ref_period
+                method: ExtremeValues
+                jitter_under:
+                    thresh: 0.05 mm d-1
+                group: False
+                xclim_train_args:
+                    cluster_thresh: 1 mm d-1 #0.00001157407 kg m-2 s-1 #
+                    q_thresh: 0.95
+            adjusting_args:
+                periods: *sim_period
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
+clean_up:
+  context:
+    client_kw:
+      n_workers: 4
+      threads_per_worker: 3
+      memory_limit: "15GB"
+    measure_time_kw:
+      name: cleanup
+    timeout_kw:
+      seconds: 7200
+      task: clean_up
+  search_data_catalogs:
+    variables_and_freqs:
+      tasmax: D
+      tasmin: D
+      pr: D
+    allow_conversion: True
+    allow_resampling: False
+  xscen_clean_up:
+    to_level: cleaned_up
+    variables_and_units:
+      tasmax: degC
+      tasmin: degC
+      pr: mm d-1
+    convert_calendar_kwargs:
+      target: standard
+      align_on: random
+    missing_by_var:
+      tasmax: interpolate
+      tasmin: interpolate
+      pr: [0]
+    maybe_unstack_dict:
+      stack_drop_nans: *stack
+      #coords: ['rlat', 'rlon']
+      rechunk:
+        lat: 15
+        lon: 15
+        time: -1
+    round_var:
+      pr: 10
+    remove_all_attrs_except:
+      global:
+        - '^cat:'
+        - history
+      tasmax: &attrs_to_keep
+        - bias_adjustment
+        - cell_methods
+        - coordinates
+        - history
+        - long_name
+        - standard_name
+        - units
+      tasmin: *attrs_to_keep
+      pr: *attrs_to_keep
+    add_attrs:
+      global:
+        Notes: |
+          Regridded on the grid of NRCANv2018, then bias-adjusted with detrended
+          quantile mapping on a day-of-year basis with a window of 31 days,
+          LOESS detrending and 50 quantiles.
+          There is a second bias adjustement for pr's extreme values.
+          The variables tasmax, dtr and pr were adjusted, tasmin was computed
+          from tasmax and dtr after the adjustment.
+          The reference was NRCANv2018 over the 1988-2017 period.
+        version: "1.0.0"
+      tasmax:
+          standard_name: air_temperature
+          long_name: Maximal daily temperature
+          cell_methods: "time: maximum within days"
+      tasmin:
+          standard_name: air_temperature
+          long_name: Minimal daily temperature
+          cell_methods: "time: minimum within days"
+      pr:
+          standard_name: precipitation_flux
+          long_name: Mean daily precipitation flux
+          cell_methods: "time: mean within days"
+
+final_zarr:
+  context:
+    client_kw:
+      n_workers: 3
+      threads_per_worker: 5
+      memory_limit: "20GB"
+    measure_time_kw:
+        name: final zarr rechunk
+
+rechunk:
+    worker_mem: 2GB
+
+
+diagnostics:
+  context:
+    client_kw:
+      n_workers: 8
+      threads_per_worker: 5
+      memory_limit: "5GB"
+  steps:
+    sim:
+      input:
+        processing_level:  regridded
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'lat': 30, 'lon': 30, 'time': -1}
+        period: *ref_period
+        unstack: *stack
+        change_units_arg:
+          tasmax: degC
+          tasmin: degC
+          pr: mm d-1
+    scen:
+      input:
+        processing_level: final
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'lat':30, 'lon':30, 'time':-1}
+        period: *ref_period
+        unstack: False
+  health_checks:
+    structure:
+      coords:
+        - lat
+        - lon
+        - time
+      dims:
+        - lat
+        - lon
+        - time
+    start_date: "1956-01-01"
+    end_date: "2100-12-30"
+    variables_and_units:
+      tasmax: "°C"
+      tasmin: "°C"
+      pr: "mm d-1"
+    cfchecks:
+      tasmax:
+        cfcheck_from_name: { }
+      tasmin:
+        cfcheck_from_name: { }
+      pr:
+        cfcheck_from_name: { }
+    freq: D
+    flags:
+      tasmax:
+        temperature_extremely_high:
+          thresh: '60 degC'
+        tasmax_below_tasmin:
+      tasmin:
+        temperature_extremely_low:
+          thresh: '-70 degC'
+      pr:
+        negative_accumulation_values:
+        very_large_precipitation_events:
+          thresh: '300 mm/d'
+    return_flags: True
+    raise_on:
+      - structure
+      - start_date
+      - end_date
+      - variables_and_units
+      - cfchecks
+      - freq
+
+
+
+io:
+  save_to_zarr:
+    mode: o
+
+scripting:
+    measure_time:
+        cpu: True
+    subject: Info-Crue CMIP6
+    send_mail_on_exit:
+        msg_ok: Toutes les étapes demandées ont été complétées.
+        msg_err: Une erreur est survenue durant le traitement.
+        on_error_only: True
+
+dask:
+    client:
+        dashboard_address: 6785
+    array.slicing.split_large_chunks: False
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : INFO
+        file:
+            class: logging.FileHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        xscen:
+            propagate: False
+            level: INFO
+            handlers: [file, console]
+
+tdd:
+  xarray_open_kwargs:
+    decode_timedelta: False
+
+
+#utils:
+#  unstack_fill_nan:
+#    coords: ['rlat', 'rlon']
+#  maybe_unstack:
+#    coords: ['rlat', 'rlon']
