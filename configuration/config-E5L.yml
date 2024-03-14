@@ -740,6 +740,7 @@ logging:
             class : logging.StreamHandler
             formatter: default
             level : INFO
+            stream: ext://sys.stdout #needed to have the right color in pycharm
         file:
             class: logging.FileHandler
             formatter: default
