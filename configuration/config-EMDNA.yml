@@ -85,6 +85,13 @@ extract:
 
 extraction:
     reference:
+        context:
+          client_kw:
+            n_workers: 3
+            threads_per_worker: 5
+            memory_limit: "15GB"
+          measure_time_kw:
+            name: makeref
         search_data_catalogs:
             variables_and_freqs: &var_and_freq
                 tasmax: D
@@ -108,6 +115,16 @@ extraction:
             tasmin: degC
             pr: mm d-1
     simulation:
+        context:
+          client_kw:
+            n_workers: 2
+            threads_per_worker: 5
+            memory_limit: "30GB"
+          measure_time_kw:
+            name: extract
+          timeout_kw:
+            seconds: 10600
+            task: extract
         search_data_catalogs:
           variables_and_freqs: *var_and_freq
           match_hist_and_fut: True
@@ -173,6 +190,13 @@ extraction:
     ref_source: *ref_source
 
 regrid:
+  context:
+    client_kw:
+      n_workers: 2
+      threads_per_worker: 5
+      memory_limit: "25GB"
+    measure_time_kw:
+      name: regrid
   target:
     source: *ref_source
     calendar: noleap
@@ -219,6 +243,21 @@ biasadjust_dOTC:
 
 
 biasadjust_qm:
+    context:
+      train:
+        client_kw:
+          n_workers: 7
+          threads_per_worker: 3
+          memory_limit: "9GB"
+        measure_time_kw:
+          name: train qm
+      adjust:
+        client_kw:
+          n_workers: 6
+          threads_per_worker: 3
+          memory_limit: "10GB"
+        measure_time_kw:
+          name: adjust qm
     variables:
         dtr:
             training_args:
@@ -296,6 +335,21 @@ biasadjust_qm:
 
 
 biasadjust_ex:
+    context:
+      train:
+        client_kw:
+            n_workers: 9
+            threads_per_worker: 3
+            memory_limit: "7GB"
+        measure_time_kw:
+            name: train ex
+      adjust:
+        client_kw:
+          n_workers: 6
+          threads_per_worker: 3
+          memory_limit: "10GB"
+        measure_time_kw:
+          name: adjust ex
     moving_yearly_window:
         window: 40
         step: 15
@@ -315,6 +369,16 @@ biasadjust_ex:
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
 clean_up:
+  context:
+    client_kw:
+      n_workers: 4
+      threads_per_worker: 3
+      memory_limit: "15GB"
+    measure_time_kw:
+      name: cleanup
+    timeout_kw:
+      seconds: 7200
+      task: clean_up
   search_data_catalogs:
     variables_and_freqs:
       tasmax: D
@@ -385,8 +449,22 @@ clean_up:
 rechunk:
     worker_mem: 2GB
 
+final_zarr:
+  context:
+    client_kw:
+      n_workers: 3
+      threads_per_worker: 5
+      memory_limit: "20GB"
+    measure_time_kw:
+        name: final zarr rechunk
+
 
 diagnostics:
+  context:
+    client_kw:
+      n_workers: 8
+      threads_per_worker: 5
+      memory_limit: "5GB"
   sim:
     input:
       processing_level:  regridded

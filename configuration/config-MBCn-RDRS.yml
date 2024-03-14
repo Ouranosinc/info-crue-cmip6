@@ -89,6 +89,13 @@ extract:
 
 extraction:
     reference:
+        context:
+          client_kw:
+            n_workers: 3
+            threads_per_worker: 5
+            memory_limit: "15GB"
+          measure_time_kw:
+            name: makeref
         search_data_catalogs:
             variables_and_freqs: &var_and_freq
                 tasmax: D
@@ -111,6 +118,16 @@ extraction:
             tasmin: degC
             pr: mm d-1
     simulation:
+        context:
+          client_kw:
+            n_workers: 2
+            threads_per_worker: 5
+            memory_limit: "30GB"
+          measure_time_kw:
+            name: extract
+          timeout_kw:
+            seconds: 10600
+            task: extract
         search_data_catalogs:
           variables_and_freqs: *var_and_freq
           match_hist_and_fut: True
@@ -178,6 +195,13 @@ extraction:
     ref_source: *ref_source
 
 regrid:
+  context:
+    client_kw:
+      n_workers: 2
+      threads_per_worker: 5
+      memory_limit: "25GB"
+    measure_time_kw:
+      name: regrid
   target:
     source: *ref_source
     calendar: noleap
@@ -340,6 +364,16 @@ biasadjust_ex:
     pr: False
 
 clean_up:
+  context:
+    client_kw:
+      n_workers: 4
+      threads_per_worker: 3
+      memory_limit: "15GB"
+    measure_time_kw:
+      name: cleanup
+    timeout_kw:
+      seconds: 7200
+      task: clean_up
   search_data_catalogs:
     variables_and_freqs:
       tasmax: D
@@ -405,8 +439,21 @@ clean_up:
 rechunk:
     worker_mem: 2GB
 
+final_zarr:
+  context:
+    client_kw:
+      n_workers: 3
+      threads_per_worker: 5
+      memory_limit: "20GB"
+    measure_time_kw:
+        name: final zarr rechunk
 
 diagnostics:
+  context:
+    client_kw:
+      n_workers: 8
+      threads_per_worker: 5
+      memory_limit: "5GB"
   steps:
     sim:
       input:

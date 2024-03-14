@@ -15,7 +15,7 @@ tasks:
   - adjust_ex
   - clean_up
   - final_zarr
-#  - health_checks
+#  - health_checks # need a new xscen
 #  - diagnostics
 #  - individual_wl
 #  - horizons

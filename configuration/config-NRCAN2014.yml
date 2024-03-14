@@ -9,14 +9,13 @@ tasks:
   - makeref
   - extract
   - regrid
-#  - ba-MBCn
-##  - ba-dOTC
   - train_qm
   - adjust_qm
   - train_ex
   - adjust_ex
   - clean_up
   - final_zarr
+#  - health_checks # need a new xscen
 #  - diagnostics
 #  - individual_wl
 #  - horizons
@@ -29,8 +28,8 @@ custom:
     delete_in_final_zarr: True
     delete_in_diag: False
     regions:
-        QC-NRCANv2018:
-          name: QC-NRCANv2018
+        QC-N2014:
+          name: QC-N2014
           method: bbox
           bbox:
             lon_bnds: [ -83, -55 ]
@@ -47,8 +46,8 @@ custom:
         lon: 30
         time: 4year
     ref_period : &ref_period # new-ref
-      - '1988'
-      - '2017'
+      - '1983'
+      - '2012'
     sim_period: &sim_period
         - '1956'
         - '2100'
@@ -85,6 +84,13 @@ extract:
 
 extraction:
     reference:
+        context:
+          client_kw:
+            n_workers: 3
+            threads_per_worker: 5
+            memory_limit: "15GB"
+          measure_time_kw:
+            name: makeref
         search_data_catalogs:
             variables_and_freqs: &var_and_freq
                 tasmax: D
@@ -94,13 +100,20 @@ extraction:
             allow_resampling: False
             allow_conversion: True
             periods : *ref_period
+            exclusions:
+              version: v2
             other_search_criteria:
                 source: &ref_source
                     NRCAN
-                version: v2
         extract_dataset:
           xr_open_kwargs:
             engine: h5netcdf
+        clean_up:
+          to_level: extracted
+          variables_and_units:
+            tasmax: K
+            tasmin: K
+            #pr: kg m-2 s-1
         properties_and_measures:
           period: *ref_period
           unstack: False
@@ -110,6 +123,16 @@ extraction:
             tasmin: degC
             pr: mm d-1
     simulation:
+        context:
+          client_kw:
+            n_workers: 2
+            threads_per_worker: 5
+            memory_limit: "30GB"
+          measure_time_kw:
+            name: extract
+          timeout_kw:
+            seconds: 10600
+            task: extract
         search_data_catalogs:
           variables_and_freqs: *var_and_freq
           match_hist_and_fut: True
@@ -169,6 +192,13 @@ extraction:
     ref_source: *ref_source
 
 regrid:
+  context:
+    client_kw:
+      n_workers: 2
+      threads_per_worker: 5
+      memory_limit: "25GB"
+    measure_time_kw:
+      name: regrid
   target:
     source: *ref_source
     calendar: noleap
@@ -209,6 +239,21 @@ regrid:
 
 
 biasadjust_qm:
+    context:
+      train:
+        client_kw:
+            n_workers: 7
+            threads_per_worker: 3
+            memory_limit: "9GB"
+        measure_time_kw:
+            name: train qm
+      adjust:
+        client_kw:
+          n_workers: 6
+          threads_per_worker: 3
+          memory_limit: "10GB"
+        measure_time_kw:
+          name: adjust qm
     variables:
         dtr:
             training_args:
@@ -286,6 +331,21 @@ biasadjust_qm:
 
 
 biasadjust_ex:
+    context:
+      train:
+        client_kw:
+            n_workers: 9
+            threads_per_worker: 3
+            memory_limit: "7GB"
+        measure_time_kw:
+            name: train ex
+      adjust:
+        client_kw:
+          n_workers: 6
+          threads_per_worker: 3
+          memory_limit: "10GB"
+        measure_time_kw:
+          name: adjust ex
     moving_yearly_window:
         window: 40
         step: 15
@@ -305,6 +365,16 @@ biasadjust_ex:
                 bias_adjust_institution: *b_a_inst
                 bias_adjust_project: *b_a_pro
 clean_up:
+  context:
+    client_kw:
+      n_workers: 4
+      threads_per_worker: 3
+      memory_limit: "15GB"
+    measure_time_kw:
+      name: cleanup
+    timeout_kw:
+      seconds: 7200
+      task: clean_up
   search_data_catalogs:
     variables_and_freqs:
       tasmax: D
@@ -351,13 +421,13 @@ clean_up:
     add_attrs:
       global:
         Notes: |
-          Regridded on the grid of NRCANv2018, then bias-adjusted with detrended
+          Regridded on the grid of NRCANv2014, then bias-adjusted with detrended
           quantile mapping on a day-of-year basis with a window of 31 days,
           LOESS detrending and 50 quantiles.
           There is a second bias adjustement for pr's extreme values.
           The variables tasmax, dtr and pr were adjusted, tasmin was computed
           from tasmax and dtr after the adjustment.
-          The reference was NRCANv2018 over the 1988-2017 period.
+          The reference was NRCANv2014 over the 1983-2012 period.
         version: "1.0.0"
       tasmax:
           standard_name: air_temperature
@@ -372,33 +442,92 @@ clean_up:
           long_name: Mean daily precipitation flux
           cell_methods: "time: mean within days"
 
+final_zarr:
+  context:
+    client_kw:
+      n_workers: 3
+      threads_per_worker: 5
+      memory_limit: "20GB"
+    measure_time_kw:
+        name: final zarr rechunk
+
 rechunk:
     worker_mem: 2GB
 
 
 diagnostics:
-  sim:
-    input:
-      processing_level:  regridded
-    dref_for_measure:
-      processing_level: diag-ref-prop
-    properties_and_measures:
-      rechunk: {'lat': 30, 'lon': 30, 'time': -1}
-      period: *ref_period
-      unstack: *stack
-      change_units_arg:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
-  scen:
-    input:
-      processing_level: final
-    dref_for_measure:
-      processing_level: diag-ref-prop
-    properties_and_measures:
-      rechunk: {'lat':30, 'lon':30, 'time':-1}
-      period: *ref_period
-      unstack: False
+  context:
+    client_kw:
+      n_workers: 8
+      threads_per_worker: 5
+      memory_limit: "5GB"
+  steps:
+    sim:
+      input:
+        processing_level:  regridded
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'lat': 30, 'lon': 30, 'time': -1}
+        period: *ref_period
+        unstack: *stack
+        change_units_arg:
+          tasmax: degC
+          tasmin: degC
+          pr: mm d-1
+    scen:
+      input:
+        processing_level: final
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'lat':30, 'lon':30, 'time':-1}
+        period: *ref_period
+        unstack: False
+  health_checks:
+    structure:
+      coords:
+        - lat
+        - lon
+        - time
+      dims:
+        - lat
+        - lon
+        - time
+    start_date: "1956-01-01"
+    end_date: "2100-12-30"
+    variables_and_units:
+      tasmax: "°C"
+      tasmin: "°C"
+      pr: "mm d-1"
+    cfchecks:
+      tasmax:
+        cfcheck_from_name: { }
+      tasmin:
+        cfcheck_from_name: { }
+      pr:
+        cfcheck_from_name: { }
+    freq: D
+    flags:
+      tasmax:
+        temperature_extremely_high:
+          thresh: '60 degC'
+        tasmax_below_tasmin:
+      tasmin:
+        temperature_extremely_low:
+          thresh: '-70 degC'
+      pr:
+        negative_accumulation_values:
+        very_large_precipitation_events:
+          thresh: '300 mm/d'
+    return_flags: True
+    raise_on:
+      - structure
+      - start_date
+      - end_date
+      - variables_and_units
+      - cfchecks
+      - freq
 
 
 
@@ -430,6 +559,7 @@ logging:
             class : logging.StreamHandler
             formatter: default
             level : INFO
+            stream: ext://sys.stdout #needed to have the right color in pycharm
         file:
             class: logging.FileHandler
             formatter: default

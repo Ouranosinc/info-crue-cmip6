@@ -48,7 +48,7 @@ from utils import (
     )
 
 path = 'configuration/paths_l.yml'
-config = 'configuration/config-PCICBlend.yml'
+config = 'configuration/config-NRCAN2014.yml'
 
 # Load configuration
 load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
