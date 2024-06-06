@@ -6,11 +6,11 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-  #- makeref
-  #- extract
-  #- regrid
-  #- ba-MBCn
-  #- npdf-bdd
+  - makeref
+  - extract
+  - regrid
+  - ba-MBCn
+  - npdf-bdd
   - npdf-gpies
   - clean_up
   - final_zarr
