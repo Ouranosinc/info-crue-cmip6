@@ -9,8 +9,6 @@ tasks:
   - makeref
   - extract
   - regrid
-#  - ba-MBCn
-##  - ba-dOTC
   - train_qm
   - adjust_qm
   - train_ex

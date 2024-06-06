@@ -6,22 +6,20 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-#  - makeref
-#  - extract
-#  - regrid
-##  - ba-MBCn
-###  - ba-dOTC
-#  - train_qm
-#  - adjust_qm
-#  - train_ex
-#  - adjust_ex
-#  - clean_up
-#  - final_zarr
+  - makeref
+  - extract
+  - regrid
+  - train_qm
+  - adjust_qm
+  - train_ex
+  - adjust_ex
+  - clean_up
+  - final_zarr
 #  - diagnostics
 #  - individual_wl
 #  - horizons
 #  - deltas
-  - ensembles # check the domains
+#  - ensembles # check the domains
 
 
 
