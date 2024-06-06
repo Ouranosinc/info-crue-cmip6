@@ -60,8 +60,6 @@ regriddir = Path(CONFIG['paths']['regriddir'])
 refdir = Path(CONFIG['paths']['refdir'])
 
 
-
-
 if __name__ == '__main__':
     import warnings
 
@@ -93,7 +91,8 @@ if __name__ == '__main__':
     def context(client_kw=None, measure_time_kw=None, timeout_kw=None):
         """ Set up context for each task."""
         # set default
-        client_kw = client_kw or {'n_workers': 4, 'threads_per_worker': 3, 'memory_limit': "7GB"}
+        client_kw = client_kw or {'n_workers': 4, 'threads_per_worker': 3,
+                                  'memory_limit': "7GB"}
         measure_time_kw = measure_time_kw or {'name': "undefined task"}
         timeout_kw = timeout_kw or {'seconds': int(1e5), 'task': "undefined task"}
 
@@ -111,7 +110,8 @@ if __name__ == '__main__':
 
     # initialize Project Catalog
     if "initialize_pcat" in CONFIG["tasks"]:
-        pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'])
+        pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'],
+                                     project=CONFIG['project'])
 
     # load project catalog
     pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
@@ -120,28 +120,32 @@ if __name__ == '__main__':
     for region_name, region_dict in CONFIG['custom']['regions'].items():
         if (
                 "makeref" in CONFIG["tasks"]
-                and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
+                and not pcat.exists_in_cat(domain=region_name, source=ref_source,
+                                           processing_level='diag-ref-prop',)
         ):
             # default
-            if not pcat.exists_in_cat(domain=region_name, calendar='default', source=ref_source):
+            if not pcat.exists_in_cat(domain=region_name, calendar='default',
+                                      source=ref_source):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
-                    cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
+                    cat_ref = search_data_catalogs(
+                        **CONFIG['extraction']['reference']['search_data_catalogs'])
 
                     # extract
                     dc = cat_ref.popitem()[1]
-                    ds_ref = extract_dataset(catalog=dc,
-                                             region=region_dict,
-                                             **CONFIG['extraction']['reference']['extract_dataset']
+                    ds_ref = extract_dataset(
+                        catalog=dc,
+                        region=region_dict,
+                        **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
 
                     #standardize units
-                    ds_ref = xs.clean_up(ds_ref, **CONFIG['extraction']['reference']['clean_up'])
+                    ds_ref = xs.clean_up(ds_ref,
+                                         **CONFIG['extraction']['reference']['clean_up'])
                     ds_ref['pr'] = xc.core.units.convert_units_to(ds_ref['pr'],
                                                                   'kg m-2 s-1',
                                                                   context='hydro')
-
 
                     ds_ref = ds_ref.chunk(
                         {d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
@@ -149,72 +153,81 @@ if __name__ == '__main__':
                     # stack
                     if CONFIG['custom']['stack_drop_nans']:
 
-
-                        variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
+                        variables = list(
+                            CONFIG['extraction']['reference']['search_data_catalogs'][
                                              'variables_and_freqs'].keys())
                         ds_ref = stack_drop_nans(
                             ds_ref,
                             ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
                         )
-                    ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
-                    save_move_update(ds=ds_ref,
-                                     pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_default.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_default.zarr",
-                                     info_dict={'calendar': 'default'
-                                                },
-                                     server=server,
-                                     **CONFIG['scp'])
+                    ds_ref = ds_ref.chunk(
+                        {d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
+                    save_move_update(
+                        ds=ds_ref,
+                        pcat=pcat,
+                        init_path=f"{workdir}/ref_{region_name}_default.zarr",
+                        final_path=f"{refdir}/ref_{region_name}_default.zarr",
+                        info_dict={'calendar': 'default'},
+                        server=server,
+                        **CONFIG['scp'])
 
             # noleap
-            if not pcat.exists_in_cat(domain=region_name, calendar='noleap', source=ref_source):
+            if not pcat.exists_in_cat(domain=region_name, calendar='noleap',
+                                      source=ref_source):
                 with context(**CONFIG['extraction']['reference']['context']):
 
-                    ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
+                    ds_ref = pcat.search(source=ref_source, calendar='default',
+                                         domain=region_name).to_dask()
 
                     # convert calendars
                     ds_refnl = convert_calendar(ds_ref, "noleap")
-                    save_move_update(ds=ds_refnl,
-                                     pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_noleap.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_noleap.zarr",
-                                     info_dict={'calendar': 'noleap'},
-                                     server=server,
-                                     **CONFIG['scp'])
+                    save_move_update(
+                        ds=ds_refnl,
+                        pcat=pcat,
+                        init_path=f"{workdir}/ref_{region_name}_noleap.zarr",
+                        final_path=f"{refdir}/ref_{region_name}_noleap.zarr",
+                        info_dict={'calendar': 'noleap'},
+                        server=server,
+                        **CONFIG['scp'])
             # 360_day
-            if not pcat.exists_in_cat(domain=region_name, calendar='360_day', source=ref_source):
-                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)) :
+            if not pcat.exists_in_cat(domain=region_name, calendar='360_day',
+                                      source=ref_source):
                 with context(**CONFIG['extraction']['reference']['context']):
 
-                    ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
+                    ds_ref = pcat.search(source=ref_source, calendar='default',
+                                         domain=region_name).to_dask()
 
                     ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
-                    save_move_update(ds=ds_ref360,
-                                     pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_360day.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_360day.zarr",
-                                     info_dict={'calendar': '360_day'},
-                                     server=server,
-                                     **CONFIG['scp'])
+                    save_move_update(
+                        ds=ds_ref360,
+                        pcat=pcat,
+                        init_path=f"{workdir}/ref_{region_name}_360day.zarr",
+                        final_path=f"{refdir}/ref_{region_name}_360day.zarr",
+                        info_dict={'calendar': '360_day'},
+                        server=server,
+                        **CONFIG['scp'])
 
             # diag
-            if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
-                                       source=ref_source)) and ('diagnostics' in CONFIG['tasks']):
+            if ((not pcat.exists_in_cat(domain=region_name,
+                                        processing_level='diag-ref-prop',
+                                        source=ref_source)) and
+                    ('diagnostics' in CONFIG['tasks'])):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
-                    cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
+                    cat_ref = search_data_catalogs(
+                        **CONFIG['extraction']['reference']['search_data_catalogs'])
 
                     # extract
                     dc = cat_ref.popitem()[1]
-                    ds_ref = extract_dataset(catalog=dc,
-                                             region=region_dict,
-                                             **CONFIG['extraction']['reference']['extract_dataset']
+                    ds_ref = extract_dataset(
+                        catalog=dc,
+                        region=region_dict,
+                        **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
 
                     # drop to make faster
                     dref_ref = ds_ref.drop_vars('dtr')
-
 
                     dref_ref = dref_ref.chunk(CONFIG['extract']['ref_chunk'])
 
@@ -225,13 +238,15 @@ if __name__ == '__main__':
                             'properties_and_measures']
                     )
 
-                    ds_ref_prop = ds_ref_prop.chunk(**CONFIG['extract']['ref_prop_chunk'])
+                    ds_ref_prop = ds_ref_prop.chunk(
+                        **CONFIG['extract']['ref_prop_chunk'])
 
-                    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                                           sim_id=ds_ref_prop.attrs['cat:id'],
-                                                                           level=ds_ref_prop.attrs['cat:processing_level']))
+                    path_diag = Path(CONFIG['paths']['diagnostics'].format(
+                        region_name=region_name,
+                        sim_id=ds_ref_prop.attrs['cat:id'],
+                        level=ds_ref_prop.attrs['cat:processing_level']))
+
                     path_diag_exec = f"{workdir}/{path_diag.name}"
-
 
                     save_move_update(ds=ds_ref_prop,
                                      pcat=pcat,
@@ -241,14 +256,15 @@ if __name__ == '__main__':
                                      **CONFIG['scp']
                                      )
 
-
     cat_sim = search_data_catalogs(
        **CONFIG['extraction']['simulation']['search_data_catalogs'])
     for sim_id, dc_id in cat_sim.items():
         for region_name, region_dict in CONFIG['custom']['regions'].items():
-            # depending on the final tasks, check that the final file doesn't already exists
-            final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
-                     'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id),
+            # depending on the final tasks, check that the final doesn't already exists
+            final = {'final_zarr': dict(domain=region_name,
+                                        processing_level='final',id=sim_id),
+                     'diagnostics': dict(domain=region_name,
+                                         processing_level='diag-improved', id=sim_id),
                      }
             final_task = 'diagnostics' if 'diagnostics' in CONFIG[
                 "tasks"] else 'final_zarr'
@@ -263,25 +279,27 @@ if __name__ == '__main__':
 
                 logger.info(cur_dict)
 
-
                 # inside the loops, we have a default id and domain
                 def do_task_loop(task,id=sim_id, domain=region_name, **kwargs):
                     return do_task(task,id=id, domain=domain, **kwargs)
 
                 # ---EXTRACT---
                 if do_task_loop(task="extract", processing_level='extracted'):
-                    while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
+                    # if code bugs forever, will be stopped by the timeout and try again
+                    while True:
                         try:
                             with context(**CONFIG['extraction']['simulation']['context']):
 
-                                # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
-                                # domain will be cut to the right shape during the regrid
-                                region_dict['buffer']=3
-                                ds_sim = extract_dataset(catalog=dc_id,
-                                                         region=region_dict,
-                                                         **CONFIG['extraction']['simulation']['extract_dataset'],
-                                                         )['D']
-                                ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
+                                # buffer is need to take a bit larger than actual domain
+                                #  to avoid weird effect at the edge
+                                # dom will be cut to the right shape during the regrid
+                                region_dict['buffer'] = 3
+                                ds_sim = extract_dataset(
+                                    catalog=dc_id,
+                                    region=region_dict,
+                                    **CONFIG['extraction']['simulation'][
+                                        'extract_dataset'],)['D']
+                                ds_sim['time'] = ds_sim.time.dt.floor('D')
 
                                 # need lat and lon -1 for the regrid
                                 ds_sim = ds_sim.chunk(CONFIG['extract']['sim_chunks'])
@@ -300,6 +318,7 @@ if __name__ == '__main__':
                             break
                 # ---REGRID---
                 # note: works well with xesmf 0.7.1. scheduler explodes with 0.8.2.
+                # shoule be back with 0.8.5
                 if do_task_loop(task='regrid', processing_level='regridded'):
                     with context(**CONFIG['regrid']['context']):
 
@@ -320,9 +339,9 @@ if __name__ == '__main__':
                             **CONFIG['regrid']['regrid_dataset']
                         )
 
-
                         # chunk time dim
-                        ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
+                        ds_regrid = ds_regrid.chunk(
+                            {d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
 
                         # save to zarr
                         path_rg = f"{workdir}/{sim_id}_{region_name}_regridded.zarr"
@@ -331,7 +350,6 @@ if __name__ == '__main__':
                                      encoding=CONFIG['custom']['encoding'],
                                      )
                         pcat.update_from_ds(ds=ds_regrid, path=path_rg)
-
 
                 # --- UNIVARIATE ---
                 for var, conf in CONFIG['biasadjust_qm']['variables'].items():
@@ -347,8 +365,9 @@ if __name__ == '__main__':
                             # load ref ds
                             # choose right calendar
                             simcal = get_calendar(ds_hist)
-                            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-                            ds_ref = pcat.search(source = ref_source,
+                            refcal = minimum_calendar(
+                                simcal, CONFIG['custom']['maximal_calendar'])
+                            ds_ref = pcat.search(source=ref_source,
                                                  calendar=refcal,
                                                  domain=region_name).to_dask()
 
@@ -360,57 +379,63 @@ if __name__ == '__main__':
                                           var=[var],
                                           **conf['training_args'])
 
-                            #save and update
+                            # save and update
                             path_tr = f"{workdir}/{sim_id}_{region_name}_{var}_training_qm.zarr"
                             save_to_zarr(ds=ds_tr,
                                          filename=path_tr,
                                          mode='o')
-                            pcat.update_from_ds(ds=ds_tr,
-                                                info_dict={'id': f"{sim_id}_training_qm_{var}",
-                                                           'domain': region_name,
-                                                           'processing_level': "training",
-                                                           'xrfreq': ds_hist.attrs['cat:xrfreq']
-                                                            },# info_dict needed to reopen correctly in next step
-                                                path=path_tr)
+                            pcat.update_from_ds(
+                                ds=ds_tr,
+                                info_dict={'id': f"{sim_id}_training_qm_{var}",
+                                           'domain': region_name,
+                                           'processing_level': "training",
+                                           'xrfreq': ds_hist.attrs['cat:xrfreq']
+                                            }, # needed to reopen correctly in next step
+                                path=path_tr)
 
                     # ---ADJUST QM---
                     if do_task_loop(task='adjust_qm', variable=var,
-                            processing_level= ['biasadjusted','half_biasadjusted'],):
+                                    processing_level=['biasadjusted',
+                                                      'half_biasadjusted'],):
                         with context(**CONFIG['biasadjust_qm']['context']['adjust']):
                             # load sim ds and training dataset
                             ds_sim = pcat.search(id=sim_id,
-                                                 processing_level = 'regridded',
+                                                 processing_level='regridded',
                                                  domain=region_name).to_dask()
-                            ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}', domain=region_name).to_dask()
+                            ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}',
+                                                domain=region_name).to_dask()
 
-                            #if more adjusting needed (pr), the level must reflect that
-                            plevel = 'half_biasadjusted' if (var in CONFIG['biasadjust_ex']['variables'])\
-                                                            and ('train_ex' in CONFIG['tasks']) else 'biasadjusted'
+                            # if more adjusting needed (pr), the level must reflect that
+                            plevel = 'half_biasadjusted' if (var in CONFIG[
+                                'biasadjust_ex']['variables'])\
+                                 and ('train_ex' in CONFIG['tasks']) else 'biasadjusted'
 
-
-                            #adjust
+                            # adjust
                             ds_scen_qm = adjust(dsim=ds_sim,
-                                             dtrain=ds_tr,
-                                             to_level = plevel,
-                                             **conf['adjusting_args'])
+                                                dtrain=ds_tr,
+                                                to_level=plevel,
+                                                **conf['adjusting_args'])
 
-                            #save and update
+                            # save and update
                             path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_{plevel}.zarr"
                             save_to_zarr(ds=ds_scen_qm,
                                          filename=path_adj,
                                          mode='o')
                             pcat.update_from_ds(ds=ds_scen_qm, path=path_adj)
 
-
                 for var, conf in CONFIG['biasadjust_ex']['variables'].items():
                     # ---TRAIN EXTREME---
                     if do_task_loop(task='train_ex',id=f"{sim_id}_training_ex_{var}"):
                         with context(**CONFIG['biasadjust_ex']['context']['train']):
                             # load hist and ref
-                            ds_hist = pcat.search(id=sim_id, domain=region_name,
-                                                 processing_level='regridded').to_dask()
+                            ds_hist = pcat.search(id=sim_id,
+                                                  domain=region_name,
+                                                  processing_level='regridded'
+                                                  ).to_dask()
                             simcal = get_calendar(ds_hist)
-                            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
+                            refcal = minimum_calendar(
+                                simcal,
+                                CONFIG['custom']['maximal_calendar'])
 
                             ds_ref = pcat.search(domain=region_name,
                                                  source=ref_source,
