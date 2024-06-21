@@ -18,7 +18,7 @@ from contextlib import contextmanager
 import xclim as xc
 from xclim import sdba
 from xclim.core.calendar import convert_calendar, get_calendar
-from xclim.sdba import  construct_moving_yearly_window, unpack_moving_yearly_window
+#from xclim.sdba import  construct_moving_yearly_window, unpack_moving_yearly_window
 
 
 if 'ESMFMKFILE' not in os.environ:
@@ -40,15 +40,11 @@ from xscen import (
 )
 
 
-from utils import (
-    move_then_delete,
-    save_move_update,
-    python_scp,
-    save_and_update,
-    )
+#fails on import
+#from utils import move_then_delete, save_move_update, python_scp, save_and_update
 
-path = 'configuration/paths_l.yml'
-config = 'configuration/config-NRCAN2014.yml'
+path = 'configuration/paths_narval.yml'
+config = 'configuration/config-MBCn-EMDNA.yml'
 
 # Load configuration
 load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
@@ -82,7 +78,7 @@ if __name__ == '__main__':
 
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
-    atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
+    #atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
 
     # defining variables
     ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
@@ -115,7 +111,7 @@ if __name__ == '__main__':
         pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'])
 
     # load project catalog
-    pcat = ProjectCatalog(CONFIG['paths']['project_catalog'])
+    pcat = xs.ProjectCatalog(CONFIG['paths']['project_catalog'], create=True)
 
     # ---MAKEREF---
     for region_name, region_dict in CONFIG['custom']['regions'].items():
@@ -158,14 +154,12 @@ if __name__ == '__main__':
                             ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
                         )
                     ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
-                    save_move_update(ds=ds_ref,
+                    ds_ref.attrs['cat:calendar'] = 'default'
+                    xs.save_and_update(ds=ds_ref,
                                      pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_default.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_default.zarr",
-                                     info_dict={'calendar': 'default'
-                                                },
-                                     server=server,
-                                     **CONFIG['scp'])
+                                     path=f"{refdir}/ref_{region_name}_default.zarr",
+                                     save_kwargs={'info_dict': {"calendar": "default"}}
+                                     )
 
             # noleap
             if not pcat.exists_in_cat(domain=region_name, calendar='noleap', source=ref_source):
@@ -175,28 +169,27 @@ if __name__ == '__main__':
 
                     # convert calendars
                     ds_refnl = convert_calendar(ds_ref, "noleap")
-                    save_move_update(ds=ds_refnl,
+                    ds_refnl.attrs['cat:calendar'] = 'noleap'
+                    xs.save_and_update(ds=ds_refnl,
                                      pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_noleap.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_noleap.zarr",
-                                     info_dict={'calendar': 'noleap'},
-                                     server=server,
-                                     **CONFIG['scp'])
+                                     path=f"{refdir}/ref_{region_name}_noleap.zarr",
+                                     save_kwargs={
+                                           'info_dict': {"calendar": "noleap"}}
+                                     )
             # 360_day
             if not pcat.exists_in_cat(domain=region_name, calendar='360_day', source=ref_source):
                 #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)) :
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
-
+                    ds_ref.attrs['cat:calendar'] = '360_day'
                     ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
-                    save_move_update(ds=ds_ref360,
+                    xs.save_and_update(ds=ds_ref360,
                                      pcat=pcat,
-                                     init_path=f"{workdir}/ref_{region_name}_360day.zarr",
-                                     final_path=f"{refdir}/ref_{region_name}_360day.zarr",
-                                     info_dict={'calendar': '360_day'},
-                                     server=server,
-                                     **CONFIG['scp'])
+                                     path=f"{refdir}/ref_{region_name}_360day.zarr",
+                                       save_kwargs={
+                                           'info_dict': {"calendar": "360day"}}
+                                     )
 
             # diag
             if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
@@ -234,12 +227,9 @@ if __name__ == '__main__':
                     path_diag_exec = f"{workdir}/{path_diag.name}"
 
 
-                    save_move_update(ds=ds_ref_prop,
+                    xs.save_and_update(ds=ds_ref_prop,
                                      pcat=pcat,
-                                     init_path=path_diag_exec,
-                                     final_path=path_diag,
-                                     server=server,
-                                     **CONFIG['scp']
+                                     path=path_diag,
                                      )
 
 
@@ -338,6 +328,95 @@ if __name__ == '__main__':
                 # ---BIAS ADJUST---
 
                 from xclim.sdba import adjustment
+
+                # ---MBCN narval---
+
+                if (
+                        "npdf-gpies-narval" in CONFIG["tasks"]
+                        and not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                   processing_level='biasadjusted')
+                ):
+
+                    # load hist ds (simulation)
+                    dsim = pcat.search(
+                        domain=CONFIG['biasadjust_mbcn']['regridded_dom'],
+                        variable=CONFIG['biasadjust_mbcn']['variable'],
+                        id=sim_id, processing_level='regridded').to_dask(**tdd)
+                    # because we took regridded from other domain
+                    dsim.attrs['cat:domain'] = region_name
+
+                    # choose right calendar and convert
+                    refcal = minimum_calendar(get_calendar(sim),
+                                              CONFIG['custom']['maximal_calendar'])
+                    dsim = convert_calendar(dsim, refcal,
+                                            align_on=CONFIG['custom']['align_on'])
+
+                    # load ref ds
+                    dref = pcat.search(
+                        source=ref_source, calendar=refcal,
+                        processing_level='extracted',
+                        variable=CONFIG['biasadjust_mbcn']['variable'],
+                        domain=region_name, ).to_dask(**tdd)
+
+                    # choose right ref period for hist
+                    dhist = dsim.sel(time=ref_period)
+
+                    # stack 30-year periods
+                    dsim = xc.core.calendar.stack_periods(dsim, window=30)
+
+                    # create group
+                    group = CONFIG['biasadjust_mbcn'].get('group')
+                    if isinstance(group, dict):
+                        group = sdba.Grouper.from_kwargs(**group)["group"]
+                    elif isinstance(group, str):
+                        group = sdba.Grouper(group)
+
+                    # train
+                    if not pcat.exists_in_cat(processing_level=f'training_mbcn',
+                                              domain=region_name, id=sim_id, ):
+                        with context(**CONFIG['biasadjust_mbcn']['context']['train']):
+
+                            dtrain = sdba.MBCn.train(
+                                ref=dref,
+                                hist=dhist,
+                                base_kws=dict(group="time.dayofyear", nquantiles=50,) # TODO: try with group window after
+                                ** CONFIG['biasadjust_mbcn']['train']
+                            ).ds
+
+                            # attrs
+                            dtrain.attrs.update(dhist.attrs)
+                            dtrain.attrs['cat:processing_level'] = f"training_mbcn"
+
+                            # save
+                            xs.save_and_update(ds=dtrain, path=CONFIG['paths']['mbcn'],
+                                               pcat=pcat)
+
+                    # adjust
+                    with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
+
+                        dtrain = pcat.search(processing_level=f"training_mbcn",
+                                             domain=region_name, id=sim_id,
+                                             ).to_dataset(**tdd)
+
+                        ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
+
+                        out = ADJ.adjust(
+                            sim=dsim, ref=dref, hist=dhist, period_dim="period",
+                            base=sdba.QuantileDeltaMapping,
+                            **CONFIG['biasadjust_mbcn']['adjust'],
+                            # base_kws_vars={
+                            #     "pr": {"kind": "*",
+                            #            "jitter_under_thresh_value": "0.01 mm/d",
+                            #            "adapt_freq_thresh": "0.1 mm/d"}}
+                        )
+
+                        # attrs
+                        out.attrs['cat:processing_level'] = f'biasadjusted'
+
+                        # save
+                        xs.save_and_update(ds=out, path=CONFIG['paths']['mbcn'],
+                                           pcat=pcat)
+
 
                 # ---BA-MBCn npdf-gpies ---
 
@@ -1132,49 +1211,49 @@ if __name__ == '__main__':
                                                            },# info_dict needed to reopen correctly in next step
                                                 path=path_tr)
 
-                    # ---ADJUST EXTREME---
-                    if do_task_loop(task='adjust_ex', variable=var,processing_level='biasadjusted'):
-                        with context(**CONFIG['biasadjust_ex']['context']['adjust']):
-                            # load scen from quantile mapping
-                            ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
-                                                 processing_level='half_biasadjusted').to_dask()
-                            # load sim and extreme training dataset
-                            ds_sim = pcat.search(id=sim_id, domain=region_name,
-                                                 processing_level='regridded').to_dask()
-
-                            simcal = get_calendar(ds_sim)
-                            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-                            if simcal != refcal:
-                                ds_sim = convert_calendar(ds_sim, refcal)
-
-                            ds_tr = pcat.search(id=f'{sim_id}_training_ex_{var}', domain=region_name).to_dask()
-
-
-                            # adjustement on moving window
-                            ds_sim = ds_sim.sel(time = sim_period)
-                            sim_win = construct_moving_yearly_window(ds_sim,
-                                                                     **CONFIG['biasadjust_ex']['moving_yearly_window'])
-
-                            scen_win = construct_moving_yearly_window(ds_scen_qm[var].sel(time = sim_period),
-                                                                      **CONFIG['biasadjust_ex']['moving_yearly_window'])
-
-                            ds_scen_ex_win = adjust(dsim=sim_win,
-                                                    dtrain=ds_tr,
-                                                    xclim_adjust_args = {'scen': scen_win,
-                                                                        'frac': 0.25},
-                                                **conf['adjusting_args'])
-
-                            ds_scen_ex = unpack_moving_yearly_window(ds_scen_ex_win)
-                            ds_scen_ex = ds_scen_ex.chunk({'time':-1})
-
-                            #save and update
-                            path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_biasadjusted.zarr"
-                            ds_scen_ex.lat.encoding.pop('chunks')
-                            ds_scen_ex.lon.encoding.pop('chunks')
-                            save_to_zarr(ds=ds_scen_ex,
-                                         filename=path_adj,
-                                         mode='o')
-                            pcat.update_from_ds(ds=ds_scen_ex, path=path_adj)
+                    # # ---ADJUST EXTREME---
+                    # if do_task_loop(task='adjust_ex', variable=var,processing_level='biasadjusted'):
+                    #     with context(**CONFIG['biasadjust_ex']['context']['adjust']):
+                    #         # load scen from quantile mapping
+                    #         ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
+                    #                              processing_level='half_biasadjusted').to_dask()
+                    #         # load sim and extreme training dataset
+                    #         ds_sim = pcat.search(id=sim_id, domain=region_name,
+                    #                              processing_level='regridded').to_dask()
+                    #
+                    #         simcal = get_calendar(ds_sim)
+                    #         refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
+                    #         if simcal != refcal:
+                    #             ds_sim = convert_calendar(ds_sim, refcal)
+                    #
+                    #         ds_tr = pcat.search(id=f'{sim_id}_training_ex_{var}', domain=region_name).to_dask()
+                    #
+                    #
+                    #         # adjustement on moving window
+                    #         ds_sim = ds_sim.sel(time = sim_period)
+                    #         sim_win = construct_moving_yearly_window(ds_sim,
+                    #                                                  **CONFIG['biasadjust_ex']['moving_yearly_window'])
+                    #
+                    #         scen_win = construct_moving_yearly_window(ds_scen_qm[var].sel(time = sim_period),
+                    #                                                   **CONFIG['biasadjust_ex']['moving_yearly_window'])
+                    #
+                    #         ds_scen_ex_win = adjust(dsim=sim_win,
+                    #                                 dtrain=ds_tr,
+                    #                                 xclim_adjust_args = {'scen': scen_win,
+                    #                                                     'frac': 0.25},
+                    #                             **conf['adjusting_args'])
+                    #
+                    #         ds_scen_ex = unpack_moving_yearly_window(ds_scen_ex_win)
+                    #         ds_scen_ex = ds_scen_ex.chunk({'time':-1})
+                    #
+                    #         #save and update
+                    #         path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_biasadjusted.zarr"
+                    #         ds_scen_ex.lat.encoding.pop('chunks')
+                    #         ds_scen_ex.lon.encoding.pop('chunks')
+                    #         save_to_zarr(ds=ds_scen_ex,
+                    #                      filename=path_adj,
+                    #                      mode='o')
+                    #         pcat.update_from_ds(ds=ds_scen_ex, path=path_adj)
 
                 # ---CLEAN UP ---
                 if do_task_loop(task= "clean_up",processing_level='cleaned_up'):
@@ -1236,27 +1315,27 @@ if __name__ == '__main__':
                                 # rename log with details of current dataset
                                 os.rename(f"{workdir}/logger.log",f"{workdir}/logger_{sim_id}_{region_name}.log")
 
-                                for name, paths in CONFIG['scp_list'].items():
-                                    source_path = Path(paths['source'].format(**cur_dict))
-                                    dest = Path(paths['dest'].format(**cur_dict))
-                                    python_scp(source_path= source_path,
-                                            destination_path=dest,
-                                            **CONFIG['scp'])
-
-                                    dest = dest / source_path.name
-                                    if dest.suffix == '.zarr' and source_path.exists():
-                                        ds = pcat.search(path=str(source_path)).to_dask()
-                                        pcat.update_from_ds(ds, str(dest ))
-
-                                move_then_delete(dirs_to_delete=[workdir],
-                                                 moving_files=[],
-                                                 pcat=pcat)
+                                # for name, paths in CONFIG['scp_list'].items():
+                                #     source_path = Path(paths['source'].format(**cur_dict))
+                                #     dest = Path(paths['dest'].format(**cur_dict))
+                                #     python_scp(source_path= source_path,
+                                #             destination_path=dest,
+                                #             **CONFIG['scp'])
+                                #
+                                #     dest = dest / source_path.name
+                                #     if dest.suffix == '.zarr' and source_path.exists():
+                                #         ds = pcat.search(path=str(source_path)).to_dask()
+                                #         pcat.update_from_ds(ds, str(dest ))
+                                #
+                                # xs.move_and_delete(deleting=[workdir],
+                                #                  moving=[],
+                                #                  pcat=pcat)
 
                             else:
                                 final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
                                 path_log = CONFIG['logging']['handlers']['file']['filename']
-                                move_then_delete(dirs_to_delete=[workdir],
-                                                 moving_files=
+                                xs.move_and_delete(deleting=[workdir],
+                                                 moving=
                                                  [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
                                                   [path_log, CONFIG['paths']['logging'].format(**cur_dict)]],
                                                  pcat=pcat)
@@ -1379,27 +1458,27 @@ if __name__ == '__main__':
                                         ds = pcat.search(path=str(source_path)).to_dask()
                                         pcat.update_from_ds(ds, str(dest ))
 
-                                move_then_delete(dirs_to_delete=[workdir],
-                                                 moving_files=[],
+                                xs.move_and_delete(deleting=[workdir],
+                                                 moving=[],
                                                  pcat=pcat)
                             else:
                                 final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
                                 path_log = CONFIG['logging']['handlers']['file'][
                                     'filename']
-                                move_then_delete(
-                                    dirs_to_delete= [
+                                xs.move_and_delete(
+                                    deleting= [
                                         workdir
                                     ],
-                                                 moving_files =
+                                                 moving =
                                                  [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
                                                   [path_log, CONFIG['paths']['logging'].format(**cur_dict)]
                                                   ],
                                                   pcat=pcat)
 
-                        send_mail(
-                            subject=f"{sim_id}/{region_name} - Succès",
-                            msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
-                        )
+                        #send_mail(
+                        #    subject=f"{sim_id}/{region_name} - Succès",
+                        #    msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
+                        #)
 
     # --- INDIVIDUAL WL ---
     if 'individual_wl' in CONFIG['tasks']:
@@ -1430,7 +1509,8 @@ if __name__ == '__main__':
                             ds_hor_wl = xs.aggregate.produce_horizon(ds_wl, to_level="{wl}")
 
                             # save and update
-                            save_and_update(ds_hor_wl, CONFIG['paths']['wl'], pcat)
+                            xs.save_and_update(ds=ds_hor_wl, path=CONFIG['paths']['wl'],
+                                               pcat=pcat)
 
 
     # --- HORIZONS ---
@@ -1461,7 +1541,8 @@ if __name__ == '__main__':
                         )
 
                         # save and update
-                        save_and_update(ds_hor, CONFIG['paths']['horizons'], pcat)
+                        xs.save_and_update(ds=ds_hor, path=CONFIG['paths']['horizons'],
+                                           pcat=pcat)
 
     # --- DELTAS ---
     if 'deltas' in CONFIG['tasks']:
@@ -1492,8 +1573,9 @@ if __name__ == '__main__':
                     )
 
                     # save and update
-                    save_and_update(ds_delta, CONFIG['paths']['deltas'], pcat,
-                                    rechunk = {'lat': -1, 'lon':-1} )
+                    xs.save_and_update(ds=ds_delta, path=CONFIG['paths']['deltas'],
+                                       pcat=pcat,
+                                       save_kwargs=dict(rechunk = {'lat': -1, 'lon':-1}))
 
     # --- ENSEMBLES ---
     if 'ensembles' in CONFIG['tasks']:
@@ -1513,8 +1595,9 @@ if __name__ == '__main__':
                                                to_level=ens_name)
 
                     # save and update
-                    save_and_update(ds_ens, CONFIG['paths']['ensembles'], pcat,
-                                    rechunk={'lat':-1, 'lon':-1, 'season':1})
+                    xs.save_and_update(ds=ds_ens, path=CONFIG['paths']['ensembles'],
+                                       pcat=pcat,
+                                    save_kwargs=dict(rechunk={'lat':-1, 'lon':-1, 'season':1}))
 
         # compute difference between ensembles
         for diff_name, diff_inputs in CONFIG['ensembles']['diffs'].items():
@@ -1535,8 +1618,9 @@ if __name__ == '__main__':
                     diff.attrs['cat:processing_level']= diff_name
 
                     # save and update
-                    save_and_update(diff, CONFIG['paths']['ensembles'], pcat,
-                                    rechunk={'lat':-1, 'lon':-1, 'season':1})
+                    xs.save_and_update(ds=diff, path=CONFIG['paths']['ensembles'],
+                                       pcat=pcat,
+                                    save_kwargs=dict(rechunk={'lat':-1, 'lon':-1, 'season':1}))
 
         # compute p-values
         for p_name, p_inputs in CONFIG['ensembles']['pvalues'].items():
@@ -1571,6 +1655,7 @@ if __name__ == '__main__':
                     pvals.attrs['cat:processing_level'] = p_name
 
                     # save and update
-                    save_and_update(pvals, CONFIG['paths']['ensembles'], pcat,
-                                    rechunk={'lat': -1, 'lon': -1, 'season': 1})
+                    xs.save_and_update(ds=pvals, path=CONFIG['paths']['ensembles'],
+                                       pcat=pcat,
+                                    save_kwargs=dict(rechunk={'lat': -1, 'lon': -1, 'season': 1}))
 

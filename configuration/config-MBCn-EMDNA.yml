@@ -9,12 +9,13 @@ tasks:
   - makeref
   - extract
   - regrid
-  - train_qm
-  - adjust_qm
-  - train_ex
-  - adjust_ex
+  #- ba-MBCn
+  #- npdf-bdd
+  #- npdf-gpies
+  - npdf-gpies-narval
   - clean_up
   - final_zarr
+  - health_checks
   - diagnostics
 #  - individual_wl
 #  - horizons
@@ -102,7 +103,7 @@ extraction:
             other_search_criteria:
                 source: &ref_source
                     EMDNA
-                member: 001 #OI #TODO: change back when we have it
+                member: OI
         extract_dataset: {}
         properties_and_measures:
           period: *ref_period
@@ -232,8 +233,54 @@ regrid:
           locstream_out: False
           reuse_weights: False
 
-biasadjust_dOTC:
-  adjust: {}
+biasadjust_mbcn:
+  context:
+    train:
+      client_kw:
+        n_workers: 3
+        threads_per_worker: 3
+        memory_limit: "27GB"
+      measure_time_kw:
+        name: train mbcn
+    adjust:
+      client_kw:
+        n_workers: 3
+        threads_per_worker: 3
+        memory_limit: "27GB"
+      measure_time_kw:
+        name: adjust mbcn
+  regridded_dom: QC-EMDNA
+  group:
+    group: time.dayofyear
+    window: 31
+  periods: [['1956', '1985'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
+  variable:
+    - tasmax
+    - pr
+    - dtr
+  train:
+    n_iter: 20
+    adj_kws:
+      interp: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
+      extrapolation: constant
+      n_escore: -1
+  adjust:
+    base_kws_vars:
+      pr:
+        kind: "*"
+        jitter_under_thresh_value: "0.05 mm d-1" #TODO: think about this
+        adapt_freq_thresh: "1 mm d-1"
+      dtr:
+        kind: "*"
+        jitter_under_thresh_value: "1e-4 K"
+      tasmax:
+        kind: "+"
+    adj_kws:
+      interp: nearest
+      extrapolation: constant
+  chunks:
+    loc: 50
+    time: -1
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
