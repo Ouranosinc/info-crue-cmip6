@@ -60,23 +60,6 @@ refdir = Path(CONFIG['paths']['refdir'])
 
 
 if __name__ == '__main__':
-    # TODO: remove when update xscen
-    import warnings
-
-    warnings.filterwarnings(
-        "ignore",
-        category=FutureWarning,
-        module="intake_esm",
-        message="The default of observed=False is deprecated and will be changed to True in a future version of pandas. "
-                "Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.",
-    )
-    warnings.filterwarnings(
-        "ignore",
-        category=FutureWarning,
-        module="intake_esm",
-        message="DataFrame.applymap has been deprecated. Use DataFrame.map instead.",
-    )
-
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
     #atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
@@ -367,9 +350,9 @@ if __name__ == '__main__':
                                          (dref, dhist, dsim))
 
                     # stack 30-year periods
-                    dsim = dsim.sel(time=slice('2071', '2100'))  # TODO: rmeove
-                    #dsim = xc.core.calendar.stack_periods(
-                    #    dsim, window=30, stride=30).chunk({'time': -1, 'period': -1})
+                    #dsim = dsim.sel(time=slice('2071', '2100'))  # TODO: rmeove
+                    dsim = xc.core.calendar.stack_periods(
+                        dsim, window=30, stride=30).chunk({'time': -1, 'period': -1})
 
 
                     # create group
@@ -387,7 +370,8 @@ if __name__ == '__main__':
                             dtrain = sdba.MBCn.train(
                                 ref=dref,
                                 hist=dhist,
-                                base_kws=dict(group="time.dayofyear", nquantiles=50,), # TODO: try with group window after
+                                base_kws=dict(group=group, nquantiles=50, ),
+                                #base_kws=dict(group="time.dayofyear", nquantiles=50,), # TODO: try with group window after
                                 ** CONFIG['biasadjust_mbcn']['train']
                             ).ds
 
@@ -398,8 +382,8 @@ if __name__ == '__main__':
 
                             # save
                             # cant write multi-index directly
-                            encoded = cfxr.encode_multi_index_as_compress(dtrain,
-                                                                          "win_dim")
+                            #encoded = cfxr.encode_multi_index_as_compress(dtrain,
+                            encoded=dtrain                                            # "win_dim")
 
                             # b/c bug xscen with time coords
                             path = CONFIG['paths']['mbcn'].format(
@@ -416,18 +400,19 @@ if __name__ == '__main__':
                         dtrain = pcat.search(processing_level=f"training_mbcn",
                                              domain=region_name, id=sim_id,
                                              ).to_dataset(**tdd)
-                        decoded = cfxr.decode_compress_to_multi_index(dtrain, "win_dim")
+                        #decoded = cfxr.decode_compress_to_multi_index(dtrain, "win_dim")
+                        decoded=dtrain
 
                         ADJ = sdba.adjustment.TrainAdjust.from_dataset(decoded)
 
                         out = ADJ.adjust(
-                            sim=dsim, ref=dref, hist=dhist, #period_dim="period",
+                            sim=dsim, ref=dref, hist=dhist, period_dim="period",
                             base=sdba.QuantileDeltaMapping,
                             **CONFIG['biasadjust_mbcn']['adjust'],
                         )
 
                         out = sdba.unstack_variables(out)
-                        #out = xc.core.calendar.unstack_periods(out)
+                        out = xc.core.calendar.unstack_periods(out)
 
                         # attrs
                         out.attrs.update(dsim.attrs)
@@ -1292,8 +1277,7 @@ if __name__ == '__main__':
                                                      periods= CONFIG['custom']['sim_period']
                                                           )['D']
 
-                                #TODO: for mbcn, try to do it above
-                                ds= ds.chunk({'time':-1})
+
 
                                 ds = clean_up(ds = ds,
                                               **CONFIG['clean_up']['xscen_clean_up'])

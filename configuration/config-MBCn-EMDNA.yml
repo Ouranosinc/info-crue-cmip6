@@ -31,10 +31,10 @@ custom:
         QC-EMDNA:
           name: QC-EMDNA
           method: bbox
-          #lon_bnds: [ -83, -55 ]
-          #lat_bnds: [ 42, 63 ]
-          lon_bnds: [ -60, -58 ]
-          lat_bnds: [ 50, 52 ] #TODO
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 42, 63 ]
+          #lon_bnds: [ -60, -58 ]
+          #lat_bnds: [ 50, 52 ] #TODO
     stack_drop_nans: &stack
         True
     chunks:
@@ -89,7 +89,7 @@ extraction:
     reference:
         context:
           client_kw:
-            n_workers: 3
+            n_workers: 6 # 3
             threads_per_worker: 5
             memory_limit: "15GB"
           measure_time_kw:
@@ -105,8 +105,9 @@ extraction:
             periods : *ref_period
             other_search_criteria:
                 source: &ref_source
-                    ERA5-Land #EMDNA #TODO
-                #member: '001' # OI #TODO
+                  EMDNA
+                    #ERA5-Land #EMDNA #TODO
+                member: OI #TODO
         extract_dataset:
           xr_combine_kwargs: {} # bc of xscen bug
         clean_up:
@@ -125,7 +126,7 @@ extraction:
     simulation:
         context:
           client_kw:
-            n_workers: 2
+            n_workers: 4 #2
             threads_per_worker: 5
             memory_limit: "30GB"
           measure_time_kw:
@@ -200,7 +201,7 @@ extraction:
 regrid:
   context:
     client_kw:
-      n_workers: 2
+      n_workers: 4 #2
       threads_per_worker: 5
       memory_limit: "25GB"
     measure_time_kw:
@@ -246,14 +247,14 @@ biasadjust_mbcn:
   context:
     train:
       client_kw:
-        n_workers: 3
+        n_workers: 6 #3
         threads_per_worker: 3
         memory_limit: "27GB"
       measure_time_kw:
         name: train mbcn
     adjust:
       client_kw:
-        n_workers: 3
+        n_workers: 6 #3
         threads_per_worker: 3
         memory_limit: "27GB"
       measure_time_kw:
@@ -262,7 +263,7 @@ biasadjust_mbcn:
   group:
     group: time.dayofyear
     window: 31
-  periods: [['1956', '1985'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
+  #periods: [['1956', '1985'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   variable:
     - tasmax
     - pr
@@ -277,7 +278,7 @@ biasadjust_mbcn:
     base_kws_vars:
       pr:
         kind: "*"
-        jitter_under_thresh_value: "0.05 mm d-1" #TODO: think about this
+        jitter_under_thresh_value: "0.01 mm d-1" #TODO: think about this
         adapt_freq_thresh: "1 mm d-1"
       dtr:
         kind: "*"
@@ -293,7 +294,7 @@ biasadjust_mbcn:
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
-    bias_adjust_project: info-crue-CMIP6
+    bias_adjust_project: IC6-EM-MBCn
 
 
 biasadjust_qm:
@@ -425,7 +426,7 @@ biasadjust_ex:
 clean_up:
   context:
     client_kw:
-      n_workers: 4
+      n_workers: 8 #4
       threads_per_worker: 3
       memory_limit: "15GB"
     measure_time_kw:
@@ -479,14 +480,12 @@ clean_up:
     add_attrs:
       global:
         Notes: |
-          Regridded on the grid of RDRS v2.1, then bias-adjusted with detrended
-          quantile mapping on a day-of-year basis with a window of 31 days,
-          LOESS detrending and 50 quantiles.
-          There is a second bias adjustement for pr's extreme values.
-          The variables tasmax, dtr and pr were adjusted, tasmin was computed
-          from tasmax and dtr after the adjustment.
-          The reference was RDRS v2.1 over the 1989-2018 period.
+          Regridded on the grid of EMDNA, then bias-adjusted with MBCn.
+          The reference was EMDNA over the 1989-2018 period.
         version: "1.0.0"
+        code: https://github.com/Ouranosinc/info-crue-cmip6/tree/mbcn-narval
+        contact: lavoie.juliette@ouranos.ca
+        #TODO: add gitlab extras
       tasmax:
           standard_name: air_temperature
           long_name: Maximal daily temperature
@@ -506,7 +505,7 @@ rechunk:
 final_zarr:
   context:
     client_kw:
-      n_workers: 3
+      n_workers: 6 #3
       threads_per_worker: 5
       memory_limit: "20GB"
     measure_time_kw:
@@ -516,7 +515,7 @@ final_zarr:
 diagnostics:
   context:
     client_kw:
-      n_workers: 8
+      n_workers: 16 #8
       threads_per_worker: 5
       memory_limit: "5GB"
   sim:

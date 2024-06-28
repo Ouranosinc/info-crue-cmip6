@@ -9,7 +9,6 @@
 #SBATCH --mail-type=ALL # optionel
 #SBATCH --mail-user=lavoie.juliette@ouranos.ca # optionel
 
-#module load StdEnv/2023 gcc openmpi python/3.11 arrow/16.1.0 openmpi netcdf proj esmf geos mpi4py
 module load StdEnv/2023 gcc openmpi python/3.11 arrow/16.1.0 openmpi netcdf proj esmf geos mpi4py/3.1.4 ipykernel/2023b scipy-stack/2023b
 
 
@@ -17,6 +16,6 @@ module load StdEnv/2023 gcc openmpi python/3.11 arrow/16.1.0 openmpi netcdf proj
 bash /project/ctb-frigon/julavoie/ouranos_commun/config_xscen0.9.0_env_slurm.sh # fourni par Ouranos
 
 yes| pip uninstall xclim
-pip install /project/ctb-frigon/julavoie/wheels/xclim-0.50.1.dev0-py3-none-any.whl
+pip install /project/ctb-frigon/julavoie/wheels/xclim-0.50.1.dev1-py3-none-any.whl
 
 python /home/julavoie/code/info-crue-cmip6/workflow.py
