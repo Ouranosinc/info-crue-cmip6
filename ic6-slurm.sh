@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --time=00:50:00 #modifier pour vos besoins
+#SBATCH --time=03:00:00 #modifier pour vos besoins
 #SBATCH --account=ctb-frigon
 #SBATCH --constraint=genoa # pour accéder à bébé narval
 #SBATCH --partition=c-frigon # pour avoir la priorité Ouranos
 #SBATCH --cpus-per-task=6
-#SBATCH --mem=150G #modifier selon vos besoins
+#SBATCH --mem=249G #modifier selon vos besoins
 #SBATCH --output=/home/julavoie/code/info-crue-cmip6/slurm-outputs/%j.out
 #SBATCH --mail-type=ALL # optionel
 #SBATCH --mail-user=lavoie.juliette@ouranos.ca # optionel

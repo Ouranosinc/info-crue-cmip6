@@ -249,14 +249,14 @@ biasadjust_mbcn:
       client_kw:
         n_workers: 6 #3
         threads_per_worker: 3
-        memory_limit: "27GB"
+        memory_limit: "35GB"
       measure_time_kw:
         name: train mbcn
     adjust:
       client_kw:
         n_workers: 6 #3
         threads_per_worker: 3
-        memory_limit: "27GB"
+        memory_limit: "35GB"
       measure_time_kw:
         name: adjust mbcn
   regridded_dom: QC-EMDNA
