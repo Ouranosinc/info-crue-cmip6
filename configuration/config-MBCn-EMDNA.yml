@@ -31,9 +31,10 @@ custom:
         QC-EMDNA:
           name: QC-EMDNA
           method: bbox
-          bbox:
-            lon_bnds: [ -83, -55 ]
-            lat_bnds: [ 42, 63 ]
+          #lon_bnds: [ -83, -55 ]
+          #lat_bnds: [ 42, 63 ]
+          lon_bnds: [ -60, -58 ]
+          lat_bnds: [ 50, 52 ] #TODO
     stack_drop_nans: &stack
         True
     chunks:
@@ -49,7 +50,7 @@ custom:
       - '1989'
       - '2018'
     sim_period: &sim_period
-        - '1956'
+        - '1951'
         - '2100'
     encoding:
       tasmax:
@@ -62,6 +63,8 @@ custom:
         dtype: float32
     maximal_calendar: &mcal
       noleap
+    align_on:
+      year
 
 
 
@@ -102,9 +105,15 @@ extraction:
             periods : *ref_period
             other_search_criteria:
                 source: &ref_source
-                    EMDNA
-                member: OI
-        extract_dataset: {}
+                    ERA5-Land #EMDNA #TODO
+                #member: '001' # OI #TODO
+        extract_dataset:
+          xr_combine_kwargs: {} # bc of xscen bug
+        clean_up:
+          to_level: extracted
+          variables_and_units:
+            tasmax: K
+            tasmin: K
         properties_and_measures:
           period: *ref_period
           unstack: False

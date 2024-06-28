@@ -13,6 +13,7 @@ from datetime import timedelta
 from dask.diagnostics import ProgressBar
 import cftime
 from contextlib import contextmanager
+import cf_xarray as cfxr
 
 
 import xclim as xc
@@ -95,8 +96,8 @@ if __name__ == '__main__':
         timeout_kw = timeout_kw or {'seconds': int(1e5), 'task': "undefined task"}
 
         # call context
-        with (Client(**client_kw, **daskkws),
-              measure_time(**measure_time_kw, logger=logger),
+        with (Client(**client_kw, **daskkws, local_directory=os.environ['SLURM_TMPDIR']),
+              measure_time(**measure_time_kw, logger=logger,),
               timeout(**timeout_kw)):
             yield
 
@@ -120,7 +121,7 @@ if __name__ == '__main__':
                 and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
         ):
             # default
-            if not pcat.exists_in_cat(domain=region_name, calendar='default', source=ref_source):
+            if not pcat.exists_in_cat(domain=region_name,  source=ref_source):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
@@ -151,14 +152,14 @@ if __name__ == '__main__':
                                              'variables_and_freqs'].keys())
                         ds_ref = stack_drop_nans(
                             ds_ref,
-                            ds_ref[variables[0]].isel(time=130, drop=True).notnull(),
+                            ds_ref[variables[0]].isel(time=130, drop=True).notnull().compute(),
                         )
                     ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
                     ds_ref.attrs['cat:calendar'] = 'default'
                     xs.save_and_update(ds=ds_ref,
                                      pcat=pcat,
                                      path=f"{refdir}/ref_{region_name}_default.zarr",
-                                     save_kwargs={'info_dict': {"calendar": "default"}}
+                                    update_kwargs={'info_dict': {"calendar": "default"}}
                                      )
 
             # noleap
@@ -173,7 +174,7 @@ if __name__ == '__main__':
                     xs.save_and_update(ds=ds_refnl,
                                      pcat=pcat,
                                      path=f"{refdir}/ref_{region_name}_noleap.zarr",
-                                     save_kwargs={
+                                     update_kwargs={
                                            'info_dict': {"calendar": "noleap"}}
                                      )
             # 360_day
@@ -187,14 +188,15 @@ if __name__ == '__main__':
                     xs.save_and_update(ds=ds_ref360,
                                      pcat=pcat,
                                      path=f"{refdir}/ref_{region_name}_360day.zarr",
-                                       save_kwargs={
+                                       update_kwargs={
                                            'info_dict': {"calendar": "360day"}}
                                      )
 
             # diag
             if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
                                        source=ref_source)) and ('diagnostics' in CONFIG['tasks']):
-                with context(**CONFIG['extraction']['reference']['context']):
+                #with context(**CONFIG['extraction']['reference']['context']):
+                with context(client_kw={'n_workers': 2,'threads_per_worker': 5,'memory_limit': "30GB"}): # debug workers dying
 
                     # search
                     cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
@@ -268,7 +270,7 @@ if __name__ == '__main__':
 
                                 # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
                                 # domain will be cut to the right shape during the regrid
-                                region_dict['buffer']=3
+                                region_dict['tile_buffer']=3
                                 ds_sim = extract_dataset(catalog=dc_id,
                                                          region=region_dict,
                                                          **CONFIG['extraction']['simulation']['extract_dataset'],
@@ -346,7 +348,7 @@ if __name__ == '__main__':
                     dsim.attrs['cat:domain'] = region_name
 
                     # choose right calendar and convert
-                    refcal = minimum_calendar(get_calendar(sim),
+                    refcal = minimum_calendar(get_calendar(dsim),
                                               CONFIG['custom']['maximal_calendar'])
                     dsim = convert_calendar(dsim, refcal,
                                             align_on=CONFIG['custom']['align_on'])
@@ -361,8 +363,14 @@ if __name__ == '__main__':
                     # choose right ref period for hist
                     dhist = dsim.sel(time=ref_period)
 
+                    dref, dhist, dsim = (sdba.stack_variables(da) for da in
+                                         (dref, dhist, dsim))
+
                     # stack 30-year periods
-                    dsim = xc.core.calendar.stack_periods(dsim, window=30)
+                    dsim = dsim.sel(time=slice('2071', '2100'))  # TODO: rmeove
+                    #dsim = xc.core.calendar.stack_periods(
+                    #    dsim, window=30, stride=30).chunk({'time': -1, 'period': -1})
+
 
                     # create group
                     group = CONFIG['biasadjust_mbcn'].get('group')
@@ -379,7 +387,7 @@ if __name__ == '__main__':
                             dtrain = sdba.MBCn.train(
                                 ref=dref,
                                 hist=dhist,
-                                base_kws=dict(group="time.dayofyear", nquantiles=50,) # TODO: try with group window after
+                                base_kws=dict(group="time.dayofyear", nquantiles=50,), # TODO: try with group window after
                                 ** CONFIG['biasadjust_mbcn']['train']
                             ).ds
 
@@ -387,9 +395,20 @@ if __name__ == '__main__':
                             dtrain.attrs.update(dhist.attrs)
                             dtrain.attrs['cat:processing_level'] = f"training_mbcn"
 
+
                             # save
-                            xs.save_and_update(ds=dtrain, path=CONFIG['paths']['mbcn'],
-                                               pcat=pcat)
+                            # cant write multi-index directly
+                            encoded = cfxr.encode_multi_index_as_compress(dtrain,
+                                                                          "win_dim")
+
+                            # b/c bug xscen with time coords
+                            path = CONFIG['paths']['mbcn'].format(
+                                **xs.utils.get_cat_attrs(encoded, var_as_str=True))
+                            xs.save_to_zarr(ds=encoded,filename=path)
+                            dtrain = dtrain.drop_vars('time')
+                            pcat.update_from_ds(dtrain, path)
+                            # xs.save_and_update(ds=dtrain, path=CONFIG['paths']['mbcn'],
+                            #                    pcat=pcat)
 
                     # adjust
                     with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
@@ -397,20 +416,21 @@ if __name__ == '__main__':
                         dtrain = pcat.search(processing_level=f"training_mbcn",
                                              domain=region_name, id=sim_id,
                                              ).to_dataset(**tdd)
+                        decoded = cfxr.decode_compress_to_multi_index(dtrain, "win_dim")
 
-                        ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
+                        ADJ = sdba.adjustment.TrainAdjust.from_dataset(decoded)
 
                         out = ADJ.adjust(
-                            sim=dsim, ref=dref, hist=dhist, period_dim="period",
+                            sim=dsim, ref=dref, hist=dhist, #period_dim="period",
                             base=sdba.QuantileDeltaMapping,
                             **CONFIG['biasadjust_mbcn']['adjust'],
-                            # base_kws_vars={
-                            #     "pr": {"kind": "*",
-                            #            "jitter_under_thresh_value": "0.01 mm/d",
-                            #            "adapt_freq_thresh": "0.1 mm/d"}}
                         )
 
+                        out = sdba.unstack_variables(out)
+                        #out = xc.core.calendar.unstack_periods(out)
+
                         # attrs
+                        out.attrs.update(dsim.attrs)
                         out.attrs['cat:processing_level'] = f'biasadjusted'
 
                         # save
@@ -1268,6 +1288,7 @@ if __name__ == '__main__':
                                                             )
                                 dc = cat.popitem()[1]
                                 ds = extract_dataset(catalog=dc,
+                                                     xr_combine_kwargs= {}, # bug xscen
                                                      periods= CONFIG['custom']['sim_period']
                                                           )['D']
 
