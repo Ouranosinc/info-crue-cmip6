@@ -6,9 +6,9 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-  - makeref
-  - extract
-  - regrid
+#  - makeref
+#  - extract
+#  - regrid
   #- ba-MBCn
   #- npdf-bdd
   #- npdf-gpies
@@ -106,8 +106,7 @@ extraction:
             other_search_criteria:
                 source: &ref_source
                   EMDNA
-                    #ERA5-Land #EMDNA #TODO
-                member: OI #TODO
+                member: OI
         extract_dataset:
           xr_combine_kwargs: {} # bc of xscen bug
         clean_up:
@@ -247,18 +246,24 @@ biasadjust_mbcn:
   context:
     train:
       client_kw:
-        n_workers: 6 #3
+        n_workers: 3
         threads_per_worker: 3
-        memory_limit: "35GB"
+        memory_limit: "130 GB" #"35GB"
       measure_time_kw:
         name: train mbcn
+      timeout_kw:
+        seconds: 10000000
+        task: train mcbn
     adjust:
       client_kw:
-        n_workers: 6 #3
+        n_workers: 3 #3
         threads_per_worker: 3
-        memory_limit: "35GB"
+        memory_limit: "130GB"
       measure_time_kw:
         name: adjust mbcn
+      timeout_kw:
+        seconds: 10000000
+        task: adjust mcbn
   regridded_dom: QC-EMDNA
   group:
     group: time.dayofyear
