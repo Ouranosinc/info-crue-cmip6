@@ -14,6 +14,9 @@ from dask.diagnostics import ProgressBar
 import cftime
 from contextlib import contextmanager
 import cf_xarray as cfxr
+import shutil as sh
+from dask.distributed import Client, LocalCluster
+
 
 
 import xclim as xc
@@ -52,7 +55,7 @@ load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
 server = CONFIG['server']
 logger = logging.getLogger('xscen')
 
-workdir = Path(CONFIG['paths']['workdir'])
+#workdir = Path(CONFIG['paths']['workdir'])
 regriddir = Path(CONFIG['paths']['regriddir'])
 refdir = Path(CONFIG['paths']['refdir'])
 
@@ -101,7 +104,7 @@ if __name__ == '__main__':
     for region_name, region_dict in CONFIG['custom']['regions'].items():
         if (
                 "makeref" in CONFIG["tasks"]
-                and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
+                #and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
         ):
             # default
             if not pcat.exists_in_cat(domain=region_name,  source=ref_source):
@@ -139,6 +142,9 @@ if __name__ == '__main__':
                         )
                     ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
                     ds_ref.attrs['cat:calendar'] = 'default'
+
+                    workdir = Path(f"{CONFIG['paths']['workdir']}/{ds_ref.attrs['cat:id']}_{region_name}/")
+
                     xs.save_and_update(ds=ds_ref,
                                      pcat=pcat,
                                      path=f"{refdir}/ref_{region_name}_default.zarr",
@@ -172,7 +178,7 @@ if __name__ == '__main__':
                                      pcat=pcat,
                                      path=f"{refdir}/ref_{region_name}_360day.zarr",
                                        update_kwargs={
-                                           'info_dict': {"calendar": "360day"}}
+                                           'info_dict': {"calendar": "360_day"}}
                                      )
 
             # diag
@@ -240,6 +246,9 @@ if __name__ == '__main__':
 
                 logger.info(cur_dict)
 
+                workdir = Path(f"{CONFIG['paths']['workdir']}/{sim_id}_{region_name}/")
+
+
 
                 # inside the loops, we have a default id and domain
                 def do_task_loop(task,id=sim_id, domain=region_name, **kwargs):
@@ -264,12 +273,17 @@ if __name__ == '__main__':
                                 ds_sim = ds_sim.chunk(CONFIG['extract']['sim_chunks'])
 
                                 # save to zarr
-                                path_cut = f"{workdir}/{sim_id}_{region_name}_extracted.zarr"
-                                save_to_zarr(ds=ds_sim,
-                                             filename=path_cut,
-                                             encoding=CONFIG['custom']['encoding'],
-                                             )
-                                pcat.update_from_ds(ds=ds_sim, path=path_cut)
+                                # path_cut = f"{workdir}/{sim_id}_{region_name}_extracted.zarr"
+                                # save_to_zarr(ds=ds_sim,
+                                #              filename=path_cut,
+                                #              encoding=CONFIG['custom']['encoding'],
+                                #              )
+                                # pcat.update_from_ds(ds=ds_sim, path=path_cut)
+
+                                xs.save_and_update(ds=ds_sim,
+                                                    path=CONFIG['paths']['output'],
+                                                    pcat=pcat,
+                                                    save_kwargs=dict(encoding=CONFIG['custom']['encoding']))
 
                         except TimeoutException:
                             pass
@@ -302,12 +316,19 @@ if __name__ == '__main__':
                         ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
 
                         # save to zarr
-                        path_rg = f"{workdir}/{sim_id}_{region_name}_regridded.zarr"
-                        save_to_zarr(ds=ds_regrid,
-                                     filename=path_rg,
-                                     encoding=CONFIG['custom']['encoding'],
-                                     )
-                        pcat.update_from_ds(ds=ds_regrid, path=path_rg)
+                        # path_rg = f"{workdir}/{sim_id}_{region_name}_regridded.zarr"
+                        # save_to_zarr(ds=ds_regrid,
+                        #              filename=path_rg,
+                        #              encoding=CONFIG['custom']['encoding'],
+                        #              )
+                        # pcat.update_from_ds(ds=ds_regrid, path=path_rg)
+
+                        xs.save_and_update(
+                            ds=ds_regrid,
+                            path=CONFIG['paths']['output'],
+                            pcat=pcat,
+                            save_kwargs=dict(encoding=CONFIG['custom']['encoding']))
+                        
 
 
                 # ---BIAS ADJUST---
@@ -321,10 +342,9 @@ if __name__ == '__main__':
                         and not pcat.exists_in_cat(domain=region_name, id=sim_id,
                                                    processing_level='biasadjusted')
                 ):
-
                     # load hist ds (simulation)
                     dsim = pcat.search(
-                        domain=CONFIG['biasadjust_mbcn']['regridded_dom'],
+                        domain=region_name,
                         variable=CONFIG['biasadjust_mbcn']['variable'],
                         id=sim_id, processing_level='regridded').to_dask(**tdd)
                     # because we took regridded from other domain
@@ -364,46 +384,70 @@ if __name__ == '__main__':
                     # train
                     if not pcat.exists_in_cat(processing_level=f'training_mbcn',
                                               domain=region_name, id=sim_id, ):
-                        with context(**CONFIG['biasadjust_mbcn']['context']['train']):
-
+                        #with context(**CONFIG['biasadjust_mbcn']['context']['train']): 
+                        if True:
+                            cluster = LocalCluster(n_workers=3, threads_per_worker=5, memory_limit="130GB",
+                           **daskkws)
+                            client = Client(cluster)
                             dtrain = sdba.MBCn.train(
-                                ref=dref,
-                                hist=dhist,
-                                base_kws=dict(group=group, nquantiles=50, ),
-                                ** CONFIG['biasadjust_mbcn']['train']
+                                ref=dref,#.chunk({'loc':5}), #TODO: try
+                                hist=dhist,#.chunk({'loc':5}),
+                                base_kws=dict(group=group, nquantiles=50, ), 
+                                **CONFIG['biasadjust_mbcn']['train']
                             ).ds
 
                             # attrs
                             dtrain.attrs.update(dhist.attrs)
                             dtrain.attrs['cat:processing_level'] = f"training_mbcn"
+                            
 
+                            #dtrain=dtrain.chunk({'iterations':1})
+                            print(dtrain)
+
+                            #TODO: chunks iteration ?
 
                             # save
                             # cant write multi-index directly
                             #encoded = cfxr.encode_multi_index_as_compress(dtrain,
-                            encoded=dtrain                                            # "win_dim")
+                            #encoded=dtrain                                            # "win_dim")
 
                             # b/c bug xscen with time coords
-                            path = CONFIG['paths']['mbcn'].format(
-                                **xs.utils.get_cat_attrs(encoded, var_as_str=True))
-                            xs.save_to_zarr(ds=encoded, filename=path)
-                            print('saved')
-                            dtrain = dtrain.drop_vars('time')
-                            pcat.update_from_ds(dtrain, path)
-                            # xs.save_and_update(ds=dtrain, path=CONFIG['paths']['mbcn'],
+                            # path = CONFIG['paths']['mbcn'].format(
+                            #     **xs.utils.get_cat_attrs(dtrain, var_as_str=True))
+                            # xs.save_to_zarr(ds=dtrain, filename=path)
+                            # print('saved')
+                            # dtrain = dtrain.drop_vars('time')
+                            # pcat.update_from_ds(dtrain, path)
+                            
+                            
+                            #xs.save_and_update(ds=dtrain, path=CONFIG['paths']['mbcn'],
                             #                    pcat=pcat)
+                            
+                            #s_path=f"{os.environ['SLURM_TMPDIR']}/tmp_train2.zarr" 
+                            #f_path = "/project/ctb-frigon/julavoie/info-crue-cmip6/tmp_train2.zarr"
+                            f_path = Path(CONFIG['paths']['output'].format(
+                                 **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
+                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
+                            f_path=str(f_path)
+                            xs.save_to_zarr(ds=dtrain, filename=s_path)
+                            print("saved2")
+                            sh.make_archive(s_path, "zip", s_path)
+                            print('zipped')
+                            sh.move(f"{s_path}.zip",f_path.parent)
+                            print('moved2')
+                            pcat.update_from_ds(dtrain, f_path)
+                            print('updated2')
+
+
 
                     # adjust
                     with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
 
-                        #dtrain=xr.open_zarr('/scratch/julavoie/info-crue-cmip6_workdir/CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1_global_QC-EMDNA_training_mbcn_tmp.zarr', decode_timedelta=False)
                         dtrain = pcat.search(processing_level=f"training_mbcn",
                                              domain=region_name, id=sim_id,
                                              ).to_dataset(**tdd)
-                        #decoded = cfxr.decode_compress_to_multi_index(dtrain, "win_dim")
-                        decoded=dtrain
 
-                        ADJ = sdba.adjustment.TrainAdjust.from_dataset(decoded)
+                        ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
 
                         out = ADJ.adjust(
                             sim=dsim, ref=dref, hist=dhist, period_dim="period",
@@ -419,159 +463,23 @@ if __name__ == '__main__':
                         out.attrs['cat:processing_level'] = f'biasadjusted'
 
                         # save
-                        xs.save_and_update(ds=out, path=CONFIG['paths']['mbcn'],
-                                           pcat=pcat)
+                        #xs.save_and_update(ds=out, path=CONFIG['paths']['mbcn'],
+                        #                   pcat=pcat)
+                        f_path = Path(CONFIG['paths']['mbcn'].format( #TODO: tmp
+                                 **xs.utils.get_cat_attrs(out, var_as_str=True)))
+                        s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
+                        f_path=str(f_path)
+                        xs.save_to_zarr(ds=out, filename=s_path)
+                        print("saved")
+                        sh.move(s_path,f_path)
+                        print('moved')
+                        pcat.update_from_ds(out, f_path)
+                        print('updated')
+                        
+                        path_train=dtrain.attrs['cat:path']
+                        sh.make_archive(path_train, "zip", path_train)
+                        print('train zipped')
 
-
-
-
-                # --- UNIVARIATE ---
-                for var, conf in CONFIG['biasadjust_qm']['variables'].items():
-
-                    # ---TRAIN QM ---
-                    if do_task_loop(task="train_qm", id=f"{sim_id}_training_qm_{var}"):
-                        with context(**CONFIG['biasadjust_qm']['context']['train']):
-                            # load hist ds (simulation)
-                            ds_hist = pcat.search(id=sim_id,
-                                                  processing_level='regridded',
-                                                  domain=region_name).to_dask()
-
-                            # load ref ds
-                            # choose right calendar
-                            simcal = get_calendar(ds_hist)
-                            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-                            ds_ref = pcat.search(source = ref_source,
-                                                 calendar=refcal,
-                                                 domain=region_name).to_dask()
-
-                            # make sure sim and ref have the same units
-
-                            # training
-                            ds_tr = train(dref=ds_ref,
-                                          dhist=ds_hist,
-                                          var=[var],
-                                          **conf['training_args'])
-
-                            #save and update
-                            path_tr = f"{workdir}/{sim_id}_{region_name}_{var}_training_qm.zarr"
-                            save_to_zarr(ds=ds_tr,
-                                         filename=path_tr,
-                                         mode='o')
-                            pcat.update_from_ds(ds=ds_tr,
-                                                info_dict={'id': f"{sim_id}_training_qm_{var}",
-                                                           'domain': region_name,
-                                                           'processing_level': "training",
-                                                           'xrfreq': ds_hist.attrs['cat:xrfreq']
-                                                            },# info_dict needed to reopen correctly in next step
-                                                path=path_tr)
-
-                    # ---ADJUST QM---
-                    if do_task_loop(task='adjust_qm', variable=var,
-                            processing_level= ['biasadjusted','half_biasadjusted'],):
-                        with context(**CONFIG['biasadjust_qm']['context']['adjust']):
-                            # load sim ds and training dataset
-                            ds_sim = pcat.search(id=sim_id,
-                                                 processing_level = 'regridded',
-                                                 domain=region_name).to_dask()
-                            ds_tr = pcat.search(id=f'{sim_id}_training_qm_{var}', domain=region_name).to_dask()
-
-                            #if more adjusting needed (pr), the level must reflect that
-                            plevel = 'half_biasadjusted' if (var in CONFIG['biasadjust_ex']['variables'])\
-                                                            and ('train_ex' in CONFIG['tasks']) else 'biasadjusted'
-
-
-                            #adjust
-                            ds_scen_qm = adjust(dsim=ds_sim,
-                                             dtrain=ds_tr,
-                                             to_level = plevel,
-                                             **conf['adjusting_args'])
-
-                            #save and update
-                            path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_{plevel}.zarr"
-                            save_to_zarr(ds=ds_scen_qm,
-                                         filename=path_adj,
-                                         mode='o')
-                            pcat.update_from_ds(ds=ds_scen_qm, path=path_adj)
-
-
-                for var, conf in CONFIG['biasadjust_ex']['variables'].items():
-                    # ---TRAIN EXTREME---
-                    if do_task_loop(task='train_ex',id=f"{sim_id}_training_ex_{var}"):
-                        with context(**CONFIG['biasadjust_ex']['context']['train']):
-                            # load hist and ref
-                            ds_hist = pcat.search(id=sim_id, domain=region_name,
-                                                 processing_level='regridded').to_dask()
-                            simcal = get_calendar(ds_hist)
-                            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-
-                            ds_ref = pcat.search(domain=region_name,
-                                                 source=ref_source,
-                                                 calendar=refcal
-                                                 ).to_dask()
-
-
-                            # training
-                            ds_tr = train(dref=ds_ref,
-                                          dhist=ds_hist,
-                                          var=[var],
-                                          **conf['training_args'])
-
-                            #save and update
-                            path_tr = f"{workdir}/{sim_id}_{region_name}_{var}_training_ex.zarr"
-                            save_to_zarr(ds=ds_tr,
-                                         filename=path_tr,
-                                         mode='o')
-                            pcat.update_from_ds(ds=ds_tr,
-                                                info_dict={'id': f"{sim_id}_training_ex_{var}",
-                                                           'domain': region_name,
-                                                           'processing_level': "training",
-                                                           'xrfreq': ds_hist.attrs['cat:xrfreq']
-                                                           },# info_dict needed to reopen correctly in next step
-                                                path=path_tr)
-
-                    # # ---ADJUST EXTREME---
-                    # if do_task_loop(task='adjust_ex', variable=var,processing_level='biasadjusted'):
-                    #     with context(**CONFIG['biasadjust_ex']['context']['adjust']):
-                    #         # load scen from quantile mapping
-                    #         ds_scen_qm = pcat.search(id=sim_id, domain=region_name,
-                    #                              processing_level='half_biasadjusted').to_dask()
-                    #         # load sim and extreme training dataset
-                    #         ds_sim = pcat.search(id=sim_id, domain=region_name,
-                    #                              processing_level='regridded').to_dask()
-                    #
-                    #         simcal = get_calendar(ds_sim)
-                    #         refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-                    #         if simcal != refcal:
-                    #             ds_sim = convert_calendar(ds_sim, refcal)
-                    #
-                    #         ds_tr = pcat.search(id=f'{sim_id}_training_ex_{var}', domain=region_name).to_dask()
-                    #
-                    #
-                    #         # adjustement on moving window
-                    #         ds_sim = ds_sim.sel(time = sim_period)
-                    #         sim_win = construct_moving_yearly_window(ds_sim,
-                    #                                                  **CONFIG['biasadjust_ex']['moving_yearly_window'])
-                    #
-                    #         scen_win = construct_moving_yearly_window(ds_scen_qm[var].sel(time = sim_period),
-                    #                                                   **CONFIG['biasadjust_ex']['moving_yearly_window'])
-                    #
-                    #         ds_scen_ex_win = adjust(dsim=sim_win,
-                    #                                 dtrain=ds_tr,
-                    #                                 xclim_adjust_args = {'scen': scen_win,
-                    #                                                     'frac': 0.25},
-                    #                             **conf['adjusting_args'])
-                    #
-                    #         ds_scen_ex = unpack_moving_yearly_window(ds_scen_ex_win)
-                    #         ds_scen_ex = ds_scen_ex.chunk({'time':-1})
-                    #
-                    #         #save and update
-                    #         path_adj = f"{workdir}/{sim_id}_{region_name}_{var}_biasadjusted.zarr"
-                    #         ds_scen_ex.lat.encoding.pop('chunks')
-                    #         ds_scen_ex.lon.encoding.pop('chunks')
-                    #         save_to_zarr(ds=ds_scen_ex,
-                    #                      filename=path_adj,
-                    #                      mode='o')
-                    #         pcat.update_from_ds(ds=ds_scen_ex, path=path_adj)
 
                 # ---CLEAN UP ---
                 if do_task_loop(task= "clean_up",processing_level='cleaned_up'):
@@ -592,15 +500,20 @@ if __name__ == '__main__':
 
 
 
-                                ds = clean_up(ds = ds,
+                                ds = clean_up(ds = ds.chunk({'time':-1}),
                                               **CONFIG['clean_up']['xscen_clean_up'])
 
                                 #save and update
-                                path_cu = f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr"
-                                save_to_zarr(ds=ds,
-                                             filename=path_cu,
-                                             mode='o')
-                                pcat.update_from_ds(ds=ds, path=path_cu)
+                                # path_cu = f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr"
+                                # save_to_zarr(ds=ds,
+                                #              filename=path_cu,
+                                #              mode='o')
+                                # pcat.update_from_ds(ds=ds, path=path_cu)
+                                xs.save_and_update(
+                                    ds=ds,
+                                    path=CONFIG['paths']['output'],
+                                    pcat=pcat,
+                                    )
 
                         except TimeoutException:
                             pass
@@ -629,34 +542,13 @@ if __name__ == '__main__':
                         if CONFIG['custom']['delete_in_final_zarr']:
 
 
-                            if server == 'n':
-                                # rename log with details of current dataset
-                                os.rename(f"{workdir}/logger.log",f"{workdir}/logger_{sim_id}_{region_name}.log")
-
-                                # for name, paths in CONFIG['scp_list'].items():
-                                #     source_path = Path(paths['source'].format(**cur_dict))
-                                #     dest = Path(paths['dest'].format(**cur_dict))
-                                #     python_scp(source_path= source_path,
-                                #             destination_path=dest,
-                                #             **CONFIG['scp'])
-                                #
-                                #     dest = dest / source_path.name
-                                #     if dest.suffix == '.zarr' and source_path.exists():
-                                #         ds = pcat.search(path=str(source_path)).to_dask()
-                                #         pcat.update_from_ds(ds, str(dest ))
-                                #
-                                # xs.move_and_delete(deleting=[workdir],
-                                #                  moving=[],
-                                #                  pcat=pcat)
-
-                            else:
-                                final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                                path_log = CONFIG['logging']['handlers']['file']['filename']
-                                xs.move_and_delete(deleting=[workdir],
-                                                 moving=
-                                                 [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
-                                                  [path_log, CONFIG['paths']['logging'].format(**cur_dict)]],
-                                                 pcat=pcat)
+                            final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
+                            path_log = CONFIG['logging']['handlers']['file']['filename']
+                            xs.move_and_delete(deleting=[workdir],
+                                                moving=
+                                                [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
+                                                [path_log, CONFIG['paths']['logging'].format(**cur_dict)]],
+                                                pcat=pcat)
 
                 # --- HEALTH CHECKS ---
                 if do_task_loop(task='health_checks', processing_level='health_checks'):
@@ -709,26 +601,26 @@ if __name__ == '__main__':
 
                             for ds in [prop, meas]:
                                 ds.attrs['cat:domain']=region_name
-                                path_diag = Path(
-                                    CONFIG['paths']['diagnostics'].format(
-                                        region_name=region_name,
-                                        sim_id=sim_id,
-                                        level= ds.attrs['cat:processing_level']))
-                                path_diag_exec = f"{workdir}/{path_diag.name}"
 
-                                save_to_zarr(ds=ds,
-                                             filename=path_diag_exec,
-                                             mode='o',
-                                             itervar=True,
-                                             rechunk=CONFIG['extract']['ref_prop_chunk']
-                                )
-                                if server == 'n':
-                                    pcat.update_from_ds(ds=ds,
-                                                        path=str(path_diag_exec))
-                                else:
-                                    shutil.move(path_diag_exec, path_diag)
-                                    pcat.update_from_ds(ds=ds,
-                                                        path=str(path_diag))
+                                xs.save_and_update(ds=ds, pcat=pcat, path=CONFIG['paths']['output'])
+                                
+                                # path_diag = Path(
+                                #     CONFIG['paths']['diagnostics'].format(
+                                #         region_name=region_name,
+                                #         sim_id=sim_id,
+                                #         level= ds.attrs['cat:processing_level']))
+                                # path_diag_exec = f"{workdir}/{path_diag.name}"
+
+                                # save_to_zarr(ds=ds,
+                                #              filename=path_diag_exec,
+                                #              mode='o',
+                                #              itervar=True,
+                                #              rechunk=CONFIG['extract']['ref_prop_chunk']
+                                # )
+
+                                # sh.move(path_diag_exec, path_diag)
+                                # pcat.update_from_ds(ds=ds,
+                                #                     path=str(path_diag))
 
                         meas_datasets = pcat.search(
                             processing_level=['diag-sim-meas',
@@ -744,54 +636,46 @@ if __name__ == '__main__':
                         ip = xs.diagnostics.measures_improvement(meas_datasets)
 
                         for ds in [ ip]:
-                            path_diag = Path(
-                                CONFIG['paths']['diagnostics'].format(
-                                    region_name=ds.attrs['cat:domain'],
-                                    sim_id=ds.attrs['cat:id'],
-                                    level=ds.attrs['cat:processing_level']))
-                            if server == 'n':
-                                path_diag = f"{workdir}/{path_diag.name}"
-                            save_to_zarr(ds=ds, filename=path_diag, mode='o',rechunk={'lat':100, 'lon':100})
-                            pcat.update_from_ds(ds=ds, path=path_diag)
+                            # path_diag = Path(
+                            #     CONFIG['paths']['diagnostics'].format(
+                            #         region_name=ds.attrs['cat:domain'],
+                            #         sim_id=ds.attrs['cat:id'],
+                            #         level=ds.attrs['cat:processing_level']))
+                            # if server == 'n':
+                            #     path_diag = f"{workdir}/{path_diag.name}"
+                            # save_to_zarr(ds=ds, filename=path_diag, mode='o',rechunk={'lat':100, 'lon':100})
+                            # pcat.update_from_ds(ds=ds, path=path_diag)
+                            xs.save_and_update(ds=ds, pcat=pcat, path=CONFIG['paths']['output'])
+
 
                         # # if delete workdir, but keep regridded and log
                         if CONFIG['custom']['delete_in_diag']:
 
                             logger.info('Move files and delete workdir.')
 
-                            if server == 'n':
-                                # rename log with details of current dataset
-                                os.rename(f"{workdir}/logger.log",f"{workdir}/logger_{sim_id}_{region_name}.log")
-
-                                # scp files
-                                for name, paths in CONFIG['scp_list'].items():
-                                    source_path = Path(paths['source'].format(**cur_dict))
-                                    dest = Path(paths['dest'].format(**cur_dict))
-                                    python_scp(source_path= source_path,
-                                            destination_path=dest,
-                                            **CONFIG['scp'])
-
-                                    dest = dest / source_path.name
-                                    if dest.suffix == '.zarr' and source_path.exists():
-                                        ds = pcat.search(path=str(source_path)).to_dask()
-                                        pcat.update_from_ds(ds, str(dest ))
-
-                                xs.move_and_delete(deleting=[workdir],
-                                                 moving=[],
-                                                 pcat=pcat)
-                            else:
-                                final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                                path_log = CONFIG['logging']['handlers']['file'][
-                                    'filename']
-                                xs.move_and_delete(
-                                    deleting= [
-                                        workdir
-                                    ],
-                                                 moving =
-                                                 [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
-                                                  [path_log, CONFIG['paths']['logging'].format(**cur_dict)]
-                                                  ],
-                                                  pcat=pcat)
+                           
+                            final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
+                            path_log = CONFIG['logging']['handlers']['file'][
+                                'filename']
+                            xs.move_and_delete(
+                                deleting= [
+                                    workdir
+                                ],
+                                moving =
+                                [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
+                                    [f"{workdir}/{sim_id}_{region_name}_diag-sim-prop.zarr",
+                                    f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-prop.zarr"],
+                                    [f"{workdir}/{sim_id}_{region_name}_diag-sim-meas.zarr",
+                                    f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-meas.zarr"],
+                                    [f"{workdir}/{sim_id}_{region_name}_diag-scen-prop.zarr",
+                                    f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-prop.zarr"],
+                                    [f"{workdir}/{sim_id}_{region_name}_diag-scen-meas.zarr",
+                                    f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-meas.zarr"],
+                                    [f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr", #TODO: check
+                                    f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-improved.zarr"],
+                                [path_log, CONFIG['paths']['logging'].format(**cur_dict)]
+                                ],
+                                pcat=pcat)
 
                         #send_mail(
                         #    subject=f"{sim_id}/{region_name} - Succès",
