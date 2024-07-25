@@ -6,9 +6,9 @@ project:
 
 tasks:
 #  ####- initialize_pcat
-#  - makeref
-#  - extract
-#  - regrid
+  - makeref
+  - extract
+  - regrid
   #- ba-MBCn
   #- npdf-bdd
   #- npdf-gpies
@@ -33,8 +33,11 @@ custom:
           method: bbox
           lon_bnds: [ -83, -55 ]
           lat_bnds: [ 42, 63 ]
-          #lon_bnds: [ -60, -58 ]
-          #lat_bnds: [ 50, 52 ] #TODO
+      # QC-test:
+      #     name: QC-test
+      #     method: bbox
+      #     lon_bnds: [ -60, -58 ]
+      #     lat_bnds: [ 50, 52 ]
     stack_drop_nans: &stack
         True
     chunks:
@@ -90,7 +93,7 @@ extraction:
         context:
           client_kw:
             n_workers: 6 # 3
-            threads_per_worker: 5
+            threads_per_worker: 4
             memory_limit: "15GB"
           measure_time_kw:
             name: makeref
@@ -163,7 +166,7 @@ extraction:
             source:
               # chosen
               - ACCESS-ESM1-5
-              - CanESM5
+              #- CanESM5
               - EC-Earth3
               - FGOALS-g3
               - IPSL-CM6A-LR
@@ -245,10 +248,10 @@ regrid:
 biasadjust_mbcn:
   context:
     train:
-      client_kw:
-        n_workers: 3
-        threads_per_worker: 3
-        memory_limit: "130 GB" #"35GB"
+      # client_kw:
+      #   n_workers: 3 
+      #   threads_per_worker: 3
+      #   memory_limit: "130 GB" #"35GB"
       measure_time_kw:
         name: train mbcn
       timeout_kw:
@@ -256,15 +259,15 @@ biasadjust_mbcn:
         task: train mcbn
     adjust:
       client_kw:
-        n_workers: 3 #3
+        n_workers: 6 #3
         threads_per_worker: 3
-        memory_limit: "130GB"
+        memory_limit: "65GB"
       measure_time_kw:
         name: adjust mbcn
       timeout_kw:
         seconds: 10000000
         task: adjust mcbn
-  regridded_dom: QC-EMDNA
+  #regridded_dom: QC-EMDNA
   group:
     group: time.dayofyear
     window: 31
@@ -511,7 +514,7 @@ final_zarr:
   context:
     client_kw:
       n_workers: 6 #3
-      threads_per_worker: 5
+      threads_per_worker: 3
       memory_limit: "20GB"
     measure_time_kw:
         name: final zarr rechunk
@@ -520,8 +523,8 @@ final_zarr:
 diagnostics:
   context:
     client_kw:
-      n_workers: 16 #8
-      threads_per_worker: 5
+      n_workers: 8
+      threads_per_worker: 3
       memory_limit: "5GB"
   sim:
     input:
