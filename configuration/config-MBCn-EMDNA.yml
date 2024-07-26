@@ -5,36 +5,29 @@ project:
     id: ic6
 
 tasks:
-#  ####- initialize_pcat
   - makeref
   - extract
   - regrid
-  #- ba-MBCn
-  #- npdf-bdd
-  #- npdf-gpies
   - npdf-gpies-narval
   - clean_up
   - final_zarr
   - health_checks
   - diagnostics
 
-
-
-
 custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        # QC-EMDNA:
-        #   name: QC-EMDNA
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 63 ]
-      QC-test:
-          name: QC-test
+        QC-EMDNA:
+          name: QC-EMDNA
           method: bbox
-          lon_bnds: [ -60, -58 ]
-          lat_bnds: [ 50, 52 ]
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 42, 63 ]
+      # QC-test:
+      #     name: QC-test
+      #     method: bbox
+      #     lon_bnds: [ -60, -58 ]
+      #     lat_bnds: [ 50, 52 ]
     stack_drop_nans: &stack
         True
     chunks:
@@ -43,9 +36,18 @@ custom:
         loc: 50
         time: -1
     out_chunks:
-        lat: 3 #0 #TODO
-        lon: 3 #0
+        lat: 30
+        lon: 30
         time: 4year
+    sim_chunks:
+      time: 365
+      lat: -1
+      lon: -1
+    ref_chunk:
+      time: -1
+    ref_prop_chunk:
+      lat: 30
+      lon: 30
     ref_period : &ref_period # new-ref
       - '1989'
       - '2018'
@@ -65,16 +67,6 @@ custom:
       noleap
     align_on:
       year
-    sim_chunks: {'time': 365, 'lat':-1, 'lon':-1}
-    ref_chunk:
-      time: -1
-    ref_prop_chunk:
-      lat: 30
-      lon: 30
-
-
-
-
 
 extraction:
     reference:
@@ -228,10 +220,10 @@ regrid:
 biasadjust_mbcn:
   context:
     train:
-      # client_kw:
-      #   n_workers: 3 
-      #   threads_per_worker: 3
-      #   memory_limit: "130 GB" #"35GB"
+      client_kw:
+        n_workers: 3 
+        threads_per_worker: 3
+        memory_limit: "130 GB" #"35GB"
       measure_time_kw:
         name: train mbcn
       timeout_kw:
@@ -247,11 +239,9 @@ biasadjust_mbcn:
       timeout_kw:
         seconds: 10000000
         task: adjust mcbn
-  #regridded_dom: QC-EMDNA
   group:
     group: time.dayofyear
     window: 31
-  #periods: [['1956', '1985'],['1981', '2010'],['2011', '2040'],['2041', '2070'], ['2071', '2100']]
   variable:
     - tasmax
     - pr
@@ -284,133 +274,6 @@ biasadjust_mbcn:
     bias_adjust_institution: Ouranos
     bias_adjust_project: IC6-EM-MBCn
 
-
-biasadjust_qm:
-    context:
-      train:
-        client_kw:
-          n_workers: 7
-          threads_per_worker: 3
-          memory_limit: "9GB"
-        measure_time_kw:
-          name: train qm
-      adjust:
-        client_kw:
-          n_workers: 6
-          threads_per_worker: 3
-          memory_limit: "10GB"
-        measure_time_kw:
-          name: adjust qm
-    variables:
-        dtr:
-            training_args:
-                period: *ref_period
-                method: DetrendedQuantileMapping
-                group:
-                    group: time.dayofyear
-                    window: 31
-                xclim_train_args:
-                    kind: "*"
-                    nquantiles: 50
-            adjusting_args:
-                periods: *sim_period
-                xclim_adjust_args:
-                    detrend:
-                        LoessDetrend:
-                          f: 0.2
-                          niter: 1
-                          d: 0
-                          weights: tricube
-                    interp: nearest
-                    extrapolation: constant
-                bias_adjust_institution: &b_a_inst
-                  Ouranos
-                bias_adjust_project: &b_a_pro
-                  info-crue-CMIP6
-        tasmax:
-            training_args:
-                period: *ref_period
-                method: DetrendedQuantileMapping
-                group:
-                    group: time.dayofyear
-                    window: 31
-                xclim_train_args:
-                    kind: "+"
-                    nquantiles: 50
-            adjusting_args:
-                periods: *sim_period
-                xclim_adjust_args:
-                  detrend:
-                    LoessDetrend:
-                      f: 0.2
-                      niter: 1
-                      d: 0
-                      weights: tricube
-                  interp: nearest
-                  extrapolation: constant
-                bias_adjust_institution: *b_a_inst
-                bias_adjust_project: *b_a_pro
-        pr:
-            training_args:
-                period: *ref_period
-                method: DetrendedQuantileMapping
-                group:
-                    group: time.dayofyear
-                    window: 31
-                jitter_under:
-                    thresh: 0.05 mm d-1
-                xclim_train_args:
-                    kind: "*"
-                    nquantiles: 50
-            adjusting_args:
-                periods: *sim_period
-                xclim_adjust_args:
-                  detrend:
-                    LoessDetrend:
-                      f: 0.2
-                      niter: 1
-                      d: 0
-                      weights: tricube
-                  interp: nearest
-                  extrapolation: constant
-                bias_adjust_institution: *b_a_inst
-                bias_adjust_project: *b_a_pro
-
-
-biasadjust_ex:
-    context:
-      train:
-        client_kw:
-            n_workers: 9
-            threads_per_worker: 3
-            memory_limit: "7GB"
-        measure_time_kw:
-            name: train ex
-      adjust:
-        client_kw:
-          n_workers: 6
-          threads_per_worker: 3
-          memory_limit: "10GB"
-        measure_time_kw:
-          name: adjust ex
-    moving_yearly_window:
-        window: 40
-        step: 15
-    variables:
-        pr:
-            training_args:
-                period: *ref_period
-                method: ExtremeValues
-                jitter_under:
-                    thresh: 0.05 mm d-1
-                group: False
-                xclim_train_args:
-                    cluster_thresh: 1 mm d-1 #0.00001157407 kg m-2 s-1 #
-                    q_thresh: 0.95
-            adjusting_args:
-                periods: *sim_period
-                bias_adjust_institution: *b_a_inst
-                bias_adjust_project: *b_a_pro
 clean_up:
   context:
     client_kw:
@@ -444,7 +307,6 @@ clean_up:
       pr: [0]
     maybe_unstack_dict:
       stack_drop_nans: *stack
-      #coords: ['rlat', 'rlon']
       rechunk:
         lat: 15
         lon: 15
@@ -473,7 +335,9 @@ clean_up:
         version: "1.0.0"
         code: https://github.com/Ouranosinc/info-crue-cmip6/tree/mbcn-narval
         contact: lavoie.juliette@ouranos.ca
-        #TODO: add gitlab extras
+        organisation: Groupe scénarios et services climatiques, Consortium Ouranos, Montréal, QC; www.ouranos.ca
+        avertissement : Ouranos ne donne aucune garantie, expresse ou implicite, y compris, mais sans s'y limiter, les garanties de qualité marchande et d'adéquation à un usage particulier. Toutes les responsabilités découlant de la fourniture des informations (y compris toute responsabilité découlant d'une négligence) sont exclues dans toute la mesure permise par la loi.
+        license:  Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/)
       tasmax:
           standard_name: air_temperature
           long_name: Maximal daily temperature
@@ -488,7 +352,7 @@ clean_up:
           cell_methods: "time: mean within days"
 
 rechunk:
-    worker_mem: 2GB
+    worker_mem: 20GB
 
 final_zarr:
   context:
@@ -506,28 +370,73 @@ diagnostics:
       n_workers: 8
       threads_per_worker: 3
       memory_limit: "5GB"
-  sim:
-    input:
-      processing_level:  regridded
-    dref_for_measure:
-      processing_level: diag-ref-prop
-    properties_and_measures:
-      rechunk: {'lat': 30, 'lon': 30, 'time': -1}
-      period: *ref_period
-      unstack: *stack
-      change_units_arg:
-        tasmax: degC
-        tasmin: degC
-        pr: mm d-1
-  scen:
-    input:
-      processing_level: final
-    dref_for_measure:
-      processing_level: diag-ref-prop
-    properties_and_measures:
-      rechunk: {'lat':30, 'lon':30, 'time':-1}
-      period: *ref_period
-      unstack: False
+  steps:
+    sim:
+      input:
+        processing_level:  regridded
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'lat': 30, 'lon': 30, 'time': -1}
+        period: *ref_period
+        unstack: *stack
+        change_units_arg:
+          tasmax: degC
+          tasmin: degC
+          pr: mm d-1
+    scen:
+      input:
+        processing_level: final
+      dref_for_measure:
+        processing_level: diag-ref-prop
+      properties_and_measures:
+        rechunk: {'lat':30, 'lon':30, 'time':-1}
+        period: *ref_period
+        unstack: False
+  health_checks:
+    structure:
+      coords:
+        - lat
+        - lon
+        - time
+      dims:
+        - lat
+        - lon
+        - time
+    start_date: "1951-01-01"
+    end_date: "2100-12-30"
+    variables_and_units:
+      tasmax: "°C"
+      tasmin: "°C"
+      pr: "mm d-1"
+    cfchecks:
+      tasmax:
+        cfcheck_from_name: {}
+      tasmin:
+        cfcheck_from_name: {}
+      pr:
+        cfcheck_from_name: {}
+    freq: D
+    flags:
+      tasmax:
+        temperature_extremely_high:
+          thresh: '60 degC'
+        tasmax_below_tasmin:
+      tasmin:
+        temperature_extremely_low:
+          thresh: '-70 degC'
+      pr:
+        negative_accumulation_values:
+        very_large_precipitation_events:
+          thresh: '300 mm/d'
+    return_flags: True
+    raise_on:
+      - structure
+      - start_date
+      - end_date
+      - variables_and_units
+      - cfchecks
+      - freq
 
 
 
@@ -561,10 +470,10 @@ logging:
             formatter: default
             level : INFO
             stream: ext://sys.stdout #needed to have the right color in pycharm
-        file:
-            class: logging.FileHandler
-            formatter: default
-            level : DEBUG
+        # file:
+        #     class: logging.FileHandler
+        #     formatter: default
+        #     level : DEBUG
     loggers:
         xscen:
             propagate: False
@@ -574,10 +483,3 @@ logging:
 tdd:
   xarray_open_kwargs:
     decode_timedelta: False
-
-
-#utils:
-#  unstack_fill_nan:
-#    coords: ['rlat', 'rlon']
-#  maybe_unstack:
-#    coords: ['rlat', 'rlon']

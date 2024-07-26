@@ -1,84 +1,49 @@
 from dask.distributed import Client
 from dask import config as dskconf
-import atexit
 from pathlib import Path
 import xarray as xr
-import shutil
 import logging
-import dask
-import scipy
 import os
 import numpy as np
 from datetime import timedelta
 from dask.diagnostics import ProgressBar
-import cftime
 from contextlib import contextmanager
 import cf_xarray as cfxr
 import shutil as sh
 from dask.distributed import Client, LocalCluster
 import sys
-
-
+from xclim.sdba import adjustment
 import xclim as xc
 from xclim import sdba
 from xclim.core.calendar import convert_calendar, get_calendar
-#from xclim.sdba import  construct_moving_yearly_window, unpack_moving_yearly_window
-
+from zipfile import ZipFile
 
 if 'ESMFMKFILE' not in os.environ:
     os.environ['ESMFMKFILE'] = str(Path(os.__file__).parent.parent / 'esmf.mk')
 import xscen as xs
 from xscen.utils import minimum_calendar, stack_drop_nans
 from xscen.io import rechunk
-from xscen import (
-    ProjectCatalog,
-    search_data_catalogs,
-    extract_dataset,
-    save_to_zarr,
-    load_config,
-    CONFIG,
-    regrid_dataset,
-    train, adjust,
-    measure_time, send_mail, send_mail_on_exit, timeout, TimeoutException,
-    clean_up
-)
-
-
-#fails on import
-#from utils import move_then_delete, save_move_update, python_scp, save_and_update
-
-path = 'configuration/paths_narval.yml'
-config = 'configuration/config-MBCn-EMDNA.yml'
+from xscen import CONFIG
 
 # Load configuration
-load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
-server = CONFIG['server']
+path = 'configuration/paths_narval.yml'
+config = 'configuration/config-MBCn-EMDNA.yml'
+xs.load_config(path, config, verbose=(__name__ == '__main__'), reset=True)
+
+# useful
 logger = logging.getLogger('xscen')
-
-#workdir = Path(CONFIG['paths']['workdir'])
-regriddir = Path(CONFIG['paths']['regriddir'])
-refdir = Path(CONFIG['paths']['refdir'])
-
-
-
+tdd = CONFIG['tdd']
 
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
-    #atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
-
     # start dask once for narval
-    #cluster = LocalCluster(n_workers=3, threads_per_worker=5, memory_limit="130GB", **daskkws)
-    cluster = LocalCluster(n_workers=5, threads_per_worker=5, memory_limit="80GB", **daskkws) # for test
-
+    cluster = LocalCluster(n_workers=3, threads_per_worker=5, memory_limit="130GB", **daskkws)
+    #cluster = LocalCluster(n_workers=5, threads_per_worker=5, memory_limit="80GB", **daskkws) # for test
     client = Client(cluster)
 
-    # defining variables
-    ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
-    sim_period = slice(*map(str, CONFIG['custom']['sim_period']))
-    ref_source = CONFIG['extraction']['ref_source']
-    tdd = CONFIG['tdd']
 
+    # not very useful anymore on narval
     @contextmanager
     def context(client_kw=None, measure_time_kw=None, timeout_kw=None):
         """ Set up context for each task."""
@@ -91,7 +56,7 @@ if __name__ == '__main__':
         with (
             # narval works better if only open client once
             #Client(**client_kw, **daskkws, local_directory=os.environ['SLURM_TMPDIR']),
-              measure_time(**measure_time_kw, logger=logger,),
+              xs.measure_time(**measure_time_kw, logger=logger,),
             #timeout(**timeout_kw) # useless with narval and slurm
             ):
             yield
@@ -101,30 +66,53 @@ if __name__ == '__main__':
         task_in_list = task in CONFIG["tasks"]
         not_already_done = not pcat.exists_in_cat(**kwargs)
         return task_in_list and not_already_done
+    
 
-    # initialize Project Catalog
-    if "initialize_pcat" in CONFIG["tasks"]:
-        pcat = ProjectCatalog.create(CONFIG['paths']['project_catalog'], project=CONFIG['project'])
+    def zip_directory(root, zipfile, **zip_args):
+        root = Path(root)
+
+        def _add_to_zip(zf, path, root):
+            zf.write(path, path.relative_to(root))
+            if path.is_dir():
+                for subpath in path.iterdir():
+                    _add_to_zip(zf, subpath, root)
+
+        with ZipFile(zipfile, "w", **zip_args) as zf:
+            for file in root.iterdir():
+                _add_to_zip(zf, file, root)
+
+    def unzip_directory(zipfile, root):
+
+        root = Path(root)
+        root.mkdir(parents=True, exist_ok=True)
+
+        with ZipFile(zipfile, "r") as zf:
+            zf.extractall(root)
 
     # load project catalog
-    pcat = xs.ProjectCatalog(CONFIG['paths']['project_catalog'], create=True)
+    pcat = xs.ProjectCatalog(
+        CONFIG['paths']['project_catalog'],
+        create=True,
+        project=CONFIG['project']
+    )
 
     # ---MAKEREF---
+    ref_source = CONFIG['extraction']['ref_source']
     for region_name, region_dict in CONFIG['custom']['regions'].items():
         if (
                 "makeref" in CONFIG["tasks"]
-                #and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
+                and not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop', source=ref_source)
         ):
             # default
             if not pcat.exists_in_cat(domain=region_name,  source=ref_source):
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     # search
-                    cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
+                    cat_ref = xs.search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
 
                     # extract
                     dc = cat_ref.popitem()[1]
-                    ds_ref = extract_dataset(catalog=dc,
+                    ds_ref = xs.extract_dataset(catalog=dc,
                                              region=region_dict,
                                              **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
@@ -152,11 +140,10 @@ if __name__ == '__main__':
                     ds_ref = ds_ref.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_ref.dims})
                     ds_ref.attrs['cat:calendar'] = 'default'
 
-                    workdir = Path(f"{CONFIG['paths']['workdir']}/{ds_ref.attrs['cat:id']}_{region_name}/")
-
                     xs.save_and_update(ds=ds_ref,
                                      pcat=pcat,
-                                     path=f"{refdir}/ref_{region_name}_default.zarr",
+                                     path=CONFIG['paths']['reference'],
+                                     #path=f"{refdir}/ref_{region_name}_default.zarr",
                                     update_kwargs={'info_dict': {"calendar": "default"}}
                                      )
 
@@ -171,13 +158,13 @@ if __name__ == '__main__':
                     ds_refnl.attrs['cat:calendar'] = 'noleap'
                     xs.save_and_update(ds=ds_refnl,
                                      pcat=pcat,
-                                     path=f"{refdir}/ref_{region_name}_noleap.zarr",
+                                     #path=f"{refdir}/ref_{region_name}_noleap.zarr",
+                                     path=CONFIG['paths']['reference'],
                                      update_kwargs={
                                            'info_dict': {"calendar": "noleap"}}
                                      )
             # 360_day
             if not pcat.exists_in_cat(domain=region_name, calendar='360_day', source=ref_source):
-                #with (Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws)) :
                 with context(**CONFIG['extraction']['reference']['context']):
 
                     ds_ref = pcat.search(source=ref_source,calendar='default',domain=region_name).to_dask()
@@ -185,7 +172,8 @@ if __name__ == '__main__':
                     ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
                     xs.save_and_update(ds=ds_ref360,
                                      pcat=pcat,
-                                     path=f"{refdir}/ref_{region_name}_360day.zarr",
+                                     #path=f"{refdir}/ref_{region_name}_360day.zarr",
+                                     path=CONFIG['paths']['reference'],
                                        update_kwargs={
                                            'info_dict': {"calendar": "360_day"}}
                                      )
@@ -193,15 +181,14 @@ if __name__ == '__main__':
             # diag
             if (not pcat.exists_in_cat(domain=region_name, processing_level='diag-ref-prop',
                                        source=ref_source)) and ('diagnostics' in CONFIG['tasks']):
-                #with context(**CONFIG['extraction']['reference']['context']):
-                with context(client_kw={'n_workers': 2,'threads_per_worker': 5,'memory_limit': "30GB"}): # debug workers dying
+                with context(**CONFIG['extraction']['reference']['context']): 
 
                     # search
-                    cat_ref = search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
+                    cat_ref = xs.search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
 
                     # extract
                     dc = cat_ref.popitem()[1]
-                    ds_ref = extract_dataset(catalog=dc,
+                    ds_ref = xs.extract_dataset(catalog=dc,
                                              region=region_dict,
                                              **CONFIG['extraction']['reference']['extract_dataset']
                                              )['D']
@@ -224,8 +211,6 @@ if __name__ == '__main__':
                     path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                            sim_id=ds_ref_prop.attrs['cat:id'],
                                                                            level=ds_ref_prop.attrs['cat:processing_level']))
-                    path_diag_exec = f"{workdir}/{path_diag.name}"
-
 
                     xs.save_and_update(ds=ds_ref_prop,
                                      pcat=pcat,
@@ -233,32 +218,24 @@ if __name__ == '__main__':
                                      )
 
 
+    # use arg to define source, trick for narval, pre-snakemake
     sdc=CONFIG['extraction']['simulation']['search_data_catalogs'].copy()
     sdc['other_search_criteria']['source']=sys.argv[1]
-    print(sdc)
-    cat_sim = search_data_catalogs(**sdc)
+    cat_sim = xs.search_data_catalogs(**sdc)
+
     for sim_id, dc_id in cat_sim.items():
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
                      'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id),
                      }
-            final_task = 'diagnostics' if 'diagnostics' in CONFIG[
-                "tasks"] else 'final_zarr'
+            final_task = 'diagnostics' if 'diagnostics' in CONFIG[ "tasks"] else 'final_zarr'
+            
             if not pcat.exists_in_cat(**final[final_task]):
                 cur_dict = {'domain': region_name, 'id': sim_id}
-                # logger.info('Adding config to log file')
-                # f1 = open(CONFIG['logging']['handlers']['file']['filename'], 'a+')
-                # f2 = open(config, 'r')
-                # f1.write(f2.read())
-                # f1.close()
-                # f2.close()
 
                 logger.info(cur_dict)
-
                 workdir = Path(f"{CONFIG['paths']['workdir']}/{sim_id}_{region_name}/")
-
-
 
                 # inside the loops, we have a default id and domain
                 def do_task_loop(task,id=sim_id, domain=region_name, **kwargs):
@@ -266,72 +243,47 @@ if __name__ == '__main__':
 
                 # ---EXTRACT---
                 if do_task_loop(task="extract", processing_level='extracted'):
-                    while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
-                        try:
-                            with context(**CONFIG['extraction']['simulation']['context']):
 
-                                # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
-                                # domain will be cut to the right shape during the regrid
-                                region_dict['tile_buffer']=3
-                                ds_sim = extract_dataset(catalog=dc_id,
-                                                         region=region_dict,
-                                                         **CONFIG['extraction']['simulation']['extract_dataset'],
-                                                         )['D']
-                                ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
+                    with context(**CONFIG['extraction']['simulation']['context']):
 
-                                # need lat and lon -1 for the regrid
-                                ds_sim = ds_sim.chunk(CONFIG['custom']['sim_chunks'])
+                        # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
+                        # domain will be cut to the right shape during the regrid
+                        region_dict['tile_buffer']=3
+                        ds_sim = xs.extract_dataset(catalog=dc_id,
+                                                    region=region_dict,
+                                                    **CONFIG['extraction']['simulation']['extract_dataset'],
+                                                    )['D']
+                        ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
 
-                                # save to zarr
-                                # path_cut = f"{workdir}/{sim_id}_{region_name}_extracted.zarr"
-                                # save_to_zarr(ds=ds_sim,
-                                #              filename=path_cut,
-                                #              encoding=CONFIG['custom']['encoding'],
-                                #              )
-                                # pcat.update_from_ds(ds=ds_sim, path=path_cut)
+                        # need lat and lon -1 for the regrid
+                        ds_sim = ds_sim.chunk(CONFIG['custom']['sim_chunks'])
 
-                                xs.save_and_update(ds=ds_sim,
-                                                    path=CONFIG['paths']['output'],
-                                                    pcat=pcat,
-                                                    save_kwargs=dict(encoding=CONFIG['custom']['encoding']))
+                        xs.save_and_update(ds=ds_sim,
+                                            path=CONFIG['paths']['output'],
+                                            pcat=pcat,
+                                            save_kwargs=dict(encoding=CONFIG['custom']['encoding']))
 
-                        except TimeoutException:
-                            pass
-                        else:
-                            break
+
                 # ---REGRID---
-                # note: works well with xesmf 0.7.1. scheduler explodes with 0.8.2.
                 if do_task_loop(task='regrid', processing_level='regridded'):
                     with context(**CONFIG['regrid']['context']):
-
 
                         ds_input = pcat.search(id=sim_id,
                                                processing_level='extracted',
                                                domain=region_name).to_dask()
-                        print(ds_input.chunks)
 
                         ds_target = pcat.search(**CONFIG['regrid']['target'],
                                                 domain=region_name).to_dask()
 
-                        print(ds_target.chunks)
-
-                        ds_regrid = regrid_dataset(
+                        ds_regrid = xs.regrid_dataset(
                             ds=ds_input,
                             ds_grid=ds_target,
+                            weights_location= f"{os.environ['SLURM_TMPDIR']}/weights/",
                             **CONFIG['regrid']['regrid_dataset']
                         )
 
-
                         # chunk time dim
                         ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['chunks'][d] for d in ds_regrid.dims})
-
-                        # save to zarr
-                        # path_rg = f"{workdir}/{sim_id}_{region_name}_regridded.zarr"
-                        # save_to_zarr(ds=ds_regrid,
-                        #              filename=path_rg,
-                        #              encoding=CONFIG['custom']['encoding'],
-                        #              )
-                        # pcat.update_from_ds(ds=ds_regrid, path=path_rg)
 
                         xs.save_and_update(
                             ds=ds_regrid,
@@ -342,9 +294,6 @@ if __name__ == '__main__':
 
 
                 # ---BIAS ADJUST---
-
-                from xclim.sdba import adjustment
-
                 # ---MBCN narval---
 
                 if (
@@ -374,7 +323,7 @@ if __name__ == '__main__':
                         domain=region_name, ).to_dask(**tdd)
 
                     # choose right ref period for hist
-                    dhist = dsim.sel(time=ref_period)
+                    dhist = dsim.sel(time=slice(*map(str, CONFIG['custom']['ref_period'])))
 
                     dref, dhist, dsim = (sdba.stack_variables(da) for da in
                                          (dref, dhist, dsim))
@@ -382,7 +331,6 @@ if __name__ == '__main__':
                     # stack 30-year periods
                     dsim = xc.core.calendar.stack_periods(
                         dsim, window=30, stride=30).chunk({'time': -1, 'period': -1})
-
 
                     # create group
                     group = CONFIG['biasadjust_mbcn'].get('group')
@@ -405,50 +353,30 @@ if __name__ == '__main__':
                             # attrs
                             dtrain.attrs.update(dhist.attrs)
                             dtrain.attrs['cat:processing_level'] = f"training_mbcn"
-                            
 
-                            #dtrain=dtrain.chunk({'iterations':1})
-                            print(dtrain)
-
-                            # save
-                            # cant write multi-index directly
-                            #encoded = cfxr.encode_multi_index_as_compress(dtrain,
-                            #encoded=dtrain                                            # "win_dim")
-
-                            # b/c bug xscen with time coords
-                            # path = CONFIG['paths']['mbcn'].format(
-                            #     **xs.utils.get_cat_attrs(dtrain, var_as_str=True))
-                            # xs.save_to_zarr(ds=dtrain, filename=path)
-                            # print('saved')
-                            # dtrain = dtrain.drop_vars('time')
-                            # pcat.update_from_ds(dtrain, path)
-                            
-                            
-                            #xs.save_and_update(ds=dtrain, path=CONFIG['paths']['mbcn'],
-                            #                    pcat=pcat)
-                            
-                            #s_path=f"{os.environ['SLURM_TMPDIR']}/tmp_train2.zarr" 
-                            #f_path = "/project/ctb-frigon/julavoie/info-crue-cmip6/tmp_train2.zarr"
-                            f_path = Path(CONFIG['paths']['output'].format(
+                            # save, zip, move, update
+                            f_path = Path(CONFIG['paths']['output_zip'].format(
                                  **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
-                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
+                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
                             xs.save_to_zarr(ds=dtrain, filename=s_path)
-                            logger.info("saved2")
-                            sh.make_archive(s_path, "zip", s_path)
-                            logger.info('zipped')
-                            sh.move(f"{s_path}.zip",f_path.parent)
-                            logger.info('moved2')
-                            pcat.update_from_ds(dtrain, f"{f_path}.zip", info_dict={'format':'zarr'})
-                            logger.info('updated2')
+                            zip_directory(s_path,f_path)
+                            pcat.update_from_ds(dtrain, f_path, info_dict={'format':'zarr'})
 
 
 
                     # adjust
                     with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
 
-                        dtrain = pcat.search(processing_level=f"training_mbcn",
-                                             domain=region_name, id=sim_id,
-                                             ).to_dataset(**tdd)
+                        # dtrain = pcat.search(processing_level=f"training_mbcn",
+                        #                      domain=region_name, id=sim_id,
+                        #                      ).to_dataset(**tdd)
+
+                        f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
+                        s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
+                        unzip_directory(f_path, s_path)
+                        print(f_path)
+                        print(s_path)
+                        dtrain= xr.open_zarr(s_path, decode_timedelta=False)
 
                         ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
 
@@ -465,61 +393,43 @@ if __name__ == '__main__':
                         out.attrs.update(dsim.attrs)
                         out.attrs['cat:processing_level'] = f'biasadjusted'
 
-                        # save
-                        #xs.save_and_update(ds=out, path=CONFIG['paths']['mbcn'],
-                        #                   pcat=pcat)
                         f_path = Path(CONFIG['paths']['output'].format(
                                  **xs.utils.get_cat_attrs(out, var_as_str=True)))
                         s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
                         f_path=str(f_path)
                         xs.save_to_zarr(ds=out, filename=s_path)
-                        logger.info("saved")
                         sh.move(s_path,f_path)
-                        logger.info('moved')
                         pcat.update_from_ds(out, f_path)
-                        logger.info('updated')
                         
 
 
 
                 # ---CLEAN UP ---
                 if do_task_loop(task= "clean_up",processing_level='cleaned_up'):
-                    while True:  # if code bugs forever, it will be stopped by the timeout and then tried again
-                        try:
-                            with context(**CONFIG['clean_up']['context']):
-                                #get all adjusted data
-                                cat = search_data_catalogs(**CONFIG['clean_up']['search_data_catalogs'],
-                                                           other_search_criteria= { 'id': [sim_id],
-                                                                                    'processing_level':["biasadjusted"],
-                                                                                    'domain': region_name}
-                                                            )
-                                dc = cat.popitem()[1]
-                                ds = extract_dataset(catalog=dc,
-                                                     xr_combine_kwargs= {}, # bug xscen
-                                                     periods= CONFIG['custom']['sim_period']
-                                                          )['D']
+                    with context(**CONFIG['clean_up']['context']):
+                        #get all adjusted data
+                        cat = xs.search_data_catalogs(**CONFIG['clean_up']['search_data_catalogs'],
+                                                    other_search_criteria= { 'id': [sim_id],
+                                                                            'processing_level':["biasadjusted"],
+                                                                            'domain': region_name}
+                                                    )
+                        dc = cat.popitem()[1]
+                        ds = xs.extract_dataset(catalog=dc,
+                                                xr_combine_kwargs= {}, # bug xscen
+                                                periods= CONFIG['custom']['sim_period']
+                                                    )['D']
 
 
 
-                                ds = clean_up(ds = ds.chunk({'time':-1}),
-                                              **CONFIG['clean_up']['xscen_clean_up'])
+                        ds = xs.clean_up(ds = ds.chunk({'time':-1}),
+                                        **CONFIG['clean_up']['xscen_clean_up'])
 
-                                #save and update
-                                # path_cu = f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr"
-                                # save_to_zarr(ds=ds,
-                                #              filename=path_cu,
-                                #              mode='o')
-                                # pcat.update_from_ds(ds=ds, path=path_cu)
-                                xs.save_and_update(
-                                    ds=ds,
-                                    path=CONFIG['paths']['output'],
-                                    pcat=pcat,
-                                    )
+                        xs.save_and_update(
+                            ds=ds,
+                            path=CONFIG['paths']['output'],
+                            pcat=pcat,
+                            )
 
-                        except TimeoutException:
-                            pass
-                        else:
-                            break
 
                 # ---FINAL ZARR ---
                 if do_task_loop(task='final_zarr', processing_level='final',format='zarr' ):
@@ -545,14 +455,10 @@ if __name__ == '__main__':
                         # if  delete workdir, but save log and regridded
                         if CONFIG['custom']['delete_in_final_zarr']:
 
-
+                            regriddir=Path(CONFIG['paths']['regriddir'])
                             final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                            #path_log = CONFIG['logging']['handlers']['file']['filename']
                             xs.move_and_delete(deleting=[workdir],
-                                                moving=
-                                                [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
-                                                #[path_log, CONFIG['paths']['logging'].format(**cur_dict)]
-                                                ],
+                                                moving=[[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],],
                                                 pcat=pcat)
 
                 # --- HEALTH CHECKS ---
@@ -567,8 +473,7 @@ if __name__ == '__main__':
 
                         hc.attrs.update(ds_input.attrs)
                         hc.attrs['cat:processing_level'] = 'health_checks'
-                        path = CONFIG['paths']['checks'].format(**cur_dict)
-                        xs.save_and_update(ds=hc,path=path, pcat=pcat)
+                        xs.save_and_update(ds=hc,path=CONFIG['paths']['checks'], pcat=pcat)
 
 
                 # ---DIAGNOSTICS ---
@@ -608,24 +513,6 @@ if __name__ == '__main__':
                                 ds.attrs['cat:domain']=region_name
 
                                 xs.save_and_update(ds=ds, pcat=pcat, path=CONFIG['paths']['output'])
-                                
-                                # path_diag = Path(
-                                #     CONFIG['paths']['diagnostics'].format(
-                                #         region_name=region_name,
-                                #         sim_id=sim_id,
-                                #         level= ds.attrs['cat:processing_level']))
-                                # path_diag_exec = f"{workdir}/{path_diag.name}"
-
-                                # save_to_zarr(ds=ds,
-                                #              filename=path_diag_exec,
-                                #              mode='o',
-                                #              itervar=True,
-                                #              rechunk=CONFIG['custom']['ref_prop_chunk']
-                                # )
-
-                                # sh.move(path_diag_exec, path_diag)
-                                # pcat.update_from_ds(ds=ds,
-                                #                     path=str(path_diag))
 
                         meas_datasets = pcat.search(
                             processing_level=['diag-sim-meas',
@@ -641,15 +528,6 @@ if __name__ == '__main__':
                         ip = xs.diagnostics.measures_improvement(meas_datasets)
 
                         for ds in [ ip]:
-                            # path_diag = Path(
-                            #     CONFIG['paths']['diagnostics'].format(
-                            #         region_name=ds.attrs['cat:domain'],
-                            #         sim_id=ds.attrs['cat:id'],
-                            #         level=ds.attrs['cat:processing_level']))
-                            # if server == 'n':
-                            #     path_diag = f"{workdir}/{path_diag.name}"
-                            # save_to_zarr(ds=ds, filename=path_diag, mode='o',rechunk={'lat':100, 'lon':100})
-                            # pcat.update_from_ds(ds=ds, path=path_diag)
                             xs.save_and_update(ds=ds, pcat=pcat, path=CONFIG['paths']['output'])
 
 
@@ -658,9 +536,8 @@ if __name__ == '__main__':
 
                             logger.info('Move files and delete workdir.')
 
-                           
+                            regriddir=Path(CONFIG['paths']['regriddir'])
                             final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                            #path_log = CONFIG['logging']['handlers']['file'][ 'filename']
                             xs.move_and_delete(
                                 deleting= [
                                     workdir
@@ -677,11 +554,6 @@ if __name__ == '__main__':
                                     f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-meas.zarr"],
                                     [f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr",
                                     f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-improved.zarr"],
-                                #[path_log, CONFIG['paths']['logging'].format(**cur_dict)]
                                 ],
                                 pcat=pcat)
-
-                        #send_mail(
-                        #    subject=f"{sim_id}/{region_name} - Succès",
-                        #    msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
-                        #)
+                            sh.rmtree(workdir) # don't to keep empty workdir in this case

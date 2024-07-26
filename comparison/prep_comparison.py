@@ -39,7 +39,7 @@ if __name__ == '__main__':
     pcat = xs.ProjectCatalog(CONFIG['paths']['project_catalog'])
     pcat.df.loc[pcat.df['xrfreq'] == 'fx', 'xrfreq'] = 'QS-DEC'
 
-    # # #pcat = xs.ProjectCatalog("info-crue-6-comparison2.json") #TODO: change
+    # # #pcat = xs.ProjectCatalog("info-crue-6-comparison2.json")
     # pcat_extra = xs.ProjectCatalog(CONFIG['paths']['extra_catalog'])
     # pcat_E5L = xs.DataCatalog(CONFIG['paths']['E5L_catalog'])
     # pcat_cmip5 = xs.DataCatalog(CONFIG['paths']['cmip5_catalog'])

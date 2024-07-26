@@ -60,7 +60,7 @@ horizons:
       - FGOALS-g2
       - GFDL-CM3
       - GFDL-ESM2G
-      #- GFDL-ESM2M #TODO: put back
+      - GFDL-ESM2M
       - GISS-E2-H
       - GISS-E2-R  # this one is supposed to have 2 members, but only one was found on our disks "nomenclature cQ2 ne permettait pas de distinguer ces 2 membres (r6i1p1 et r6i1p3)... Je sens qu'un des deux a juste été écrasé à un moment"
       #- INM-CM4
@@ -70,7 +70,7 @@ horizons:
       - ISU-RegCM4
       - MIROC-ESM
       - MIROC-ESM-CHEM
-      #- MIROC5 #TODO: put back
+      - MIROC5
       - MPI-ESM-LR # UQAM-CRCM5 piloté par LR est juste un doublon de MR
       - MPI-ESM-MR
       - MRI-CGCM3

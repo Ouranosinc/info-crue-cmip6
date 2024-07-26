@@ -24,7 +24,6 @@ if __name__ == '__main__':
 
         for pcat in [cat_extra, cat_e5l]:
             ds_dict = pcat.search(processing_level="final",
-                                  id='CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r2i1p1f1_global', #TODO: remove
                                   domain=['QC'],
                                   #'QC-RDRS','QC-EMDNA']
                                 ).to_dataset_dict()
