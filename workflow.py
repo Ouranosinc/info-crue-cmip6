@@ -143,7 +143,6 @@ if __name__ == '__main__':
                     xs.save_and_update(ds=ds_ref,
                                      pcat=pcat,
                                      path=CONFIG['paths']['reference'],
-                                     #path=f"{refdir}/ref_{region_name}_default.zarr",
                                     update_kwargs={'info_dict': {"calendar": "default"}}
                                      )
 
@@ -158,7 +157,6 @@ if __name__ == '__main__':
                     ds_refnl.attrs['cat:calendar'] = 'noleap'
                     xs.save_and_update(ds=ds_refnl,
                                      pcat=pcat,
-                                     #path=f"{refdir}/ref_{region_name}_noleap.zarr",
                                      path=CONFIG['paths']['reference'],
                                      update_kwargs={
                                            'info_dict': {"calendar": "noleap"}}
@@ -172,7 +170,6 @@ if __name__ == '__main__':
                     ds_ref360 = convert_calendar(ds_ref, "360_day", align_on="year")
                     xs.save_and_update(ds=ds_ref360,
                                      pcat=pcat,
-                                     #path=f"{refdir}/ref_{region_name}_360day.zarr",
                                      path=CONFIG['paths']['reference'],
                                        update_kwargs={
                                            'info_dict': {"calendar": "360_day"}}
@@ -208,10 +205,7 @@ if __name__ == '__main__':
 
                     ds_ref_prop = ds_ref_prop.chunk(**CONFIG['custom']['ref_prop_chunk'])
 
-                    path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
-                                                                           sim_id=ds_ref_prop.attrs['cat:id'],
-                                                                           level=ds_ref_prop.attrs['cat:processing_level']))
-
+                    path_diag=f"{CONFIG['paths']['diagdir']}/{region_name}/{ds_ref_prop.attrs['cat:id']}/{ds_ref_prop.attrs['cat:id']}_{region_name}_diag-ref-prop.zarr"
                     xs.save_and_update(ds=ds_ref_prop,
                                      pcat=pcat,
                                      path=path_diag,
