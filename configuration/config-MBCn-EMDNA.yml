@@ -17,10 +17,7 @@ tasks:
   - final_zarr
   - health_checks
   - diagnostics
-#  - individual_wl
-#  - horizons
-#  - deltas
-#  - ensembles # check the domains and not including refs
+
 
 
 
@@ -28,16 +25,16 @@ custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        QC-EMDNA:
-          name: QC-EMDNA
+        # QC-EMDNA:
+        #   name: QC-EMDNA
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 63 ]
+      QC-test:
+          name: QC-test
           method: bbox
-          lon_bnds: [ -83, -55 ]
-          lat_bnds: [ 42, 63 ]
-      # QC-test:
-      #     name: QC-test
-      #     method: bbox
-      #     lon_bnds: [ -60, -58 ]
-      #     lat_bnds: [ 50, 52 ]
+          lon_bnds: [ -60, -58 ]
+          lat_bnds: [ 50, 52 ]
     stack_drop_nans: &stack
         True
     chunks:
@@ -46,8 +43,8 @@ custom:
         loc: 50
         time: -1
     out_chunks:
-        lat: 30
-        lon: 30
+        lat: 3 #0 #TODO
+        lon: 3 #0
         time: 4year
     ref_period : &ref_period # new-ref
       - '1989'
@@ -68,16 +65,7 @@ custom:
       noleap
     align_on:
       year
-
-
-
-
-extract:
     sim_chunks: {'time': 365, 'lat':-1, 'lon':-1}
-    subset_warming_level:
-      ignore_member: True
-      window: 20
-      wl_dim: "+{wl}C"
     ref_chunk:
       time: -1
     ref_prop_chunk:
@@ -170,17 +158,9 @@ extraction:
               - EC-Earth3
               - FGOALS-g3
               - IPSL-CM6A-LR
-              - KACE-1-0-G
+              #- KACE-1-0-G
               - MIROC6
               - MRI-ESM2-0
-##              #other
-#              - UKESM1-0-LL #245,370,558
-#              - GFDL-ESM4 #245,370,585
-#              - CNRM-CM6-1 # 245,370,585
-#              - CNRM-ESM2-1 # 245,370,585
-#              - ACCESS-CM2 #126, 245,370,585
-#              - MPI-ESM1-2-HR
-#              - NorESM2-MM
             mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
@@ -279,14 +259,14 @@ biasadjust_mbcn:
   train:
     n_iter: 20
     adj_kws:
-      interp: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
+      interp: nearest
       extrapolation: constant
       n_escore: -1
   adjust:
     base_kws_vars:
       pr:
         kind: "*"
-        jitter_under_thresh_value: "0.01 mm d-1" #TODO: think about this
+        jitter_under_thresh_value: "0.01 mm d-1"
         adapt_freq_thresh: "1 mm d-1"
       dtr:
         kind: "*"
@@ -551,192 +531,6 @@ diagnostics:
 
 
 
-individual_wl:
-  input:
-    processing_level: final
-    domain: QC-RDRS
-  chunks: {'time':-1, 'lat':30, 'lon':30}
-  wl:
-    - 1.5
-    - 2
-    - 3
-
-horizons:
-  input:
-    processing_level: final
-  chunks: {'time':-1, 'lat':30, 'lon':30}
-  periods:
-    - ['2081', '2100']
-    - ['1991','2020']
-    - *ref_period
-  produce_horizon:
-    to_level: horizon{period0}-{period1}
-
-deltas:
-  input:
-    processing_level:
-      - +1.5C
-      - +2C
-      - +3C
-      - horizon2081-2100
-  reference:
-    processing_level: horizon1991-2020
-
-ensembles:
-  inputs:
-    ensemble-ssp370-horizon1989-2018:
-      processing_level: horizon1989-2018
-      experiment: ssp370
-#    delta-+1.5C-selection:
-#      processing_level: delta-+1.5C
-#      source: ['ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-+2C-selection:
-#      processing_level: delta-+2C
-#      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-+3C-selection:
-#      processing_level: delta-+3C
-#      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp126-2081-2100-selection:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp126
-#      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp245-2081-2100-selection:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp245
-#      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp370-2081-2100-selection:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp370
-#      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp585-2081-2100-selection:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp585
-#      source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-+1.5C-all:
-#      processing_level: delta-+1.5C
-#    delta-+2C-all:
-#      processing_level: delta-+2C
-#    delta-+3C-all:
-#      processing_level: delta-+3C
-#    delta-ssp126-2081-2100-all:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp126
-#    delta-ssp245-2081-2100-all:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp245
-#    delta-ssp370-2081-2100-all:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp370
-#    delta-ssp585-2081-2100-all:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp585
-#    delta-ssp245-2081-2100-selectionNoCanESM5:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp245
-#      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp370-2081-2100-selectionNoCanESM5:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp370
-#      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp370-2081-2100-selectionNoCanESM5r1:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp370
-#      member: r1i1p1f1
-#      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp370-2081-2100-allr1:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp370
-#      member: r1i1p1f1
-#    delta-ssp245-2081-2100-selectionNoCanESM5r1:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp245
-#      member: r1i1p1f1
-#      source: [ 'ACCESS-ESM1-5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#    delta-ssp245-2081-2100-allr1:
-#      processing_level: delta-horizon2081-2100
-#      experiment: ssp245
-#      member: r1i1p1f1
-  generate_weights:
-    independence_level: GCM
-  ensemble_stats:
-    common_attrs_only: True
-    statistics:
-      ensemble_mean_std_max_min:
-      ensemble_percentiles:
-  diffs: {}
-#    +1.5C-selectionVSall:
-#      first:
-#        processing_level: delta-+1.5C-selection
-#      second:
-#        processing_level: delta-+1.5C-all
-#    +2C-selectionVSall:
-#      first:
-#        processing_level: delta-+2C-selection
-#      second:
-#        processing_level: delta-+2C-all
-#    +3C-selectionVSall:
-#      first:
-#        processing_level: delta-+3C-selection
-#      second:
-#        processing_level: delta-+3C-all
-#    ssp126-2081-2100-selectionVSall:
-#      first:
-#        processing_level: delta-ssp126-2081-2100-selection
-#      second:
-#        processing_level: delta-ssp126-2081-2100-all
-#    ssp245-2081-2100-selectionVSall:
-#      first:
-#        processing_level: delta-ssp245-2081-2100-selection
-#      second:
-#        processing_level: delta-ssp245-2081-2100-all
-#    ssp370-2081-2100-selectionVSall:
-#      first:
-#        processing_level: delta-ssp370-2081-2100-selection
-#      second:
-#        processing_level: delta-ssp370-2081-2100-all
-#    ssp585-2081-2100-selectionVSall:
-#      first:
-#        processing_level: delta-ssp585-2081-2100-selection
-#      second:
-#        processing_level: delta-ssp585-2081-2100-all
-#    ssp245-2081-2100-selectionNoCanESM5VSall:
-#      first:
-#        processing_level: delta-ssp245-2081-2100-selectionNoCanESM5
-#      second:
-#        processing_level: delta-ssp245-2081-2100-all
-#    ssp370-2081-2100-selectionNoCanESM5VSall:
-#      first:
-#        processing_level: delta-ssp370-2081-2100-selectionNoCanESM5
-#      second:
-#        processing_level: delta-ssp370-2081-2100-all
-#    ssp245-2081-2100-selectionNoCanESM5r1VSallr1:
-#      first:
-#        processing_level: delta-ssp245-2081-2100-selectionNoCanESM5r1
-#      second:
-#        processing_level: delta-ssp245-2081-2100-allr1
-#    ssp370-2081-2100-selectionNoCanESM5r1VSallr1:
-#      first:
-#        processing_level: delta-ssp370-2081-2100-selectionNoCanESM5r1
-#      second:
-#        processing_level: delta-ssp370-2081-2100-allr1
-  pvalues: {}
-#    p-ssp370-2081-2100-selectionVSall:
-#      first:
-#        processing_level: delta-horizon2081-2100
-#        experiment: ssp370
-#        source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#      second:
-#        processing_level: delta-horizon2081-2100
-#        experiment: ssp370
-#    p-+3C-selectionVSall:
-#      first:
-#        processing_level: delta-+3C
-#        source: [ 'ACCESS-ESM1-5','CanESM5','EC-Earth3','FGOALS-g3','IPSL-CM6A-LR', 'KACE-1-0-G','MIROC6','MRI-ESM2-0' ]
-#      second:
-#        processing_level: delta-+3C
-
-
-
 
 io:
   save_to_zarr:
@@ -775,7 +569,7 @@ logging:
         xscen:
             propagate: False
             level: INFO
-            handlers: [file, console]
+            handlers: [console] # file
 
 tdd:
   xarray_open_kwargs:

@@ -55,7 +55,7 @@ def calculate_properties(ds, diag_dict, unstack=False, path_coords=None, unit_co
         logger.info(f"Calculating diagnostic {name}")
         prop = eval(prop_dict['func'])(da=ds[prop_dict['var']], **prop_dict['args']).load()
 
-        # TODO: create something more general that keeps all months/seasons
+        
         if "season" in prop.coords:
             prop = prop.isel(season=0)
             prop=prop.drop('season')

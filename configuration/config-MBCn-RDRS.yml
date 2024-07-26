@@ -159,11 +159,11 @@ extraction:
               - ssp126
             source:
               # chosen
-              #- ACCESS-ESM1-5 #TODO: put back
+              - ACCESS-ESM1-5
               - CanESM5
               - EC-Earth3
               - FGOALS-g3
-              #- IPSL-CM6A-LR #TODO: put back, but check don't erase old, check the first 2 ( mbcn time, and mbcn mixed up)
+              - IPSL-CM6A-LR
               - KACE-1-0-G
               - MIROC6
               - MRI-ESM2-0
@@ -256,7 +256,7 @@ biasadjust_mbcn:
   train:
     n_iter: 20
     adj_kws:
-      interp: linear # TODO: maybe change when use period_dim = "moving_win" ( see eric slack)
+      interp: nearest
       extrapolation: constant
       n_escore: -1
   adjust:
@@ -311,7 +311,7 @@ biasadjust_mbcn:
 #          window: 31
 #        jitter_under:
 #          thresh: 0.05 mm d-1
-#        adapt_freq: #TODO: should this be done inside xclim train ?
+#        adapt_freq:
 #            thresh: 1 mm d-1
 #        xclim_train_args:
 #          kind: "*"
@@ -338,7 +338,7 @@ biasadjust_mbcn:
 #          interp: *interp
 #        bias_adjust_institution: *b_a_inst
 #        bias_adjust_project: *b_a_pro
-#    tasmax: #TODO: consider tas and dtr instead like cannon ?
+#    tasmax:
 #      train:
 #        period: *ref_period
 #        method: *method
@@ -419,7 +419,6 @@ clean_up:
       pr: *attrs_to_keep
     add_attrs:
       global:
-        # TODO: add more info, check also attrs of variables.
         Notes: |
           Regridded on the grid of RDRS v2.1, then MBCn.
         version: "1.0.0"
@@ -778,7 +777,6 @@ scripting:
 dask:
     client:
         dashboard_address: 6785
-    #array.slicing.split_large_chunks: False #TODO: test
 
 logging:
     formatters:

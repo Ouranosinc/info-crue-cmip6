@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 configuration/paths_narval.yml
 slurm_outputs
+slurm_ouputs/32068646.out
+slurm_ouputs/32069197.out

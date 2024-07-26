@@ -102,7 +102,7 @@ extraction:
             other_search_criteria:
                 source: &ref_source
                     EMDNA
-                member: 001 #OI #TODO: change back when we have it
+                member: OI
         extract_dataset: {}
         properties_and_measures:
           period: *ref_period

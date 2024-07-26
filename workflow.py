@@ -16,7 +16,7 @@ from contextlib import contextmanager
 import cf_xarray as cfxr
 import shutil as sh
 from dask.distributed import Client, LocalCluster
-
+import sys
 
 
 import xclim as xc
@@ -67,6 +67,12 @@ if __name__ == '__main__':
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
     #atexit.register(send_mail_on_exit, subject=CONFIG['scripting']['subject'])
 
+    # start dask once for narval
+    #cluster = LocalCluster(n_workers=3, threads_per_worker=5, memory_limit="130GB", **daskkws)
+    cluster = LocalCluster(n_workers=5, threads_per_worker=5, memory_limit="80GB", **daskkws) # for test
+
+    client = Client(cluster)
+
     # defining variables
     ref_period = slice(*map(str, CONFIG['custom']['ref_period']))
     sim_period = slice(*map(str, CONFIG['custom']['sim_period']))
@@ -82,9 +88,12 @@ if __name__ == '__main__':
         timeout_kw = timeout_kw or {'seconds': int(1e5), 'task': "undefined task"}
 
         # call context
-        with (Client(**client_kw, **daskkws, local_directory=os.environ['SLURM_TMPDIR']),
+        with (
+            # narval works better if only open client once
+            #Client(**client_kw, **daskkws, local_directory=os.environ['SLURM_TMPDIR']),
               measure_time(**measure_time_kw, logger=logger,),
-              timeout(**timeout_kw)):
+            #timeout(**timeout_kw) # useless with narval and slurm
+            ):
             yield
 
 
@@ -201,7 +210,7 @@ if __name__ == '__main__':
                     dref_ref = ds_ref.drop_vars('dtr')
 
 
-                    dref_ref = dref_ref.chunk(CONFIG['extract']['ref_chunk'])
+                    dref_ref = dref_ref.chunk(CONFIG['custom']['ref_chunk'])
 
                     # diagnostics
                     ds_ref_prop, _ = xs.properties_and_measures(
@@ -210,7 +219,7 @@ if __name__ == '__main__':
                             'properties_and_measures']
                     )
 
-                    ds_ref_prop = ds_ref_prop.chunk(**CONFIG['extract']['ref_prop_chunk'])
+                    ds_ref_prop = ds_ref_prop.chunk(**CONFIG['custom']['ref_prop_chunk'])
 
                     path_diag = Path(CONFIG['paths']['diagnostics'].format(region_name=region_name,
                                                                            sim_id=ds_ref_prop.attrs['cat:id'],
@@ -224,10 +233,11 @@ if __name__ == '__main__':
                                      )
 
 
-    cat_sim = search_data_catalogs(
-       **CONFIG['extraction']['simulation']['search_data_catalogs'])
+    sdc=CONFIG['extraction']['simulation']['search_data_catalogs'].copy()
+    sdc['other_search_criteria']['source']=sys.argv[1]
+    print(sdc)
+    cat_sim = search_data_catalogs(**sdc)
     for sim_id, dc_id in cat_sim.items():
-    #if False:
         for region_name, region_dict in CONFIG['custom']['regions'].items():
             #depending on the final tasks, check that the final file doesn't already exists
             final = {'final_zarr': dict(domain=region_name, processing_level='final', id=sim_id),
@@ -236,13 +246,13 @@ if __name__ == '__main__':
             final_task = 'diagnostics' if 'diagnostics' in CONFIG[
                 "tasks"] else 'final_zarr'
             if not pcat.exists_in_cat(**final[final_task]):
-                cur_dict = {'region_name': region_name, 'sim_id': sim_id}
-                logger.info('Adding config to log file')
-                f1 = open(CONFIG['logging']['handlers']['file']['filename'], 'a+')
-                f2 = open(config, 'r')
-                f1.write(f2.read())
-                f1.close()
-                f2.close()
+                cur_dict = {'domain': region_name, 'id': sim_id}
+                # logger.info('Adding config to log file')
+                # f1 = open(CONFIG['logging']['handlers']['file']['filename'], 'a+')
+                # f2 = open(config, 'r')
+                # f1.write(f2.read())
+                # f1.close()
+                # f2.close()
 
                 logger.info(cur_dict)
 
@@ -270,7 +280,7 @@ if __name__ == '__main__':
                                 ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
 
                                 # need lat and lon -1 for the regrid
-                                ds_sim = ds_sim.chunk(CONFIG['extract']['sim_chunks'])
+                                ds_sim = ds_sim.chunk(CONFIG['custom']['sim_chunks'])
 
                                 # save to zarr
                                 # path_cut = f"{workdir}/{sim_id}_{region_name}_extracted.zarr"
@@ -384,14 +394,10 @@ if __name__ == '__main__':
                     # train
                     if not pcat.exists_in_cat(processing_level=f'training_mbcn',
                                               domain=region_name, id=sim_id, ):
-                        #with context(**CONFIG['biasadjust_mbcn']['context']['train']): 
-                        if True:
-                            cluster = LocalCluster(n_workers=3, threads_per_worker=5, memory_limit="130GB",
-                           **daskkws)
-                            client = Client(cluster)
+                        with context(**CONFIG['biasadjust_mbcn']['context']['train']): 
                             dtrain = sdba.MBCn.train(
-                                ref=dref,#.chunk({'loc':5}), #TODO: try
-                                hist=dhist,#.chunk({'loc':5}),
+                                ref=dref,
+                                hist=dhist,
                                 base_kws=dict(group=group, nquantiles=50, ), 
                                 **CONFIG['biasadjust_mbcn']['train']
                             ).ds
@@ -403,8 +409,6 @@ if __name__ == '__main__':
 
                             #dtrain=dtrain.chunk({'iterations':1})
                             print(dtrain)
-
-                            #TODO: chunks iteration ?
 
                             # save
                             # cant write multi-index directly
@@ -428,15 +432,14 @@ if __name__ == '__main__':
                             f_path = Path(CONFIG['paths']['output'].format(
                                  **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
                             s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
-                            f_path=str(f_path)
                             xs.save_to_zarr(ds=dtrain, filename=s_path)
-                            print("saved2")
+                            logger.info("saved2")
                             sh.make_archive(s_path, "zip", s_path)
-                            print('zipped')
+                            logger.info('zipped')
                             sh.move(f"{s_path}.zip",f_path.parent)
-                            print('moved2')
-                            pcat.update_from_ds(dtrain, f_path)
-                            print('updated2')
+                            logger.info('moved2')
+                            pcat.update_from_ds(dtrain, f"{f_path}.zip", info_dict={'format':'zarr'})
+                            logger.info('updated2')
 
 
 
@@ -465,20 +468,18 @@ if __name__ == '__main__':
                         # save
                         #xs.save_and_update(ds=out, path=CONFIG['paths']['mbcn'],
                         #                   pcat=pcat)
-                        f_path = Path(CONFIG['paths']['mbcn'].format( #TODO: tmp
+                        f_path = Path(CONFIG['paths']['output'].format(
                                  **xs.utils.get_cat_attrs(out, var_as_str=True)))
                         s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
                         f_path=str(f_path)
                         xs.save_to_zarr(ds=out, filename=s_path)
-                        print("saved")
+                        logger.info("saved")
                         sh.move(s_path,f_path)
-                        print('moved')
+                        logger.info('moved')
                         pcat.update_from_ds(out, f_path)
-                        print('updated')
+                        logger.info('updated')
                         
-                        path_train=dtrain.attrs['cat:path']
-                        sh.make_archive(path_train, "zip", path_train)
-                        print('train zipped')
+
 
 
                 # ---CLEAN UP ---
@@ -524,10 +525,13 @@ if __name__ == '__main__':
                 if do_task_loop(task='final_zarr', processing_level='final',format='zarr' ):
                     with context(**CONFIG['final_zarr']['context']):
                         #rechunk and move to final destination
-                        fi_path = Path(f"{CONFIG['paths']['output']}".format(**cur_dict))
+                        fi_path = Path(f"{CONFIG['paths']['final']}".format(**cur_dict,))
                         fi_path.parent.mkdir(exist_ok=True, parents=True)
 
-                        rechunk(path_in=f"{workdir}/{sim_id}_{region_name}_cleaned_up.zarr",
+                        clean_up_path= f"{CONFIG['paths']['output']}".format(
+                            **cur_dict, processing_level='cleaned_up')
+
+                        rechunk(path_in=clean_up_path,
                                 path_out=fi_path,
                                 chunks_over_dim=CONFIG['custom']['out_chunks'],
                                 **CONFIG['rechunk'],
@@ -543,11 +547,12 @@ if __name__ == '__main__':
 
 
                             final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                            path_log = CONFIG['logging']['handlers']['file']['filename']
+                            #path_log = CONFIG['logging']['handlers']['file']['filename']
                             xs.move_and_delete(deleting=[workdir],
                                                 moving=
                                                 [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],
-                                                [path_log, CONFIG['paths']['logging'].format(**cur_dict)]],
+                                                #[path_log, CONFIG['paths']['logging'].format(**cur_dict)]
+                                                ],
                                                 pcat=pcat)
 
                 # --- HEALTH CHECKS ---
@@ -615,7 +620,7 @@ if __name__ == '__main__':
                                 #              filename=path_diag_exec,
                                 #              mode='o',
                                 #              itervar=True,
-                                #              rechunk=CONFIG['extract']['ref_prop_chunk']
+                                #              rechunk=CONFIG['custom']['ref_prop_chunk']
                                 # )
 
                                 # sh.move(path_diag_exec, path_diag)
@@ -655,8 +660,7 @@ if __name__ == '__main__':
 
                            
                             final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                            path_log = CONFIG['logging']['handlers']['file'][
-                                'filename']
+                            #path_log = CONFIG['logging']['handlers']['file'][ 'filename']
                             xs.move_and_delete(
                                 deleting= [
                                     workdir
@@ -671,9 +675,9 @@ if __name__ == '__main__':
                                     f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-prop.zarr"],
                                     [f"{workdir}/{sim_id}_{region_name}_diag-scen-meas.zarr",
                                     f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-meas.zarr"],
-                                    [f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr", #TODO: check
+                                    [f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr",
                                     f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-improved.zarr"],
-                                [path_log, CONFIG['paths']['logging'].format(**cur_dict)]
+                                #[path_log, CONFIG['paths']['logging'].format(**cur_dict)]
                                 ],
                                 pcat=pcat)
 
@@ -681,183 +685,3 @@ if __name__ == '__main__':
                         #    subject=f"{sim_id}/{region_name} - Succès",
                         #    msg=f"Toutes les étapes demandées pour la simulation {sim_id}/{region_name} ont été accomplies.",
                         #)
-
-    # --- INDIVIDUAL WL ---
-    if 'individual_wl' in CONFIG['tasks']:
-        dict_input = pcat.search(**CONFIG['individual_wl']['input']).to_dataset_dict()
-        for name_input, ds_input in dict_input.items():
-            for wl in CONFIG['individual_wl']['wl']:
-                if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
-                                        domain=ds_input.attrs['cat:domain'],
-                                        processing_level=f"+{wl}C"):
-                    with (
-                            Client(n_workers=2, threads_per_worker=5,
-                                   memory_limit="20GB", **daskkws),
-                            measure_time(name=f'individual_wl', logger=logger)
-                    ):
-
-
-                        # cut dataset on the wl window
-                        ds_wl = xs.extract.subset_warming_level(ds_input, wl=wl)
-
-                        if ds_wl:
-                            #chunks
-                            ds_wl = ds_wl.chunk(CONFIG['individual_wl']['chunks'])
-
-                            # needed for some indicators (ideally would have been calculated in clean_up...)
-                            ds_wl = ds_wl.assign(tas=xc.atmos.tg(ds=ds_wl)).load()
-
-                            # calculate indicators & climatological mean and reformat
-                            ds_hor_wl = xs.aggregate.produce_horizon(ds_wl, to_level="{wl}")
-
-                            # save and update
-                            xs.save_and_update(ds=ds_hor_wl, path=CONFIG['paths']['wl'],
-                                               pcat=pcat)
-
-
-    # --- HORIZONS ---
-    if 'horizons' in CONFIG['tasks']:
-        dict_input = pcat.search(**CONFIG['horizons']['input']).to_dataset_dict()
-        for name_input, ds_input in dict_input.items():
-            for period in CONFIG['horizons']['periods']:
-                if not pcat.exists_in_cat(id=ds_input.attrs['cat:id'],
-                                          domain =ds_input.attrs['cat:domain'],
-                                          processing_level=f"horizon{period[0]}-{period[1]}"):
-                    with (
-                            Client(n_workers=2, threads_per_worker=5,
-                                   memory_limit="20GB", **daskkws),
-                            measure_time(name=f"horizon {period} for {ds_input.attrs['cat:id']}", logger=logger)
-                    ):
-
-                        # needed for some indicators (ideally would have been calculated in clean_up...)
-                        ds_cut = ds_input.sel(time= slice(*map(str, period)))
-                        if ds_cut.attrs['cat:type']=='reconstruction':
-                            ds_cut= xs.utils.unstack_fill_nan(ds_cut)
-                        ds_cut= ds_cut.chunk(CONFIG['horizons']['chunks'])
-                        ds_cut = ds_cut.assign(tas=xc.atmos.tg(ds=ds_cut))#.load()
-
-                        ds_hor = xs.aggregate.produce_horizon(
-                            ds_cut,
-                            period=period,
-                            **CONFIG['horizons']['produce_horizon']
-                        )
-
-                        # save and update
-                        xs.save_and_update(ds=ds_hor, path=CONFIG['paths']['horizons'],
-                                           pcat=pcat)
-
-    # --- DELTAS ---
-    if 'deltas' in CONFIG['tasks']:
-        dict_input = pcat.search(**CONFIG['deltas']['input']).to_dataset_dict(**tdd)
-        for name_input, ds_input in dict_input.items():
-            id = ds_input.attrs['cat:id']
-            plevel = ds_input.attrs['cat:processing_level']
-            if not pcat.exists_in_cat(id=id,
-                                      domain=ds_input.attrs['cat:domain'],
-                                      processing_level=f"delta-{plevel}"):
-                with (
-                        Client(n_workers=2, threads_per_worker=5, memory_limit="12GB", **daskkws),
-                        measure_time(name=f"delta {id} {plevel}", logger=logger)
-                ):
-                    # get ref dataset
-                    ds_ref = pcat.search(id=id,
-                                         **CONFIG['deltas']['reference']).to_dask(**tdd)
-
-                    # concat past and future
-                    ds_concat = xr.concat([ds_input,ds_ref], dim='horizon',
-                                          combine_attrs='override')
-
-                    # compute delta
-                    ds_delta = xs.aggregate.compute_deltas(
-                        ds=ds_concat,
-                        reference_horizon=ds_ref.horizon.values[0],
-                        to_level=f'delta-{plevel}'
-                    )
-
-                    # save and update
-                    xs.save_and_update(ds=ds_delta, path=CONFIG['paths']['deltas'],
-                                       pcat=pcat,
-                                       save_kwargs=dict(rechunk = {'lat': -1, 'lon':-1}))
-
-    # --- ENSEMBLES ---
-    if 'ensembles' in CONFIG['tasks']:
-        # compute ensembles
-        for ens_name, ens_inputs in CONFIG['ensembles']['inputs'].items():
-            if not pcat.exists_in_cat(processing_level= ens_name):
-                with (
-                        ProgressBar(),
-                        measure_time(name=f'ensemble {ens_name}', logger=logger)
-                ):
-                    datasets = pcat.search(**ens_inputs).to_dataset_dict(**tdd)
-
-                    weights = xs.ensembles.generate_weights(datasets=datasets)
-
-                    ds_ens = xs.ensemble_stats(datasets=datasets,
-                                               weights=weights,
-                                               to_level=ens_name)
-
-                    # save and update
-                    xs.save_and_update(ds=ds_ens, path=CONFIG['paths']['ensembles'],
-                                       pcat=pcat,
-                                    save_kwargs=dict(rechunk={'lat':-1, 'lon':-1, 'season':1}))
-
-        # compute difference between ensembles
-        for diff_name, diff_inputs in CONFIG['ensembles']['diffs'].items():
-            if not pcat.exists_in_cat(processing_level= diff_name):
-                with (
-                        Client(n_workers=4, threads_per_worker=5,
-                               memory_limit="6GB", **daskkws),
-                        measure_time(name=f'ensemble {diff_name}', logger=logger)
-                ):
-                    ens1 = pcat.search(**diff_inputs['first']).to_dask(**tdd)
-
-                    ens2 = pcat.search(**diff_inputs['second']).to_dask(**tdd)
-
-
-                    diff = (ens1 - ens2)/ens2
-                    diff.attrs.update(ens1.attrs)
-                    diff.attrs['method'] = '(ens1 - ens2)/ens2'
-                    diff.attrs['cat:processing_level']= diff_name
-
-                    # save and update
-                    xs.save_and_update(ds=diff, path=CONFIG['paths']['ensembles'],
-                                       pcat=pcat,
-                                    save_kwargs=dict(rechunk={'lat':-1, 'lon':-1, 'season':1}))
-
-        # compute p-values
-        for p_name, p_inputs in CONFIG['ensembles']['pvalues'].items():
-            if not pcat.exists_in_cat(processing_level=p_name):
-                with (
-                        Client(n_workers=4, threads_per_worker=5,
-                               memory_limit="6GB", **daskkws),
-                        measure_time(name=f'ensemble {p_name}', logger=logger)
-                ):
-                    ens1 = pcat.search(**p_inputs['first']).to_dataset_dict(**tdd)
-
-                    ens2 = pcat.search(**p_inputs['second']).to_dataset_dict(**tdd)
-
-                    ens1 = xc.ensembles.create_ensemble(ens1)
-                    ens2 = xc.ensembles.create_ensemble(ens2)
-
-
-                    pvals = xr.apply_ufunc(
-                        lambda f, r: scipy.stats.ttest_ind(f, r, axis=-1, nan_policy="omit",
-                                                           equal_var=False).pvalue,
-                        ens1,
-                        ens2,
-                        input_core_dims=[["realization"], ["realization"]],
-                        output_core_dims=[[]],
-                        vectorize=True,
-                        dask="allowed",
-                        output_dtypes=[bool],
-                        join='outer',
-                        keep_attrs=True
-                    )
-                    pvals.attrs['method']='pvals>=0.05'
-                    pvals.attrs['cat:processing_level'] = p_name
-
-                    # save and update
-                    xs.save_and_update(ds=pvals, path=CONFIG['paths']['ensembles'],
-                                       pcat=pcat,
-                                    save_kwargs=dict(rechunk={'lat': -1, 'lon': -1, 'season': 1}))
-
