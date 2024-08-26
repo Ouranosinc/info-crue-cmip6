@@ -127,7 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
 configuration/paths_narval.yml
-slurm_outputs
-slurm_ouputs/32068646.out
-slurm_ouputs/32069197.out
+slurm_outputs/
+slurm_ouputs
+.snakemake/
+get_ids.ipynb

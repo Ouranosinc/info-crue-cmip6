@@ -8,7 +8,9 @@ tasks:
   - makeref
   - extract
   - regrid
-  - npdf-gpies-narval
+  #- mbcn-30years
+  - mbcn-30years-noTMP
+  #- npdf-gpies-narval
   - clean_up
   - final_zarr
   - health_checks
@@ -18,22 +20,50 @@ custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        QC-EMDNA:
-          name: QC-EMDNA
+        mini-EMDNA:
+          name: mini-EMDNA 
           method: bbox
           lon_bnds: [ -83, -55 ]
-          lat_bnds: [ 42, 63 ]
+          lat_bnds: [ 42, 43 ]
+        # petit-EMDNA:
+        #   name: petit-EMDNA 
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 45 ]
+        # A-EMDNA:
+        #   name: A-EMDNA 
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 47 ]
+        # B-EMDNA:
+        #   name: B-EMDNA 
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 47 ]
+        # QC-EMDNA:
+        #   name: QC-EMDNA
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 63 ]
+        # SUD-EMDNA:
+        #   name: SUD-EMDNA
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 52 ]
       # QC-test:
       #     name: QC-test
       #     method: bbox
       #     lon_bnds: [ -60, -58 ]
       #     lat_bnds: [ 50, 52 ]
+    qc_region:
+      name: QC-EMDNA
     stack_drop_nans: &stack
         True
     chunks:
         lat: 15
         lon: 15
-        loc: 50
+        loc: 10 #50 #TODO
+        #loc: 50
         time: -1
     out_chunks:
         lat: 30
@@ -138,6 +168,7 @@ extraction:
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
           other_search_criteria:
             processing_level: raw
+            #member: r1i1p1f1
             experiment:
               - ssp585
               - ssp245
@@ -146,11 +177,11 @@ extraction:
             source:
               # chosen
               - ACCESS-ESM1-5
-              #- CanESM5
+              - CanESM5
               - EC-Earth3
               - FGOALS-g3
               - IPSL-CM6A-LR
-              #- KACE-1-0-G
+              - KACE-1-0-G
               - MIROC6
               - MRI-ESM2-0
             mip_era: CMIP6
@@ -227,7 +258,7 @@ biasadjust_mbcn:
       measure_time_kw:
         name: train mbcn
       timeout_kw:
-        seconds: 10000000
+        seconds: 900000
         task: train mcbn
     adjust:
       client_kw:
@@ -239,6 +270,12 @@ biasadjust_mbcn:
       timeout_kw:
         seconds: 10000000
         task: adjust mcbn
+    trainadjust:
+      measure_time_kw:
+        name: train adjust mbcn
+      timeout_kw:
+        seconds: 10000000
+        task: train adjust mcbn
   group:
     group: time.dayofyear
     window: 31
@@ -256,18 +293,19 @@ biasadjust_mbcn:
     base_kws_vars:
       pr:
         kind: "*"
-        jitter_under_thresh_value: "0.01 mm d-1"
-        adapt_freq_thresh: "1 mm d-1"
+        #jitter_under_thresh_value: "0.01 mm d-1" #TODO: put back
+        #adapt_freq_thresh: "1 mm d-1"
       dtr:
         kind: "*"
-        jitter_under_thresh_value: "1e-4 K"
+        #jitter_under_thresh_value: "1e-4 K"
       tasmax:
         kind: "+"
     adj_kws:
       interp: nearest
       extrapolation: constant
   chunks:
-    loc: 50
+    loc: 10  #TODO
+    #loc: 50
     time: -1
   attrs:
     processing_level: biasadjusted
@@ -352,7 +390,7 @@ clean_up:
           cell_methods: "time: mean within days"
 
 rechunk:
-    worker_mem: 20GB
+    worker_mem: 2GB
 
 final_zarr:
   context:
