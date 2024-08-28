@@ -15,16 +15,137 @@ tasks:
   - final_zarr
   - health_checks
   - diagnostics
+  - concat
 
 custom:
     delete_in_final_zarr: False
     delete_in_diag: True
     regions:
-        mini-EMDNA:
-          name: mini-EMDNA 
+        a-EMDNA: 
+          name: a-EMDNA 
           method: bbox
           lon_bnds: [ -83, -55 ]
           lat_bnds: [ 42, 43 ]
+        b-EMDNA: 
+          name: b-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 43.05, 44 ]
+        c-EMDNA:
+          name: c-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 44.05, 45 ]
+        d-EMDNA:
+          name: d-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 42, 43 ]
+        e-EMDNA:
+          name: e-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 43.05, 44 ]
+        f-EMDNA:
+          name: f-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 44.05, 45 ]
+        g-EMDNA:
+          name: g-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 45.05, 46 ]
+        h-EMDNA:
+          name: h-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 46.05, 47 ]
+        i-EMDNA:  
+          name: i-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 47.05, 48 ]
+        j-EMDNA:
+          name: j-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 48.05, 49 ]
+        k-EMDNA:    
+          name: k-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 49.05, 50 ]
+        l-EMDNA:  
+          name: l-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 50.05, 51 ]
+        m-EMDNA:
+          name: m-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 51.05, 52 ]
+        n-EMDNA:
+          name: n-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 52.05, 53 ]
+        o-EMDNA:
+          name: o-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 53.05, 54 ]
+        p-EMDNA:
+          name: p-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 54.05, 55 ]
+        q-EMDNA:
+          name: q-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 55.05, 56 ]
+        r-EMDNA:
+          name: r-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 56.05, 57 ]
+        s-EMDNA:
+          name: s-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 57.05, 58 ]
+        t-EMDNA:
+          name: t-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 58.05, 59 ] 
+        u-EMDNA:  
+          name: u-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 59.05, 60 ]
+        v-EMDNA:    
+          name: v-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 60.05, 61 ] 
+        w-EMDNA:  
+          name: w-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 61.05, 62 ]
+        x-EMDNA:  
+          name: x-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 62.05, 63.05 ] 
+        # mini-EMDNA: # winner
+        #   name: mini-EMDNA 
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 42, 43 ]
         # petit-EMDNA:
         #   name: petit-EMDNA 
         #   method: bbox
@@ -59,16 +180,20 @@ custom:
       name: QC-EMDNA
     stack_drop_nans: &stack
         True
-    chunks:
+    working_chunks: #chunks
         lat: 15
         lon: 15
         loc: 10 #50 #TODO
         #loc: 50
         time: -1
-    out_chunks:
-        lat: 30
+    final_zarr_chunks: #out_chunks:
+        #lat: 30 $TODO: 5
+        lat: 5
         lon: 30
         time: 4year
+    concat_chunks: 
+        lat: 30
+        lon: 30
     sim_chunks:
       time: 365
       lat: -1
@@ -293,11 +418,11 @@ biasadjust_mbcn:
     base_kws_vars:
       pr:
         kind: "*"
-        #jitter_under_thresh_value: "0.01 mm d-1" #TODO: put back
-        #adapt_freq_thresh: "1 mm d-1"
+        jitter_under_thresh_value: "0.01 mm d-1" #TODO: put back
+        adapt_freq_thresh: "1 mm d-1"
       dtr:
         kind: "*"
-        #jitter_under_thresh_value: "1e-4 K"
+        jitter_under_thresh_value: "1e-4 K"
       tasmax:
         kind: "+"
     adj_kws:
