@@ -82,6 +82,14 @@ if __name__ == '__main__':
             for file in root.iterdir():
                 _add_to_zip(zf, file, root)
 
+    def zip_and_update(path, pcat, path_zip=None, zip_args=None, info_dict=None):
+        zip_args = zip_args or {}
+        info_dict = info_dict or {}
+        path_zip=path_zip or f"{path}.zip"
+        zip_directory(path, path_zip, **zip_args)
+        ds=xr.open_zarr(path)
+        pcat.update_from_ds(ds, path_zip, info_dict={'format':'zarr'}|info_dict)
+
     def unzip_directory(zipfile, root):
 
         root = Path(root)
@@ -263,7 +271,7 @@ if __name__ == '__main__':
                         'diagnostics': dict(domain=region_name, processing_level='diag-improved', id=sim_id),
                         }
                 final_task = 'diagnostics' if 'diagnostics' in CONFIG[ "tasks"] else 'final_zarr'
-                
+
                 if not pcat.exists_in_cat(**final[final_task]):
                     cur_dict = {'domain': region_name, 'id': sim_id}
 
@@ -325,7 +333,6 @@ if __name__ == '__main__':
                                 save_kwargs=dict(encoding=CONFIG['custom']['encoding']))
                             
 
-
                     # ---BIAS ADJUST---
                     # ---MBCN narval---
 
@@ -355,13 +362,15 @@ if __name__ == '__main__':
                                                 align_on=CONFIG['custom']['align_on'])
 
                         # load ref ds
-                        dref = pcat.search(
+                        dref_disk = pcat.search(
                             source=ref_source, calendar=refcal,
                             processing_level='extracted',
                             variable=CONFIG['biasadjust_mbcn']['variable'],
                             domain=region_name, ).to_dask(**tdd)
                         
-                        #dref= dref.chunk({'loc':200})
+                        xs.save_to_zarr(ds=dref_disk, filename=f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
+                        dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
+                        
 
 
                         # choose right ref period for hist
@@ -407,54 +416,68 @@ if __name__ == '__main__':
 
 
                         # adjust
+                        print('before adjust')
                         with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
-                            f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
-                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                            unzip_directory(f_path, s_path)
-                            print(f_path)
-                            print(s_path)
-
-
-
-                            dtrain= xr.open_zarr(s_path,
-                                                decode_timedelta=False, 
-                                                drop_variables=['escores'],
-                                                #chunks={'loc':200}
-                                                )
-                            
-
-
-                            ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
-
-
-
-                            # iter over periods
-                            periods= [['1951','1980'],['1981','2010'],['2011','2040'],['2041','2070'],['2071','2100'],]
-                            for per in periods:
-                                print(per)
-                                dsim_cur=dsim.sel(time=slice(*per))
-                                dsim_cur = sdba.stack_variables(dsim_cur)
+                            from dask.distributed import performance_report
+                            with performance_report(filename="/scratch/julavoie/info-crue-cmip6_workdir/dask-report.html"):
+                                print('open zip')
+                                f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
+                                print(f_path)
+                                #TODO:
+                                #s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
+                                s_path=str(f_path).replace('.zip','')
+                                print(s_path)
+                                #unzip_directory(f_path, s_path)
+                                print('unzipped')
                                 
-                                print(dsim_cur)
-                                out = ADJ.adjust(
-                                    sim=dsim_cur,#.chunk({'loc':100}),
-                                    ref=dref,#.chunk({'loc':100}),
-                                    hist=dhist,#.chunk({'loc':100}),
-                                    base=sdba.QuantileDeltaMapping,
-                                    **CONFIG['biasadjust_mbcn']['adjust'],
-                                )
 
-                                out = sdba.unstack_variables(out)
 
-                                # attrs
-                                out.attrs.update(dsim.attrs)
-                                out.attrs['cat:processing_level'] = 'biasadjusted'
-                                xs.save_to_zarr(ds=out, filename=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
 
-                            all_per=[xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
-                            out=xr.concat(all_per,dim='time')
-                            print(out)
-                            xs.save_and_update(ds=out, path=CONFIG['paths']['output'], pcat=pcat)
+                                dtrain= xr.open_zarr(s_path,
+                                                    decode_timedelta=False, 
+                                                    drop_variables=['escores'],
+                                                    )
+                                
+                                print(dtrain)
+
+                                
+
+
+                                ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
+
+
+
+                                # iter over periods
+                                periods= [['1951','1980'],['1981','2010'],['2011','2040'],['2041','2070'],['2071','2100'],]
+                                for per in periods:
+                                    print(per)
+                                    dsim_cur=dsim.sel(time=slice(*per))
+                                    dsim_cur = sdba.stack_variables(dsim_cur)
+                                    
+                                    print(dsim_cur)
+                                    out = ADJ.adjust(
+                                        sim=dsim_cur,
+                                        ref=dref,
+                                        hist=dhist,
+                                        base=sdba.QuantileDeltaMapping,
+                                        **CONFIG['biasadjust_mbcn']['adjust'],
+                                    )
+
+                                    out = sdba.unstack_variables(out)
+
+                                    # attrs
+                                    out.attrs.update(dsim.attrs)
+                                    out.attrs['cat:processing_level'] = 'biasadjusted'
+                                    #TODO
+                                    #xs.save_to_zarr(ds=out, filename=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
+                                    xs.save_to_zarr(ds=out, filename=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
+
+                                #all_per=[xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
+                                all_per=[xr.open_zarr(f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
+
+                                out=xr.concat(all_per,dim='time')
+                                print(out)
+                                xs.save_and_update(ds=out, path=CONFIG['paths']['output'], pcat=pcat)
 
 
                     if (
@@ -946,20 +969,23 @@ if __name__ == '__main__':
                                     chunks_over_dim=CONFIG['custom']['final_zarr_chunks'],
                                     **CONFIG['rechunk'],
                                     overwrite=True)
+                            
+                            zip_and_update(fi_path, pcat, info_dict= {'processing_level': 'final',
+                                                                    'format': 'zarr'})
 
-                            # add final file to catalog
-                            ds = xr.open_zarr(fi_path)
-                            pcat.update_from_ds(ds=ds, path=str(fi_path), info_dict= {'processing_level': 'final'})
-
+                            sh.rmtree(fi_path)
+   
 
                             # if  delete workdir, but save log and regridded
                             if CONFIG['custom']['delete_in_final_zarr']:
 
+                                logger.info('Move files and delete workdir.')
                                 regriddir=Path(CONFIG['paths']['regriddir'])
                                 final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                                xs.move_and_delete(deleting=[workdir],
-                                                    moving=[[f"{workdir}/{sim_id}_{region_name}_regridded.zarr", final_regrid_path],],
-                                                    pcat=pcat)
+
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_regridded.zarr", pcat, f"{final_regrid_path}.zip")
+
+                                sh.rmtree(workdir) # don't to keep empty workdir in this case
 
                     # --- HEALTH CHECKS ---
                     if do_task_loop(task='health_checks', processing_level='health_checks'):
@@ -1038,25 +1064,46 @@ if __name__ == '__main__':
 
                                 regriddir=Path(CONFIG['paths']['regriddir'])
                                 final_regrid_path = f"{regriddir}/{sim_id}_{region_name}_regridded.zarr"
-                                xs.move_and_delete(
-                                    deleting= [
-                                        workdir
-                                    ],
-                                    moving =
-                                    [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
-                                        [f"{workdir}/{sim_id}_{region_name}_diag-sim-prop.zarr",
-                                        f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-prop.zarr"],
-                                        [f"{workdir}/{sim_id}_{region_name}_diag-sim-meas.zarr",
-                                        f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-meas.zarr"],
-                                        [f"{workdir}/{sim_id}_{region_name}_diag-scen-prop.zarr",
-                                        f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-prop.zarr"],
-                                        [f"{workdir}/{sim_id}_{region_name}_diag-scen-meas.zarr",
-                                        f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-meas.zarr"],
-                                        [f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr",
-                                        f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-improved.zarr"],
-                                    ],
-                                    pcat=pcat)
+
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_regridded.zarr", pcat, f"{final_regrid_path}.zip")
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_diag-sim-prop.zarr", pcat, f"{CONFIG['paths']['diagdir']}{region_name}/{sim_id}_{region_name}_diag-sim-prop.zarr.zip")
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_diag-sim-meas.zarr", pcat, f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}_{region_name}_diag-sim-meas.zarr.zip")
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_diag-scen-prop.zarr", pcat, f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}_{region_name}_diag-scen-prop.zarr.zip")
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_diag-scen-meas.zarr", pcat, f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}_{region_name}_diag-scen-meas.zarr.zip")
+                                zip_and_update(f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr", pcat, f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}_{region_name}_diag-improved.zarr.zip")
+
+                                # zip_directory(f"{workdir}/{sim_id}_{region_name}_regridded.zarr", f"{final_regrid_path}.zip")
+                                # zip_directory(f"{workdir}/{sim_id}_{region_name}_diag-sim-prop.zarr",
+                                #  f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-prop.zarr.zip")
+                                # zip_directory(f"{workdir}/{sim_id}_{region_name}_diag-sim-meas.zarr",
+                                #  f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-meas.zarr.zip")
+                                # zip_directory(f"{workdir}/{sim_id}_{region_name}_diag-scen-prop.zarr",
+                                #  f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-prop.zarr.zip")
+                                # zip_directory(f"{workdir}/{sim_id}_{region_name}_diag-scen-meas.zarr",
+                                #  f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-meas.zarr.zip")
+                                # zip_directory(f"{workdir}/{sim_id}_{region_name}_diag-diag-improved.zarr",
+                                #  f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-diag-improved.zarr.zip")
+                                # xs.move_and_delete(
+                                #     deleting= [
+                                #         workdir
+                                #     ],
+                                #     moving =
+                                #     [[f"{workdir}/{sim_id}_{region_name}_regridded.zarr",final_regrid_path],
+                                #         [f"{workdir}/{sim_id}_{region_name}_diag-sim-prop.zarr",
+                                #         f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-prop.zarr"],
+                                #         [f"{workdir}/{sim_id}_{region_name}_diag-sim-meas.zarr",
+                                #         f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-sim-meas.zarr"],
+                                #         [f"{workdir}/{sim_id}_{region_name}_diag-scen-prop.zarr",
+                                #         f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-prop.zarr"],
+                                #         [f"{workdir}/{sim_id}_{region_name}_diag-scen-meas.zarr",
+                                #         f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-scen-meas.zarr"],
+                                #         [f"{workdir}/{sim_id}_{region_name}_diag-improved.zarr",
+                                #         f"{CONFIG['paths']['diagdir']}/{region_name}/{sim_id}/{sim_id}_{region_name}_diag-improved.zarr"],
+                                #     ],
+                                #     pcat=pcat)
                                 sh.rmtree(workdir) # don't to keep empty workdir in this case
+
+                                
 
 
             if (
