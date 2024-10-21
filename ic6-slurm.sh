@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=168:00:00 #modifier pour vos besoins
+#SBATCH --time=96:00:00 #modifier pour vos besoins
 #SBATCH --account=ctb-frigon
 #SBATCH --constraint=genoa # pour accéder à bébé narval
 #SBATCH --partition=c-frigon # pour avoir la priorité Ouranos
@@ -20,7 +20,7 @@ pip uninstall --yes xclim
 #pip install --no-index /project/ctb-frigon/julavoie/wheels/xclim-0.51.1.dev3-py3-none-any.whl # master on July 25th (after merge of mbcn PR)
 pip install --no-index /project/ctb-frigon/julavoie/wheels/xclim-0.51.1.dev10-py3-none-any.whl # branch fix-jitter august 4
 
-python /home/julavoie/code/test-vs/info-crue-cmip6/workflow.py CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r2i1p1f1_global
+python /home/julavoie/code/test-vs/info-crue-cmip6/workflow.py CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1_global
 
 #python /home/julavoie/code/test-vs/info-crue-cmip6/workflow.py $SLURM_JOB_NAME
 ## --job-name ACCESS-ESM1-5

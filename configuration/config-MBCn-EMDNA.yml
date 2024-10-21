@@ -8,17 +8,15 @@ tasks:
   - makeref
   - extract
   - regrid
-  #- mbcn-30years
-  - mbcn-30years-noTMP
-  #- npdf-gpies-narval
+  - mbcn-30years-noTMP # right one
   - clean_up
   - final_zarr
   - health_checks
-  - diagnostics
+  #- diagnostics
   - concat
 
 custom:
-    delete_in_final_zarr: False
+    delete_in_final_zarr: True # TODO: check
     delete_in_diag: True
     regions:
         a-EMDNA: 
@@ -418,7 +416,7 @@ biasadjust_mbcn:
     base_kws_vars:
       pr:
         kind: "*"
-        jitter_under_thresh_value: "0.01 mm d-1" #TODO: put back
+        jitter_under_thresh_value: "0.01 mm d-1"
         adapt_freq_thresh: "1 mm d-1"
       dtr:
         kind: "*"
