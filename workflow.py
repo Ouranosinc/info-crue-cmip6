@@ -4,6 +4,7 @@ from pathlib import Path
 import xarray as xr
 import logging
 import os
+from dask.distributed import performance_report
 import numpy as np
 from datetime import timedelta
 from dask.diagnostics import ProgressBar
@@ -23,6 +24,7 @@ import xscen as xs
 from xscen.utils import minimum_calendar, stack_drop_nans
 from xscen.io import rechunk
 from xscen import CONFIG
+import dask
 
 # Load configuration
 path = 'configuration/paths_narval.yml'
@@ -37,11 +39,11 @@ print(xc.__version__)
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
+
     # start dask once for narval
     # https://dask.discourse.group/t/localcluster-mpi-calls-mpi-init-thread-twice/1811/6 for process False bc MPI error
-    #cluster = LocalCluster(n_workers=3, threads_per_worker=5, memory_limit="130GB", **daskkws)# ,processes=False
     cluster = LocalCluster(n_workers=2, threads_per_worker=5, memory_limit="200GB",local_directory=os.environ['SLURM_TMPDIR'], **daskkws)# ,processes=False
-    #cluster = LocalCluster(n_workers=5, threads_per_worker=5, memory_limit="80GB", **daskkws) # for test
+    #cluster = LocalCluster(n_workers=5, threads_per_worker=2, memory_limit="80GB",local_directory='/scratch/julavoie/tmp', **daskkws) # for test
     client = Client(cluster)
 
     # not very useful anymore on narval
@@ -418,509 +420,68 @@ if __name__ == '__main__':
                         # adjust
                         print('before adjust')
                         with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
-                            from dask.distributed import performance_report
-                            with performance_report(filename="/scratch/julavoie/info-crue-cmip6_workdir/dask-report.html"):
-                                print('open zip')
-                                f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
-                                print(f_path)
-                                #TODO:
-                                #s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                                s_path=str(f_path).replace('.zip','')
-                                print(s_path)
-                                #unzip_directory(f_path, s_path)
-                                print('unzipped')
-                                
 
-
-
-                                dtrain= xr.open_zarr(s_path,
-                                                    decode_timedelta=False, 
-                                                    drop_variables=['escores'],
-                                                    )
-                                
-                                print(dtrain)
-
-                                
-
-
-                                ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
-
-
-
-                                # iter over periods
-                                periods= [['1951','1980'],['1981','2010'],['2011','2040'],['2041','2070'],['2071','2100'],]
-                                for per in periods:
-                                    print(per)
-                                    dsim_cur=dsim.sel(time=slice(*per))
-                                    dsim_cur = sdba.stack_variables(dsim_cur)
-                                    
-                                    print(dsim_cur)
-                                    out = ADJ.adjust(
-                                        sim=dsim_cur,
-                                        ref=dref,
-                                        hist=dhist,
-                                        base=sdba.QuantileDeltaMapping,
-                                        **CONFIG['biasadjust_mbcn']['adjust'],
-                                    )
-
-                                    out = sdba.unstack_variables(out)
-
-                                    # attrs
-                                    out.attrs.update(dsim.attrs)
-                                    out.attrs['cat:processing_level'] = 'biasadjusted'
-                                    #TODO
-                                    #xs.save_to_zarr(ds=out, filename=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
-                                    xs.save_to_zarr(ds=out, filename=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
-
-                                #all_per=[xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
-                                all_per=[xr.open_zarr(f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
-
-                                out=xr.concat(all_per,dim='time')
-                                print(out)
-                                xs.save_and_update(ds=out, path=CONFIG['paths']['output'], pcat=pcat)
-
-
-                    if (
-                            "mbcn-30years-noTMP-reg" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                    processing_level='biasadjusted')
-                    ): 
-                        print('mbcn-30years-noTMP-reg')
-                        # load hist ds (simulation)
-                        dsim = pcat.search(
-                            domain=region_name,
-                            variable=CONFIG['biasadjust_mbcn']['variable'],
-                            id=sim_id, processing_level='regridded').to_dask(**tdd)
-
-                        #dsim=dsim.chunk({'loc':200})
-                        print(dsim)
-                        
-                        # because we took regridded from other domain
-                        dsim.attrs['cat:domain'] = region_name
-
-                        # choose right calendar and convert
-                        refcal = minimum_calendar(get_calendar(dsim),
-                                                CONFIG['custom']['maximal_calendar'])
-                        dsim = convert_calendar(dsim, refcal,
-                                                align_on=CONFIG['custom']['align_on'])
-
-                        # load ref ds
-                        dref = pcat.search(
-                            source=ref_source, calendar=refcal,
-                            processing_level='extracted',
-                            variable=CONFIG['biasadjust_mbcn']['variable'],
-                            domain=region_name, ).to_dask(**tdd)
-                        
-                        #dref= dref.chunk({'loc':200})
-
-
-                        # choose right ref period for hist
-                        dhist = dsim.sel(time=slice(*map(str, CONFIG['custom']['ref_period'])))
-
-                        dref,  dhist = (sdba.stack_variables(da) for da in
-                                            (dref, dhist))
-
-                        print(dref)
-                        print(dhist)                   
-
-
-                        # create group
-                        group = CONFIG['biasadjust_mbcn'].get('group')
-                        if isinstance(group, dict):
-                            group = sdba.Grouper.from_kwargs(**group)["group"]
-                        elif isinstance(group, str):
-                            group = sdba.Grouper(group)
-                        
-                        # train
-                        if not pcat.exists_in_cat(processing_level=f'training_mbcn',
-                                                domain=region_name, id=sim_id, ):
-                            with context(**CONFIG['biasadjust_mbcn']['context']['train']): 
-                                dtrain = sdba.MBCn.train(
-                                    ref=dref,
-                                    hist=dhist,
-                                    base_kws=dict(group=group, nquantiles=50, ), 
-                                    **CONFIG['biasadjust_mbcn']['train']
-                                ).ds
-
-                                # attrs
-                                dtrain.attrs.update(dhist.attrs)
-                                dtrain.attrs['cat:processing_level'] = f"training_mbcn"
-
-                                # save, zip, move, update
-                                f_path = Path(CONFIG['paths']['output_zip'].format(
-                                    **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
-                                s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                                xs.save_to_zarr(ds=dtrain, filename=s_path)
-                                zip_directory(s_path,f_path)
-                                pcat.update_from_ds(dtrain, f_path, info_dict={'format':'zarr'})
-
-
-
-                        # adjust
-                        with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
+                            print('open zip')
                             f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
                             s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                            unzip_directory(f_path, s_path)
+                            #f_path=str(f_path).replace('.zip','')
                             print(f_path)
+                            #TODO:
+                            
+                            #s_path=str(f_path).replace('.zip','')
                             print(s_path)
-
-                            print('train', os.path.getsize(s_path)/ (1024 * 1024 * 1024), 'GB')
-
-
-                            dtrain= xr.open_zarr(s_path,
-                                                decode_timedelta=False, 
-                                                drop_variables=['escores'],
-                                                #chunks={'loc':200}
-                                                )
+                            unzip_directory(f_path, s_path)
+                            #sh.move(f_path, s_path)
+                            print('unzipped')
                             
 
-                            #iter over regions
-                            for a_region, a_region_dict in CONFIG['biasadjust_mbcn']['regions']:
-
-                                dtrain_region = xs.spatial_subset(dtrain, **a_region_dict)
-                                ADJ_region = sdba.adjustment.TrainAdjust.from_dataset(dtrain_region)
-
-                                dref_region = xs.spatial_subset(dref, **a_region_dict)
-                                dhist_region = xs.spatial_subset(dhist, **a_region_dict)
-
-                                # iter over periods
-                                periods= [['1951','1980'],['1981','2010'],['2011','2040'],['2041','2070'],['2071','2100'],]
-                                for per in periods:
-                                    print(per)
-                                    dsim_cur=xs.spatial_subset(dsim.sel(time=slice(*per)), **a_region_dict)
-                                    dsim_cur = sdba.stack_variables(dsim_cur)
-                                    
-                                    print(dsim_cur)
-                                    out = ADJ_region.adjust(
-                                        sim=dsim_cur,#.chunk({'loc':100}),
-                                        ref=dref_region,#.chunk({'loc':100}),
-                                        hist=dhist_region,#.chunk({'loc':100}),
-                                        base=sdba.QuantileDeltaMapping,
-                                        **CONFIG['biasadjust_mbcn']['adjust'],
-                                    )
-
-                                    out = sdba.unstack_variables(out)
-
-                                    # attrs
-                                    out.attrs.update(dsim.attrs)
-                                    out.attrs['cat:processing_level'] = 'biasadjusted'
-                                    out.attrs['cat:domain'] = a_region
-                                    xs.save_to_zarr(ds=out, filename=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{a_region}_{per[0]}_{per[1]}_biasadjusted.zarr")
-
-                                all_per=[xs.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{a_region}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
-                                out=xr.concat(all_per,dim='time')
-                                print(out)
-                                xs.save_and_update(ds=out, path=CONFIG['paths']['output'], pcat=pcat)
-
-                            all_regs=[CONFIG['paths']['output'].format(id=sim_id, domain=a_region, processing_level='biasadjusted') for a_region in CONFIG['biasadjust_mbcn']['regions'].keys()]
-                            print(all_regs)
-                            if 'rlat' in dsR:
-                                dsR = xr.concat(all_regs, 'rlat')
-                            else:
-                                dsR = xr.concat(all_regs, 'lat')
-                            prnt(dsR)
-
-                            xs.save_and_update(ds=dsR, path=CONFIG['paths']['output'], pcat=pcat)
-
-
-                    if (
-                            "mbcn-30years" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                    processing_level='biasadjusted')
-                    ):
-                        print("mbcn-30years")
-                        # load hist ds (simulation)
-                        dsim = pcat.search(
-                            domain=region_name,
-                            variable=CONFIG['biasadjust_mbcn']['variable'],
-                            id=sim_id, processing_level='regridded').to_dask(**tdd)
-
-                        # dsim_path = Path(pcat.search(
-                        #     domain=region_name,
-                        #     variable=CONFIG['biasadjust_mbcn']['variable'],
-                        #     id=sim_id, processing_level='regridded').df.path[0])
-                        # sh.copytree(dsim_path,f"{os.environ['SLURM_TMPDIR']}/{dsim_path.name}")
-                        # dsim = xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{dsim_path.name}",
-                        #                     #chunks={'loc':100},
-                        #                     decode_timedelta=False)[CONFIG['biasadjust_mbcn']['variable']]
-                        
-                        #dsim=dsim.chunk({'loc':100})
-                        print(dsim)
-                        
-                        # because we took regridded from other domain
-                        dsim.attrs['cat:domain'] = region_name
-
-                        # choose right calendar and convert
-                        refcal = minimum_calendar(get_calendar(dsim),
-                                                CONFIG['custom']['maximal_calendar'])
-                        dsim = convert_calendar(dsim, refcal,
-                                                align_on=CONFIG['custom']['align_on'])
-
-                        # load ref ds
-                        # dref = pcat.search(
-                        #     source=ref_source, calendar=refcal,
-                        #     processing_level='extracted',
-                        #     variable=CONFIG['biasadjust_mbcn']['variable'],
-                        #     domain=region_name, ).to_dask(**tdd)
-                        dref_path = Path(pcat.search(
-                            source=ref_source, calendar=refcal,
-                            processing_level='extracted',
-                            variable=CONFIG['biasadjust_mbcn']['variable'],
-                            domain=region_name, ).df.path[0])
-                        sh.copytree(dref_path, f"{os.environ['SLURM_TMPDIR']}/{dref_path.name}")
-                        dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{dref_path.name}",
-                                        #chunks={'loc':100},
-                                        decode_timedelta=False)[CONFIG['biasadjust_mbcn']['variable']]
-
-
-                        # choose right ref period for hist
-                        xs.save_to_zarr(ds=dsim.sel(time=slice(*map(str, CONFIG['custom']['ref_period']))), filename=f"{os.environ['SLURM_TMPDIR']}/dhist.zarr")
-                        dhist=xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dhist.zarr", decode_timedelta=False)
-                        #dhist = dsim.sel(time=slice(*map(str, CONFIG['custom']['ref_period'])))
-
-                        dref,  dhist = (sdba.stack_variables(da) for da in
-                                            (dref, dhist))
-
-                        print(dref)
-                        print(dhist)
-                        # create group
-                        group = CONFIG['biasadjust_mbcn'].get('group')
-                        if isinstance(group, dict):
-                            group = sdba.Grouper.from_kwargs(**group)["group"]
-                        elif isinstance(group, str):
-                            group = sdba.Grouper(group)
-
-                        # train
-                        if not pcat.exists_in_cat(processing_level=f'training_mbcn',
-                                                domain=region_name, id=sim_id, ):
-                            with context(**CONFIG['biasadjust_mbcn']['context']['train']): 
-                                dtrain = sdba.MBCn.train(
-                                    ref=dref,
-                                    hist=dhist,
-                                    base_kws=dict(group=group, nquantiles=50, ), 
-                                    **CONFIG['biasadjust_mbcn']['train']
-                                ).ds
-
-                                # attrs
-                                dtrain.attrs.update(dhist.attrs)
-                                dtrain.attrs['cat:processing_level'] = f"training_mbcn"
-
-                                # save, zip, move, update
-                                f_path = Path(CONFIG['paths']['output_zip'].format(
-                                    **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
-                                s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                                xs.save_to_zarr(ds=dtrain, filename=s_path)
-                                zip_directory(s_path,f_path)
-                                pcat.update_from_ds(dtrain, f_path, info_dict={'format':'zarr'})
-
-
-
-                        # adjust
-                        with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
-                            print('here')
-                            f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
-                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                            unzip_directory(f_path, s_path)
-                            print(f_path)
-                            print(s_path)
-
-
-
                             dtrain= xr.open_zarr(s_path,
                                                 decode_timedelta=False, 
                                                 drop_variables=['escores'],
-                                                #chunks={'loc':100}
                                                 )
                             print(dtrain)
                             ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
-                            
+
+                            # iter over periods
                             periods= [['1951','1980'],['1981','2010'],['2011','2040'],['2041','2070'],['2071','2100'],]
                             for per in periods:
-                                print(per)
-                                xs.save_to_zarr(ds=dsim.sel(time=slice(*per)), filename=f"{os.environ['SLURM_TMPDIR']}/dsim_{per[0]}_{per[1]}.zarr")
+                                if not pcat.exists_in_cat(domain=region_name, id=sim_id,
+                                                processing_level=f'biasadjusted_{per[0]}_{per[1]}'):
+                                    with performance_report(filename=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/dask-report-{per[0]}_{per[1]}.html"):
 
-                                dsim_cur=xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dsim_{per[0]}_{per[1]}.zarr", decode_timedelta=False)
-                                dsim_cur = sdba.stack_variables(dsim_cur)
-                                
-                                print(dsim_cur)
-                                print(dref)
-                                print(dhist)
-                                out = ADJ.adjust(
-                                    sim=dsim_cur,#.chunk({'loc':100}),
-                                    ref=dref,#.chunk({'loc':100}),
-                                    hist=dhist,#.chunk({'loc':100}),
-                                    #period_dim="period",
-                                    base=sdba.QuantileDeltaMapping,
-                                    **CONFIG['biasadjust_mbcn']['adjust'],
-                                )
+                                        print(per)
+                                        dsim_cur=dsim.sel(time=slice(*per))
+                                        dsim_cur = sdba.stack_variables(dsim_cur)
+                                        
+                                        print(dsim_cur)
+                                        out = ADJ.adjust(
+                                            sim=dsim_cur,
+                                            ref=dref,
+                                            hist=dhist,
+                                            base=sdba.QuantileDeltaMapping,
+                                            **CONFIG['biasadjust_mbcn']['adjust'],
+                                        )
 
-                                out = sdba.unstack_variables(out)
+                                        out = sdba.unstack_variables(out)
 
-                                # attrs
-                                out.attrs.update(dsim.attrs)
-                                out.attrs['cat:processing_level'] = f'biasadjusted'
-                                print(out)
-                                xs.save_to_zarr(ds=out, filename=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
-                                sh.rmtree(f"{os.environ['SLURM_TMPDIR']}/dsim_{per[0]}_{per[1]}.zarr")
+                                        # attrs
+                                        out.attrs.update(dsim.attrs)
+                                        out.attrs['cat:processing_level'] = f'biasadjusted_{per[0]}_{per[1]}'
+                                        #TODO
+                                        tmp_path=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr"
+                                        save_path =f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr"
+                                        xs.save_to_zarr(ds=out, filename=tmp_path)
+                                        sh.move(tmp_path, save_path)
+                                        pcat.update_from_ds(out, save_path)
+                                        #xs.save_and_update(ds=out, pcat=pcat, path=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
 
-                            all_per=[xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
+                            #all_per=[xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
+                            all_per=[xr.open_zarr(f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
+
                             out=xr.concat(all_per,dim='time')
-                            print(out)
-                            xs.save_and_update(ds=out, path=CONFIG['paths']['output'], pcat=pcat)
-                            
-                            # f_path = Path(CONFIG['paths']['output'].format(
-                            #         **xs.utils.get_cat_attrs(out, var_as_str=True)))
-                            # s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
-                            # f_path=str(f_path)
-                            # xs.save_to_zarr(ds=out, filename=s_path)
-                            # sh.move(s_path,f_path)
-                            # pcat.update_from_ds(out, f_path)
-
-
-                    if (
-                            "npdf-gpies-narval" in CONFIG["tasks"]
-                            and not pcat.exists_in_cat(domain=region_name, id=sim_id,
-                                                    processing_level='biasadjusted')
-                    ):
-                        # load hist ds (simulation)
-                        # dsim = pcat.search(
-                        #     domain=region_name,
-                        #     variable=CONFIG['biasadjust_mbcn']['variable'],
-                        #     id=sim_id, processing_level='regridded').to_dask(**tdd)
-
-                        dsim_path = Path(pcat.search(
-                            domain=region_name,
-                            variable=CONFIG['biasadjust_mbcn']['variable'],
-                            id=sim_id, processing_level='regridded').df.path[0])
-                        sh.copytree(dsim_path,f"{os.environ['SLURM_TMPDIR']}/{dsim_path.name}")
-                        dsim = xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{dsim_path.name}",
-                                            #chunks={'loc':100},
-                                            decode_timedelta=False)[CONFIG['biasadjust_mbcn']['variable']]
-                        print(dsim)
-                        
-                        # because we took regridded from other domain
-                        dsim.attrs['cat:domain'] = region_name
-
-                        # choose right calendar and convert
-                        refcal = minimum_calendar(get_calendar(dsim),
-                                                CONFIG['custom']['maximal_calendar'])
-                        dsim = convert_calendar(dsim, refcal,
-                                                align_on=CONFIG['custom']['align_on'])
-
-                        # load ref ds
-                        # dref = pcat.search(
-                        #     source=ref_source, calendar=refcal,
-                        #     processing_level='extracted',
-                        #     variable=CONFIG['biasadjust_mbcn']['variable'],
-                        #     domain=region_name, ).to_dask(**tdd)
-                        dref_path = Path(pcat.search(
-                            source=ref_source, calendar=refcal,
-                            processing_level='extracted',
-                            variable=CONFIG['biasadjust_mbcn']['variable'],
-                            domain=region_name, ).df.path[0])
-                        sh.copytree(dref_path, f"{os.environ['SLURM_TMPDIR']}/{dref_path.name}")
-                        dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{dref_path.name}",
-                                        #chunks={'loc':100},
-                                        decode_timedelta=False)[CONFIG['biasadjust_mbcn']['variable']]
-                        print(dref)
-
-                        # choose right ref period for hist
-                        dhist = dsim.sel(time=slice(*map(str, CONFIG['custom']['ref_period'])))
-
-                        dref, dhist, dsim = (sdba.stack_variables(da) for da in
-                                            (dref, dhist, dsim))
-
-                        # stack 30-year periods
-                        dsim = xc.core.calendar.stack_periods(
-                            dsim, window=30, stride=30).chunk({'time': -1, 'period': -1})
-
-                        # create group
-                        group = CONFIG['biasadjust_mbcn'].get('group')
-                        if isinstance(group, dict):
-                            group = sdba.Grouper.from_kwargs(**group)["group"]
-                        elif isinstance(group, str):
-                            group = sdba.Grouper(group)
-                        
-
-                    
-                        # train
-                        if not pcat.exists_in_cat(processing_level=f'training_mbcn',
-                                                domain=region_name, id=sim_id, ):
-                            with context(**CONFIG['biasadjust_mbcn']['context']['train']): 
-                                dtrain = sdba.MBCn.train(
-                                    ref=dref,
-                                    hist=dhist,
-                                    base_kws=dict(group=group, nquantiles=50, ), 
-                                    **CONFIG['biasadjust_mbcn']['train']
-                                ).ds
-
-                                # attrs
-                                dtrain.attrs.update(dhist.attrs)
-                                dtrain.attrs['cat:processing_level'] = f"training_mbcn"
-
-                                # save, zip, move, update
-                                f_path = Path(CONFIG['paths']['output_zip'].format(
-                                    **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
-                                s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                                xs.save_to_zarr(ds=dtrain, filename=s_path)
-                                zip_directory(s_path,f_path)
-                                pcat.update_from_ds(dtrain, f_path, info_dict={'format':'zarr'})
-
-
-
-                        # adjust
-                        with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
-
-                            # dtrain = pcat.search(processing_level=f"training_mbcn",
-                            #                      domain=region_name, id=sim_id,
-                            #                      ).to_dataset(**tdd)
-
-                            f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
-                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                            unzip_directory(f_path, s_path)
-                            print(f_path)
-                            print(s_path)
-
-                            dtrain= xr.open_zarr(s_path,
-                                                decode_timedelta=False, 
-                                                drop_variables=['escores'],
-                                                #chunks={'loc':100}
-                                                )
-                            print(dtrain)
-                            #dtrain=dtrain.chunk({'loc':200})
-                            print(dtrain)
-                            ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
-
-                            print(dsim)
-                            print(dref)
-                            print(dhist)
-                            out = ADJ.adjust(
-                                sim=dsim,#.chunk({'loc':100}),
-                                ref=dref,#.chunk({'loc':100}),
-                                hist=dhist,#.chunk({'loc':100}),
-                                period_dim="period",
-                                base=sdba.QuantileDeltaMapping,
-                                **CONFIG['biasadjust_mbcn']['adjust'],
-                            )
-
-                            out = sdba.unstack_variables(out)
-                            out = xc.core.calendar.unstack_periods(out)
-
-                            # attrs
-                            out.attrs.update(dsim.attrs)
                             out.attrs['cat:processing_level'] = f'biasadjusted'
                             print(out)
-
-                            f_path = Path(CONFIG['paths']['output'].format(
-                                    **xs.utils.get_cat_attrs(out, var_as_str=True)))
-                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name}"
-                            f_path=str(f_path)
-                            xs.save_to_zarr(ds=out, filename=s_path)
-                            sh.move(s_path,f_path)
-                            pcat.update_from_ds(out, f_path)
-
-                        
-                            
+                            xs.save_and_update(ds=out, path=CONFIG['paths']['output'], pcat=pcat)
 
 
 
