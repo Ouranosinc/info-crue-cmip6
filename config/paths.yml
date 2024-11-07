@@ -1,0 +1,76 @@
+
+paths:
+  project_catalog: &pcat
+    /project/ctb-frigon/julavoie/info-crue-cmip6/info-crue-6.json
+  reference: /project/ctb-frigon/julavoie/info-crue-cmip6/reference/ref_{domain}_{calendar}.zarr  
+  workdir: /scratch/julavoie/info-crue-cmip6_workdir_sm/  
+  finaldir: /project/ctb-frigon/julavoie/IC6-EM-MBCn_v10/
+  output:  /scratch/julavoie/info-crue-cmip6_workdir/{id}_{domain}/{id}_{domain}_{processing_level}.zarr
+  output_zip: /scratch/julavoie/info-crue-cmip6_workdir/{id}_{domain}/{id}_{domain}_{processing_level}.zarr.zip
+  final: /project/ctb-frigon/julavoie/info-crue-cmip6/final_regions/{domain}/day_{id}_{domain}.zarr
+  concat_final: /project/ctb-frigon/julavoie/info-crue-cmip6/final/{domain}/day_{id}_{domain}.zarr
+  checks: /project/ctb-frigon/julavoie/info-crue-cmip6/checks/{id}_{domain}_checks.zarr
+  regriddir: /project/ctb-frigon/julavoie/info-crue-cmip6/regridded/
+  diagdir: /project/ctb-frigon/julavoie/info-crue-cmip6/diagnostics/
+  diag: /project/ctb-frigon/julavoie/info-crue-cmip6/diagnostics_regions/{id}_{domain}/{id}_{domain}_{processing_level}.zarr
+  concat_diag: /project/ctb-frigon/julavoie/info-crue-cmip6/diagnostics/{id}_{domain}/{id}_{domain}_{processing_level}.zarr
+  sm_final: /project/ctb-frigon/julavoie/info-crue-cmip6/final/
+
+
+
+extraction:
+  reference:
+    search_data_catalogs:
+      data_catalogs:
+         - /project/ctb-frigon/julavoie/ouranos_commun/catalogues/reconstruction.json
+    properties_and_measures:
+        properties: &properties
+          configuration/properties_info-crue-6.yml
+  simulation:
+    search_data_catalogs:
+      data_catalogs:
+        - /project/ctb-frigon/julavoie/ouranos_commun/catalogues/simulation.json
+
+
+
+# regrid:
+#   regrid_dataset:
+#       weights_location:
+#         /scratch/julavoie/info-crue-cmip6_workdir/weights/
+
+rechunk:
+  temp_store: /scratch/julavoie/info-crue-cmip6_workdir/tmp/
+
+clean_up:
+  search_data_catalogs:
+    data_catalogs:
+      - *pcat
+
+diagnostics:
+  steps:
+    sim:
+      properties_and_measures:
+            properties: *properties
+    scen:
+      properties_and_measures:
+        properties: *properties
+
+diagnostics_tmp:
+  ref:
+    properties_and_measures:
+      properties: *properties
+  sim:
+    properties_and_measures:
+          properties: *properties
+  scen:
+    properties_and_measures:
+      properties: *properties
+
+utils:
+    stack_drop_nans:
+        to_file: &coords
+          /project/ctb-frigon/julavoie/info-crue-cmip6/coords/coords_{domain}_{shape}.nc
+    unstack_fill_nan:
+      coords: *coords
+    maybe_unstack:
+      coords: *coords
