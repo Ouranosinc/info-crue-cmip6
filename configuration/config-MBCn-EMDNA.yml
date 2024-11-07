@@ -49,6 +49,11 @@ custom:
           method: bbox
           lon_bnds: [ -83, -55 ]
           lat_bnds: [ 44.05, 45 ]
+        # fBIG-EMDNA:
+        #   name: fBIG-EMDNA 
+        #   method: bbox
+        #   lon_bnds: [ -83, -55 ]
+        #   lat_bnds: [ 44.05, 46 ]
         g-EMDNA:
           name: g-EMDNA 
           method: bbox
@@ -618,28 +623,47 @@ scripting:
 dask:
     client:
         dashboard_address: 6785
+    distributed.comm.timeouts.connect: 120s
+    distributed.comm.timeouts.tcp: 400s
     array.slicing.split_large_chunks: False
 
 logging:
-    formatters:
-        default:
-            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
-            datefmt: '%Y-%m-%d %H:%M:%S'
-    handlers:
-        console:
-            class : logging.StreamHandler
-            formatter: default
-            level : INFO
-            stream: ext://sys.stdout #needed to have the right color in pycharm
-        # file:
-        #     class: logging.FileHandler
-        #     formatter: default
-        #     level : DEBUG
-    loggers:
-        xscen:
-            propagate: False
-            level: INFO
-            handlers: [console] # file
+  formatters:
+    default:
+      format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+      datefmt: '%Y-%m-%d %H:%M:%S'
+  handlers:
+    console:
+      class : logging.StreamHandler
+      formatter: default
+      level : DEBUG
+  loggers:
+    xscen:
+      propagate: False
+      level: INFO
+      handlers: [console] 
+    workflow:
+      propagate: False
+      level: INFO
+      handlers: [console]
+    distributed.worker:
+      propagate: False
+      level: INFO
+      handlers: [console]
+    distributed.scheduler:
+      propagate: False
+      level: INFO
+      handlers: [console]
+    distributed.nanny:
+      propagate: False
+      level: DEBUG
+      handlers: [console]
+    distributed.client:
+      propagate: INFO
+      level: INFO
+      handlers: [console]
+
+
 
 tdd:
   xarray_open_kwargs:
