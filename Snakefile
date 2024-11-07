@@ -1,30 +1,185 @@
-id=[
-    'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1_global',
-    'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1_global'
+from pathlib import Path
+import xscen as xs
+
+
+# Load configuration
+configfile: "config/config.yml"
+configfile: "config/paths.yml"
+
+sim_id=[
+    #'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1',
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r1i1p1f1',
+    # 'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r1i1p1f1',
 ]
 
 
-rule all:
-    input: expand("/project/ctb-frigon/julavoie/info-crue-cmip6/final/day_{id}_QC-EMDNA.zarr",id=id)
 
-rule wf:
-    output: "/project/ctb-frigon/julavoie/info-crue-cmip6/final/day_{id}_QC-EMDNA.zarr"
-    retries: 2
-    shell:"""
-            module load StdEnv/2023 gcc openmpi python/3.11 arrow/16.1.0 openmpi netcdf proj esmf geos mpi4py/3.1.4 ipykernel/2023b scipy-stack/2023b
-            bash /project/ctb-frigon/scenario/environnements/config_xscen0.9.0_env_slurm.sh # fourni par Ouranos
-            pip uninstall --yes xclim
-            pip install --no-index /project/ctb-frigon/julavoie/wheels/xclim-0.51.1.dev10-py3-none-any.whl # branch fix-jitter august 4
-            python /home/julavoie/code/test-vs/info-crue-cmip6/workflow.py {id}
-         """
-# use squeue --format="%.18i %.9P %.8j %.8k %.8u %.2t %.10M %.6D %.20R %Q" -u julavoie to see name of rule in comment
+regions= list(config['custom']['regions'].keys())
+
+wdir= Path(config['paths']['workdir'])
+finaldir= Path(config['paths']['finaldir'])
+
+
+rule all:
+    input: 
+        expand(finaldir/"health/{sim_id}_health.zarr.zip",sim_id=sim_id),
+        #input: expand(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip", sim_id=sim_id, region_name=list(config['custom']['regions'].keys()))
+        expand(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted20w_{period}.zarr", sim_id=sim_id, region_name=['a-EMDNA'], period=['1951-1980']),
+        expand(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-dwi_{period}.zarr", sim_id=sim_id, region_name=['a-EMDNA'], period=['1951-1980']),
+
+rule makeref:
+    output: 
+        default=finaldir/ "reference/{region_name}_default.zarr.zip",
+        noleap=finaldir/ "reference/{region_name}_noleap.zarr.zip",
+        day360=finaldir/ "reference/{region_name}_360_day.zarr.zip",
+    params:
+        n_workers=2,
+        mem="250GB",
+        cpus_per_task=4,
+        time="00:30:00",
+    script: "workflow/scripts/makeref.py"
+
+rule extractregrid:
+    input: 
+        noleap=finaldir/ "reference/{region_name}_noleap.zarr.zip",
+    output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr")
+    params:
+        n_workers=2,
+        mem="250GB",
+        cpus_per_task=4,
+        time="00:10:00",
+    script:
+        "workflow/scripts/extract-regrid.py"
+
+rule train:
+    input:
+        sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
+        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+    output: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
+    params:
+        n_workers=2,
+        mem="250GB",
+        cpus_per_task=4,
+        time="03:00:00",
+    script:
+        "workflow/scripts/train.py"
+
+
+
+rule adjust_per:
+    input:
+        sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
+        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+        train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
+    output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted_{period}.zarr"),
+    params:
+        n_workers=10,
+        mem="150GB",
+        cpus_per_task=12,
+        time="6:00:00",
+    script:
+        "workflow/scripts/adjust_per.py"
+
+rule adjust_per_dontwriteinput:
+    input:
+        sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
+        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+        train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
+    output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-dwi_{period}.zarr"),
+    params:
+        n_workers=10,
+        mem="150GB",
+        cpus_per_task=12,
+        time="6:00:00",
+    script:
+        "workflow/scripts/adjust_per_dwi.py"
+
+
+rule adjust_per_20w:
+    input:
+        sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
+        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+        train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
+    output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted20w_{period}.zarr"),
+    params:
+        n_workers=20,
+        mem="150GB",
+        cpus_per_task=22,
+        time="6:00:00",
+    script:
+        "workflow/scripts/adjust_per.py"
+
+rule clean_up:
+    input: expand(wdir/"{{sim_id}}_{{region_name}}/{{sim_id}}_{{region_name}}_adjusted_{period}.zarr",period=['1951-1980','1981-2010','2011-2040','2041-2070','2071-2100'])
+    output: finaldir/"final_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip"
+    params:
+        n_workers=2,
+        mem="50GB",
+        cpus_per_task=4,
+        time="00:30:00",
+    script:
+        "workflow/scripts/clean_up.py"
+
+rule concat_scen:
+    input: expand(finaldir/"final_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
+    output: 
+        pr=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/pr/pr_day_IC6-EM-MBCn_v10_{sim_id}_1950-2100.zarr.zip",
+        tasmax=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{sim_id}_1950-2100.zarr.zip",
+        tasmin=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{sim_id}_1950-2100.zarr.zip",
+    params:
+        sim_id_slash=lambda wildcards: wildcards.sim_id.replace('_','/'),
+        n_workers=2,
+        mem="50GB",
+        cpus_per_task=4,
+        time="00:30:00",
+    script:
+        "workflow/scripts/concat.py"
+
+# we dont actually use bc no diag now
+rule concat_sim:
+    input: expand(wdir/"{{sim_id}}_{region_name}/{{sim_id}}_{region_name}_regridded.zarr",region_name=regions)
+    output: 
+        pr=  directory(finaldir /"regridded/{sim_id}/pr_{sim_id}_regridded.zarr"),
+        tasmax= directory(finaldir /"regridded/{sim_id}/tasmax_{sim_id}_regridded.zarr"),
+        tasmin=  directory(finaldir /"regridded/{sim_id}/tasmin_{sim_id}_regridded.zarr"),
+    params:
+        n_workers=2,
+        mem="50GB",
+        cpus_per_task=4,
+        time="00:30:00",
+    script:
+        "workflow/scripts/concat.py"
+
+rule health:
+    input:
+        pr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/')}/day/pr/pr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_1950-2100.zarr.zip",
+        tasmax=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/')}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_1950-2100.zarr.zip",
+        tasmin=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/')}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_1950-2100.zarr.zip",
+    output: 
+        finaldir/"health/{sim_id}_health.zarr.zip"
+    params:
+        n_workers=2,
+        mem="50GB",
+        cpus_per_task=4,
+        time="00:30:00",
+    script:
+        "workflow/scripts/health.py"
+
+
+    
+
