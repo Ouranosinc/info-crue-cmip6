@@ -4,7 +4,6 @@ from pathlib import Path
 import xarray as xr
 import logging
 import os
-from dask.distributed import performance_report
 import numpy as np
 from datetime import timedelta
 from dask.diagnostics import ProgressBar
@@ -25,6 +24,7 @@ from xscen.utils import minimum_calendar, stack_drop_nans
 from xscen.io import rechunk
 from xscen import CONFIG
 import dask
+from dask_jobqueue import SLURMCluster
 
 # Load configuration
 path = 'configuration/paths_narval.yml'
@@ -39,12 +39,43 @@ print(xc.__version__)
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
+#     dask.config.set({
+#     "distributed.worker.log-directory": "/home/julavoie/code/test-vs/info-crue-cmip6/slurm_error/",
+#     "distributed.worker.log-format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+#     "distributed.worker.log-level": "debug"
+# })
+#     # start dask once for narval
+#     # https://dask.discourse.group/t/localcluster-mpi-calls-mpi-init-thread-twice/1811/6 for process False bc MPI error
+#     #cluster = LocalCluster(n_workers=2, threads_per_worker=5, memory_limit="200GB",local_directory=os.environ['SLURM_TMPDIR'], **daskkws)# ,processes=False
+#     cluster = LocalCluster(n_workers=5, threads_per_worker=2, memory_limit="80GB",local_directory='/scratch/julavoie/tmp', **daskkws) # for test
+#     client = Client(cluster)
 
-    # start dask once for narval
-    # https://dask.discourse.group/t/localcluster-mpi-calls-mpi-init-thread-twice/1811/6 for process False bc MPI error
-    cluster = LocalCluster(n_workers=2, threads_per_worker=5, memory_limit="200GB",local_directory=os.environ['SLURM_TMPDIR'], **daskkws)# ,processes=False
-    #cluster = LocalCluster(n_workers=5, threads_per_worker=2, memory_limit="80GB",local_directory='/scratch/julavoie/tmp', **daskkws) # for test
+
+    
+    cluster = SLURMCluster(
+        job_name = "test-daskjobqueue",
+        cores = 10,
+        memory = "200GiB", # besoin de mémoire pour chacun des workers
+        #processes = 1,
+        walltime = "96:00:00", # temps de vie des workers
+        interface = "ib0",
+        account="ctb-frigon",
+        death_timeout=60,
+        job_script_prologue= ['#SBATCH --constraint=genoa', # pour accéder à bébé narval
+                            '#SBATCH --partition=c-frigon', # pour avoir la priorité Ouranos
+                            '#SBATCH --output=/home/julavoie/code/test-vs/info-crue-cmip6/slurm_output/%x_%j.out',
+                           # "source ENVDIR/ENV/bin/modules"
+                            ], # charger les modules qui vont avec votre environnement (voir section Environnement virtuel)
+        scheduler_options={"dashboard_address": 6786} # mettre un nombre random ici
+    )
+    print(cluster)
     client = Client(cluster)
+    print(client)
+    cluster.scale(2)
+
+    client.run(lambda: xs.__version__)
+
+    print("Dask dashboard is available at:", client.dashboard_link)
 
     # not very useful anymore on narval
     @contextmanager
@@ -289,6 +320,8 @@ if __name__ == '__main__':
 
                         with context(**CONFIG['extraction']['simulation']['context']):
 
+                            client.run(lambda: xs.__version__)
+
                             # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
                             # domain will be cut to the right shape during the regrid
                             region_dict['tile_buffer']=3
@@ -297,6 +330,7 @@ if __name__ == '__main__':
                                                         **CONFIG['extraction']['simulation']['extract_dataset'],
                                                         )['D']
                             ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
+                            ds_sim['cat:id']=sim_id
 
                             # need lat and lon -1 for the regrid
                             ds_sim = ds_sim.chunk(CONFIG['custom']['sim_chunks'])
@@ -317,11 +351,13 @@ if __name__ == '__main__':
 
                             ds_target = pcat.search(**CONFIG['regrid']['target'],
                                                     domain=region_name).to_dask()
+                            
 
                             ds_regrid = xs.regrid_dataset(
                                 ds=ds_input,
                                 ds_grid=ds_target,
-                                weights_location= f"{os.environ['SLURM_TMPDIR']}/weights/",
+                                #weights_location= f"{os.environ['SLURM_TMPDIR']}/weights/",
+                                weights_location= f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/weights/",
                                 **CONFIG['regrid']['regrid_dataset']
                             )
 
@@ -364,14 +400,14 @@ if __name__ == '__main__':
                                                 align_on=CONFIG['custom']['align_on'])
 
                         # load ref ds
-                        dref_disk = pcat.search(
+                        dref= pcat.search(
                             source=ref_source, calendar=refcal,
                             processing_level='extracted',
                             variable=CONFIG['biasadjust_mbcn']['variable'],
                             domain=region_name, ).to_dask(**tdd)
                         
-                        xs.save_to_zarr(ds=dref_disk, filename=f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
-                        dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
+                        #xs.save_to_zarr(ds=dref_disk, filename=f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
+                        #dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
                         
 
 
@@ -408,12 +444,17 @@ if __name__ == '__main__':
                                 dtrain.attrs['cat:processing_level'] = f"training_mbcn"
 
                                 # save, zip, move, update
+                                # f_path = Path(CONFIG['paths']['output_zip'].format(
+                                #     **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
+                                # s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
+                                # xs.save_to_zarr(ds=dtrain, filename=s_path)
+                                # zip_directory(s_path,f_path)
+                                # pcat.update_from_ds(dtrain, f_path, info_dict={'format':'zarr'})
+
                                 f_path = Path(CONFIG['paths']['output_zip'].format(
                                     **xs.utils.get_cat_attrs(dtrain, var_as_str=True)))
-                                s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                                xs.save_to_zarr(ds=dtrain, filename=s_path)
-                                zip_directory(s_path,f_path)
-                                pcat.update_from_ds(dtrain, f_path, info_dict={'format':'zarr'})
+                                f_path=str(f_path).replace('.zip','')
+                                xs.save_and_update(ds=dtrain, path=f_path, pcat=pcat)
 
 
 
@@ -421,21 +462,21 @@ if __name__ == '__main__':
                         print('before adjust')
                         with context(**CONFIG['biasadjust_mbcn']['context']['adjust']):
 
-                            print('open zip')
+                            #print('open zip')
                             f_path = Path(CONFIG['paths']['output_zip'].format(**cur_dict, processing_level=f"training_mbcn"))
-                            s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-                            #f_path=str(f_path).replace('.zip','')
-                            print(f_path)
-                            #TODO:
+                            # s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
+                            f_path=str(f_path).replace('.zip','')
+                            # print(f_path)
+                            # #TODO:
                             
-                            #s_path=str(f_path).replace('.zip','')
-                            print(s_path)
-                            unzip_directory(f_path, s_path)
-                            #sh.move(f_path, s_path)
-                            print('unzipped')
+                            # #s_path=str(f_path).replace('.zip','')
+                            # print(s_path)
+                            # #unzip_directory(f_path, s_path)
+                            # sh.move(f_path, s_path)
+                            # print('unzipped')
                             
 
-                            dtrain= xr.open_zarr(s_path,
+                            dtrain= xr.open_zarr(f_path , #s_path,
                                                 decode_timedelta=False, 
                                                 drop_variables=['escores'],
                                                 )
@@ -447,33 +488,33 @@ if __name__ == '__main__':
                             for per in periods:
                                 if not pcat.exists_in_cat(domain=region_name, id=sim_id,
                                                 processing_level=f'biasadjusted_{per[0]}_{per[1]}'):
-                                    with performance_report(filename=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/dask-report-{per[0]}_{per[1]}.html"):
+                                    print(per)
+                                    dsim_cur=dsim.sel(time=slice(*per))
+                                    dsim_cur = sdba.stack_variables(dsim_cur)
+                                    
+                                    print(dsim_cur)
+                                    out = ADJ.adjust(
+                                        sim=dsim_cur,
+                                        ref=dref,
+                                        hist=dhist,
+                                        base=sdba.QuantileDeltaMapping,
+                                        **CONFIG['biasadjust_mbcn']['adjust'],
+                                    )
 
-                                        print(per)
-                                        dsim_cur=dsim.sel(time=slice(*per))
-                                        dsim_cur = sdba.stack_variables(dsim_cur)
-                                        
-                                        print(dsim_cur)
-                                        out = ADJ.adjust(
-                                            sim=dsim_cur,
-                                            ref=dref,
-                                            hist=dhist,
-                                            base=sdba.QuantileDeltaMapping,
-                                            **CONFIG['biasadjust_mbcn']['adjust'],
-                                        )
+                                    out = sdba.unstack_variables(out)
 
-                                        out = sdba.unstack_variables(out)
-
-                                        # attrs
-                                        out.attrs.update(dsim.attrs)
-                                        out.attrs['cat:processing_level'] = f'biasadjusted_{per[0]}_{per[1]}'
-                                        #TODO
-                                        tmp_path=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr"
-                                        save_path =f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr"
-                                        xs.save_to_zarr(ds=out, filename=tmp_path)
-                                        sh.move(tmp_path, save_path)
-                                        pcat.update_from_ds(out, save_path)
-                                        #xs.save_and_update(ds=out, pcat=pcat, path=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
+                                    # attrs
+                                    out.attrs.update(dsim.attrs)
+                                    out.attrs['cat:processing_level'] = f'biasadjusted_{per[0]}_{per[1]}'
+                                    #TODO
+                                    # tmp_path=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr"
+                                    # save_path =f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr"
+                                    # from dask.distributed import performance_report
+                                    # with performance_report(filename=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/dask-report-{per[0]}_{per[1]}.html"):
+                                    #     xs.save_to_zarr(ds=out, filename=tmp_path)
+                                    # sh.mo(tmp_path, save_path)
+                                    # pcat.update_from_ds(out, save_path)
+                                    xs.save_and_update(ds=out, pcat=pcat, path=f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr")
 
                             #all_per=[xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
                             all_per=[xr.open_zarr(f"/scratch/julavoie/info-crue-cmip6_workdir/{sim_id}_{region_name}/{sim_id}_{region_name}_{per[0]}_{per[1]}_biasadjusted.zarr",decode_timedelta=False) for per in periods]
