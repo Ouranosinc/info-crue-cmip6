@@ -17,7 +17,6 @@ if __name__ == '__main__':
 
     client=dask_cluster(snakemake.params)
 
-    ref_source = CONFIG['extraction']['ref_source']
     region_dict = CONFIG['custom']['regions'][snakemake.wildcards.region_name]
 
     # search

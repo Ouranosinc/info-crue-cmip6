@@ -15,10 +15,10 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
 
-    client=dask_cluster(snakemake.params)
+    #client=dask_cluster(snakemake.params)
 
     
-    dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False)
+    dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
     print(dsim)
     
     # because we took regridded from other domain
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                             align_on=CONFIG['custom']['align_on'])
 
     # load ref ds
-    dref= xr.open_zarr(snakemake.input[f'ref_{refcal}'],decode_timedelta=False)
+    dref= xr.open_zarr(snakemake.input[f'ref_{refcal}'],decode_timedelta=False).load()
     print(refcal)
     dref = convert_calendar(dref, refcal,
                             align_on=CONFIG['custom']['align_on'])
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     dtrain= xr.open_zarr(snakemake.input.train,
                         decode_timedelta=False, 
                         drop_variables=['escores'],
-                        )
+                        ).load()
     print(dtrain)
     ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
 
@@ -84,6 +84,9 @@ if __name__ == '__main__':
 
     # attrs
     out.attrs.update(dsim.attrs)
+    for a in CONFIG['biasadjust_mbcn']['attrs']:
+        out.attrs[f"cat:"+a] = CONFIG['biasadjust_mbcn']['attrs'][a]
+
 
     tmp_path=f"{os.environ['SLURM_TMPDIR']}/{sim_id}_{region_name}_{snakemake.wildcards.period}_biasadjusted.zarr"
     save_path=snakemake.output[0]

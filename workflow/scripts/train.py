@@ -17,8 +17,6 @@ if __name__ == '__main__':
     client=dask_cluster(snakemake.params)
 
     
-    #dsim_disk = xr.open_zarr(snakemake.input.sim, decode_timedelta=False)
-    #xs.save_to_zarr(ds=dsim_disk, filename=f"{os.environ['SLURM_TMPDIR']}/dsim.zarr")
     sh.copytree(snakemake.input.sim,f"{os.environ['SLURM_TMPDIR']}/dsim.zarr" )
     dsim= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dsim.zarr",decode_timedelta=False)
     print(dsim)
@@ -34,8 +32,6 @@ if __name__ == '__main__':
                             align_on=CONFIG['custom']['align_on'])
 
     # load ref ds
-    #dref_disk = xr.open_zarr(snakemake.input[f'ref_{refcal}'], decode_timedelta=False)
-    #xs.save_to_zarr(ds=dref_disk, filename=f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
     unzip_directory(snakemake.input[f'ref_{refcal}'],f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
     dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
     dref = convert_calendar(dref, refcal,
@@ -74,9 +70,5 @@ if __name__ == '__main__':
     dtrain.attrs.update(dhist.attrs)
     dtrain.attrs['cat:processing_level'] = f"training_mbcn"
 
-    # save, zip, move, update
-    #f_path = snakemake.output[0]
-    #s_path=f"{os.environ['SLURM_TMPDIR']}/{f_path.name[:-4]}"
-    #xs.save_to_zarr(ds=dtrain, filename=s_path)
-    #zip_directory(s_path,f_path)
+
     tmp_zarr_and_zip(dtrain,snakemake.output[0])

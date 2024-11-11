@@ -4,17 +4,6 @@ project:
     description: Jeux de données CMIP6 corrigés pour Info-Crue
     id: ic6
 
-tasks:
-  - makeref
-  - extract
-  - regrid
-  - mbcn-30years-noTMP # right one
-  - clean_up
-  - final_zarr
-  - health_checks
-  #- diagnostics
-  - concat
-
 custom:
     delete_in_final_zarr: True # TODO: check
     delete_in_diag: True
@@ -29,121 +18,116 @@ custom:
           method: bbox
           lon_bnds: [ -83, -55 ]
           lat_bnds: [ 43.05, 44 ]
-        # c-EMDNA:
-        #   name: c-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 44.05, 45 ]
-        # d-EMDNA:
-        #   name: d-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 43 ]
-        # e-EMDNA:
-        #   name: e-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 43.05, 44 ]
-        # f-EMDNA:
-        #   name: f-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 44.05, 45 ]
-        # # fBIG-EMDNA:
-        # #   name: fBIG-EMDNA 
-        # #   method: bbox
-        # #   lon_bnds: [ -83, -55 ]
-        # #   lat_bnds: [ 44.05, 46 ]
-        # g-EMDNA:
-        #   name: g-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 45.05, 46 ]
-        # h-EMDNA:
-        #   name: h-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 46.05, 47 ]
-        # i-EMDNA:  
-        #   name: i-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 47.05, 48 ]
-        # j-EMDNA:
-        #   name: j-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 48.05, 49 ]
-        # k-EMDNA:    
-        #   name: k-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 49.05, 50 ]
-        # l-EMDNA:  
-        #   name: l-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 50.05, 51 ]
-        # m-EMDNA:
-        #   name: m-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 51.05, 52 ]
-        # n-EMDNA:
-        #   name: n-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 52.05, 53 ]
-        # o-EMDNA:
-        #   name: o-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 53.05, 54 ]
-        # p-EMDNA:
-        #   name: p-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 54.05, 55 ]
-        # q-EMDNA:
-        #   name: q-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 55.05, 56 ]
-        # r-EMDNA:
-        #   name: r-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 56.05, 57 ]
-        # s-EMDNA:
-        #   name: s-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 57.05, 58 ]
-        # t-EMDNA:
-        #   name: t-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 58.05, 59 ] 
-        # u-EMDNA:  
-        #   name: u-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 59.05, 60 ]
-        # v-EMDNA:    
-        #   name: v-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 60.05, 61 ] 
-        # w-EMDNA:  
-        #   name: w-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 61.05, 62 ]
-        # x-EMDNA:  
-        #   name: x-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 62.05, 63.05 ] 
+        c-EMDNA:
+          name: c-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 44.05, 45 ]
+        d-EMDNA:
+          name: d-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 42, 43 ]
+        e-EMDNA:
+          name: e-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 43.05, 44 ]
+        f-EMDNA:
+          name: f-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 44.05, 45 ]
+        g-EMDNA:
+          name: g-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 45.05, 46 ]
+        h-EMDNA:
+          name: h-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 46.05, 47 ]
+        i-EMDNA:  
+          name: i-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 47.05, 48 ]
+        j-EMDNA:
+          name: j-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 48.05, 49 ]
+        k-EMDNA:    
+          name: k-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 49.05, 50 ]
+        l-EMDNA:  
+          name: l-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 50.05, 51 ]
+        m-EMDNA:
+          name: m-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 51.05, 52 ]
+        n-EMDNA:
+          name: n-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 52.05, 53 ]
+        o-EMDNA:
+          name: o-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 53.05, 54 ]
+        p-EMDNA:
+          name: p-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 54.05, 55 ]
+        q-EMDNA:
+          name: q-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 55.05, 56 ]
+        r-EMDNA:
+          name: r-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 56.05, 57 ]
+        s-EMDNA:
+          name: s-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 57.05, 58 ]
+        t-EMDNA:
+          name: t-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 58.05, 59 ] 
+        u-EMDNA:  
+          name: u-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 59.05, 60 ]
+        v-EMDNA:    
+          name: v-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 60.05, 61 ] 
+        w-EMDNA:  
+          name: w-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 61.05, 62 ]
+        x-EMDNA:  
+          name: x-EMDNA 
+          method: bbox
+          lon_bnds: [ -83, -55 ]
+          lat_bnds: [ 62.05, 63.05 ] 
         # mini-EMDNA: # winner
         #   name: mini-EMDNA 
         #   method: bbox
@@ -231,13 +215,6 @@ custom:
 
 extraction:
     reference:
-        context:
-          client_kw:
-            n_workers: 6 # 3
-            threads_per_worker: 4
-            memory_limit: "15GB"
-          measure_time_kw:
-            name: makeref
         search_data_catalogs:
             variables_and_freqs: &var_and_freq
                 tasmax: D
@@ -258,25 +235,15 @@ extraction:
           variables_and_units:
             tasmax: K
             tasmin: K
-        properties_and_measures:
-          period: *ref_period
-          unstack: False
-          to_level_prop: diag-ref-prop
-          change_units_arg:
-            tasmax: degC
-            tasmin: degC
-            pr: mm d-1
+        # properties_and_measures:
+        #   period: *ref_period
+        #   unstack: False
+        #   to_level_prop: diag-ref-prop
+        #   change_units_arg:
+        #     tasmax: degC
+        #     tasmin: degC
+        #     pr: mm d-1
     simulation:
-        context:
-          client_kw:
-            n_workers: 4 #2
-            threads_per_worker: 5
-            memory_limit: "30GB"
-          measure_time_kw:
-            name: extract
-          timeout_kw:
-            seconds: 10600
-            task: extract
         search_data_catalogs:
           variables_and_freqs: *var_and_freq
           match_hist_and_fut: True
@@ -332,19 +299,8 @@ extraction:
                 lat: 30
                 lon: 30
                 time: 365
-    ref_source: *ref_source
 
 regrid:
-  context:
-    client_kw:
-      n_workers: 4 #2
-      threads_per_worker: 5
-      memory_limit: "25GB"
-    measure_time_kw:
-      name: regrid
-  target:
-    source: *ref_source
-    calendar: noleap
   regrid_dataset:
     regridder_kwargs:
       method: bilinear
@@ -380,33 +336,6 @@ regrid:
           reuse_weights: False
 
 biasadjust_mbcn:
-  context:
-    train:
-      client_kw:
-        n_workers: 3 
-        threads_per_worker: 3
-        memory_limit: "130 GB" #"35GB"
-      measure_time_kw:
-        name: train mbcn
-      timeout_kw:
-        seconds: 900000
-        task: train mcbn
-    adjust:
-      client_kw:
-        n_workers: 6 #3
-        threads_per_worker: 3
-        memory_limit: "65GB"
-      measure_time_kw:
-        name: adjust mbcn
-      timeout_kw:
-        seconds: 10000000
-        task: adjust mcbn
-    trainadjust:
-      measure_time_kw:
-        name: train adjust mbcn
-      timeout_kw:
-        seconds: 10000000
-        task: train adjust mcbn
   group:
     group: time.dayofyear
     window: 31
@@ -434,33 +363,16 @@ biasadjust_mbcn:
     adj_kws:
       interp: nearest
       extrapolation: constant
-  chunks:
-    loc: 10  #TODO
-    #loc: 50
-    time: -1
+  # chunks:
+  #   loc: 10  #TODO
+  #   #loc: 50
+  #   time: -1
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos
     bias_adjust_project: IC6-EM-MBCn
 
 clean_up:
-  context:
-    client_kw:
-      n_workers: 8 #4
-      threads_per_worker: 3
-      memory_limit: "15GB"
-    measure_time_kw:
-      name: cleanup
-    timeout_kw:
-      seconds: 7200
-      task: clean_up
-  search_data_catalogs:
-    variables_and_freqs:
-      tasmax: D
-      tasmin: D
-      pr: D
-    allow_conversion: True
-    allow_resampling: False
   xscen_clean_up:
     to_level: cleaned_up
     variables_and_units:
@@ -501,7 +413,7 @@ clean_up:
         Notes: |
           Regridded on the grid of EMDNA, then bias-adjusted with MBCn.
           The reference was EMDNA over the 1989-2018 period.
-        version: "1.0.0"
+        version: "v10"
         code: https://github.com/Ouranosinc/info-crue-cmip6/tree/mbcn-narval
         contact: lavoie.juliette@ouranos.ca
         organisation: Groupe scénarios et services climatiques, Consortium Ouranos, Montréal, QC; www.ouranos.ca
@@ -523,22 +435,8 @@ clean_up:
 rechunk:
     worker_mem: 2GB
 
-final_zarr:
-  context:
-    client_kw:
-      n_workers: 6 #3
-      threads_per_worker: 3
-      memory_limit: "20GB"
-    measure_time_kw:
-        name: final zarr rechunk
-
 
 diagnostics:
-  context:
-    client_kw:
-      n_workers: 8
-      threads_per_worker: 3
-      memory_limit: "5GB"
   steps:
     sim:
       input:
@@ -608,25 +506,13 @@ diagnostics:
       - freq
 
 
-
-
 io:
   save_to_zarr:
     mode: o
 
-scripting:
-    measure_time:
-        cpu: True
-    subject: Info-Crue CMIP6
-    send_mail_on_exit:
-        msg_ok: Toutes les étapes demandées ont été complétées.
-        msg_err: Une erreur est survenue durant le traitement.
-        on_error_only: True
-
 dask:
     client:
         dashboard_address: 6785
-
     array.slicing.split_large_chunks: False
 
 logging:
@@ -664,8 +550,6 @@ logging:
       propagate: INFO
       level: INFO
       handlers: [console]
-
-
 
 tdd:
   xarray_open_kwargs:

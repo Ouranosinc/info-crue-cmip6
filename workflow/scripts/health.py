@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
 
     ds_input = xr.open_mfdataset([snakemake.input.pr, snakemake.input.tasmax, snakemake.input.tasmin],
-                                  decode_timedelta=False)
+                                  engine='zarr',decode_timedelta=False)
     hc = xs.diagnostics.health_checks(
         ds=ds_input,
         **CONFIG['diagnostics']['health_checks'])
