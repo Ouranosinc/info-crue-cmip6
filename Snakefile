@@ -85,7 +85,7 @@ rule adjust_per_load:
     params:
         mem="40GB",
         cpus_per_task=1,
-        time="4:00:00",
+        time="3:00:00",
     script:
         "workflow/scripts/adjust_per_load.py"
 
