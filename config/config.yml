@@ -5,8 +5,6 @@ project:
     id: ic6
 
 custom:
-    delete_in_final_zarr: True # TODO: check
-    delete_in_diag: True
     regions:
       a-EMDNA: 
         name: a-EMDNA 
@@ -133,41 +131,6 @@ custom:
         method: bbox
         lon_bnds: [ -83, -55 ]
         lat_bnds: [ 61.1, 62.95 ]
-        # mini-EMDNA: # winner
-        #   name: mini-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 43 ]
-        # petit-EMDNA:
-        #   name: petit-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 45 ]
-        # A-EMDNA:
-        #   name: A-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 47 ]
-        # B-EMDNA:
-        #   name: B-EMDNA 
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 47 ]
-        # QC-EMDNA:
-        #   name: QC-EMDNA
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 63 ]
-        # SUD-EMDNA:
-        #   name: SUD-EMDNA
-        #   method: bbox
-        #   lon_bnds: [ -83, -55 ]
-        #   lat_bnds: [ 42, 52 ]
-      # QC-test:
-      #     name: QC-test
-      #     method: bbox
-      #     lon_bnds: [ -60, -58 ]
-      #     lat_bnds: [ 50, 52 ]
     qc_region:
       name: QC-EMDNA
       method: bbox
@@ -175,14 +138,12 @@ custom:
       lat_bnds: [ 42, 63 ]
     stack_drop_nans: &stack
         True
-    working_chunks: #chunks
+    working_chunks:
         lat: 15
         lon: 15
-        loc: 10 #50 #TODO
-        #loc: 50
+        loc: 10
         time: -1
-    final_zarr_chunks: #out_chunks:
-        #lat: 30 $TODO: 5
+    final_zarr_chunks: 
         lat: 5
         lon: 30
         time: 4year
@@ -368,10 +329,6 @@ biasadjust_mbcn:
     adj_kws:
       interp: nearest
       extrapolation: constant
-  # chunks:
-  #   loc: 10  #TODO
-  #   #loc: 50
-  #   time: -1
   attrs:
     processing_level: biasadjusted
     bias_adjust_institution: Ouranos

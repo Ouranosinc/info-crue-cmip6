@@ -1,9 +1,6 @@
 from pathlib import Path
 import xscen as xs
 
-#TODO: add diag
-#TODO: add tmp
-
 
 # Load configuration
 configfile: "config/config.yml"
@@ -54,7 +51,7 @@ rule makeref:
 rule extractregrid:
     input: 
         noleap=finaldir/ "reference/{region_name}_noleap.zarr.zip",
-    output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr")
+    output: temp(directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr"))
     params:
         n_workers=2,
         mem="10GB",
@@ -68,7 +65,7 @@ rule train:
         sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
         ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
         ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
-    output: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
+    output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip"),
     params:
         n_workers=10,
         mem="50GB",
@@ -78,34 +75,14 @@ rule train:
         "workflow/scripts/train.py"
 
 
-
-# rule adjust_per:
-#     input:
-#         sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
-#         ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
-#         ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
-#         train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
-#     output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted_{period}.zarr"),
-#     params:
-#         n_workers=10,
-#         mem="150GB",
-#         cpus_per_task=12,
-#         time="12:00:00",#"6:00:00",#TODO: time for BIG , change back
-#     script:
-#         "workflow/scripts/adjust_per.py"
-
-
-
-
 rule adjust_per_load:
     input:
         sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
         ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
         ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
         train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
-    output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-load_{period}.zarr"),
+    output: temp(directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-load_{period}.zarr")),
     params:
-        n_workers=10, # useless
         mem="40GB",
         cpus_per_task=1,
         time="4:00:00",
@@ -116,9 +93,8 @@ rule adjust_per_load:
 
 rule clean_up:
     input: expand(wdir/"{{sim_id}}_{{region_name}}/{{sim_id}}_{{region_name}}_adjusted-load_{period}.zarr",period=['1951-1980','1981-2010','2011-2040','2041-2070','2071-2100'])
-    output: finaldir/"final_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip"
+    output: temp(finaldir/"final_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
     params:
-        n_workers=2, # useless
         mem="5GB",
         cpus_per_task=1,
         time="00:10:00",
@@ -134,26 +110,26 @@ rule concat_scen:
     params:
         sim_id_slash=lambda wildcards: wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/'),
         n_workers=2,
-        mem="50GB", # put 60
+        mem="60GB", 
         cpus_per_task=4,
         time="00:10:00",
     script:
         "workflow/scripts/concat.py"
 
 # we dont actually use bc no diag now
-rule concat_sim:
-    input: expand(wdir/"{{sim_id}}_{region_name}/{{sim_id}}_{region_name}_regridded.zarr",region_name=regions)
-    output: 
-        pr=  directory(finaldir /"regridded/{sim_id}/pr_{sim_id}_regridded.zarr"),
-        tasmax= directory(finaldir /"regridded/{sim_id}/tasmax_{sim_id}_regridded.zarr"),
-        tasmin=  directory(finaldir /"regridded/{sim_id}/tasmin_{sim_id}_regridded.zarr"),
-    params:
-        n_workers=2,
-        mem="50GB",
-        cpus_per_task=4,
-        time="00:10:00",
-    script:
-        "workflow/scripts/concat.py"
+# rule concat_sim:
+#     input: expand(wdir/"{{sim_id}}_{region_name}/{{sim_id}}_{region_name}_regridded.zarr",region_name=regions)
+#     output: 
+#         pr=  directory(finaldir /"regridded/{sim_id}/pr_{sim_id}_regridded.zarr"),
+#         tasmax= directory(finaldir /"regridded/{sim_id}/tasmax_{sim_id}_regridded.zarr"),
+#         tasmin=  directory(finaldir /"regridded/{sim_id}/tasmin_{sim_id}_regridded.zarr"),
+#     params:
+#         n_workers=2,
+#         mem="50GB",
+#         cpus_per_task=4,
+#         time="00:10:00",
+#     script:
+#         "workflow/scripts/concat.py"
 
 rule health:
     input:
