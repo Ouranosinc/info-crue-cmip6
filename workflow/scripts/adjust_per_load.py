@@ -20,7 +20,7 @@ if __name__ == '__main__':
     
     dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
     print(dsim)
-    
+
     # because we took regridded from other domain
     region_name = snakemake.wildcards.region_name
     sim_id = snakemake.wildcards.sim_id

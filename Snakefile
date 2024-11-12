@@ -39,7 +39,6 @@ rule all:
     input: 
         expand(finaldir/"health/{sim_id}_health.zarr.zip",sim_id=sim_id),
 
-
 rule makeref:
     output: 
         default=finaldir/ "reference/{region_name}_default.zarr.zip",
@@ -107,9 +106,9 @@ rule adjust_per_load:
     output: directory(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-load_{period}.zarr"),
     params:
         n_workers=10, # useless
-        mem="60GB",
+        mem="40GB",
         cpus_per_task=1,
-        time="3:00:00",
+        time="4:00:00",
     script:
         "workflow/scripts/adjust_per_load.py"
 
@@ -135,7 +134,7 @@ rule concat_scen:
     params:
         sim_id_slash=lambda wildcards: wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/'),
         n_workers=2,
-        mem="50GB",
+        mem="50GB", # put 60
         cpus_per_task=4,
         time="00:10:00",
     script:
@@ -167,7 +166,7 @@ rule health:
         n_workers=2,
         mem="50GB",
         cpus_per_task=4,
-        time="00:10:00",
+        time="00:30:00",
     script:
         "workflow/scripts/health.py"
 
