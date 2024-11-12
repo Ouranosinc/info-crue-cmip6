@@ -19,7 +19,6 @@ if __name__ == '__main__':
 
     
     dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
-    print(dsim)
 
     # because we took regridded from other domain
     region_name = snakemake.wildcards.region_name
@@ -33,7 +32,6 @@ if __name__ == '__main__':
 
     # load ref ds
     dref= xr.open_zarr(snakemake.input[f'ref_{refcal}'],decode_timedelta=False).load()
-    print(refcal)
     dref = convert_calendar(dref, refcal,
                             align_on=CONFIG['custom']['align_on'])
     
@@ -44,17 +42,7 @@ if __name__ == '__main__':
 
     dref,  dhist = (sdba.stack_variables(da) for da in
                         (dref, dhist))
-
-    print(dref)
-    print(dhist)                   
-
-
-    # create group
-    group = CONFIG['biasadjust_mbcn'].get('group')
-    if isinstance(group, dict):
-        group = sdba.Grouper.from_kwargs(**group)["group"]
-    elif isinstance(group, str):
-        group = sdba.Grouper(group)
+                
     
 
 
@@ -64,14 +52,12 @@ if __name__ == '__main__':
                         decode_timedelta=False, 
                         drop_variables=['escores'],
                         ).load()
-    print(dtrain)
     ADJ = sdba.adjustment.TrainAdjust.from_dataset(dtrain)
 
     per=[snakemake.wildcards.period.split('-')[0],snakemake.wildcards.period.split('-')[1]]
     dsim_cur=dsim.sel(time=slice(*per))
     dsim_cur = sdba.stack_variables(dsim_cur)
     
-    print(dsim_cur)
     out = ADJ.adjust(
         sim=dsim_cur,
         ref=dref,
