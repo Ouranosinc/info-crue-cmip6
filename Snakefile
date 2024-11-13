@@ -7,20 +7,20 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_id=[
-    #'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r1i1p1f1',
-    # 'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1',
+    'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r1i1p1f1',
+    'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r1i1p1f1',
 ]
 
 
@@ -104,9 +104,9 @@ rule clean_up:
 rule concat_scen:
     input: expand(finaldir/"final_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
     output: 
-        pr=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/pr/pr_day_IC6-EM-MBCn_v10_{sim_id}_QC_1950-2100.zarr.zip",
-        tasmax=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{sim_id}_QC_1950-2100.zarr.zip",
-        tasmin=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{sim_id}_QC_1950-2100.zarr.zip",
+        pr=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/pr/pr_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
+        tasmax=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
+        tasmin=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
     params:
         sim_id_slash=lambda wildcards: wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/'),
         n_workers=2,
@@ -116,26 +116,11 @@ rule concat_scen:
     script:
         "workflow/scripts/concat.py"
 
-# we dont actually use bc no diag now
-# rule concat_sim:
-#     input: expand(wdir/"{{sim_id}}_{region_name}/{{sim_id}}_{region_name}_regridded.zarr",region_name=regions)
-#     output: 
-#         pr=  directory(finaldir /"regridded/{sim_id}/pr_{sim_id}_regridded.zarr"),
-#         tasmax= directory(finaldir /"regridded/{sim_id}/tasmax_{sim_id}_regridded.zarr"),
-#         tasmin=  directory(finaldir /"regridded/{sim_id}/tasmin_{sim_id}_regridded.zarr"),
-#     params:
-#         n_workers=2,
-#         mem="50GB",
-#         cpus_per_task=4,
-#         time="00:10:00",
-#     script:
-#         "workflow/scripts/concat.py"
-
 rule health:
     input:
-        pr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/pr/pr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1950-2100.zarr.zip",
-        tasmax=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1950-2100.zarr.zip",
-        tasmin=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1950-2100.zarr.zip",
+        pr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/pr/pr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+        tasmax=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+        tasmin=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
     output: 
         finaldir/"health/{sim_id}_health.zarr.zip"
     params:

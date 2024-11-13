@@ -135,3 +135,4 @@ slurm_ouputs
 .snakemake/
 get_ids.ipynb
 s_logs/
+report.html

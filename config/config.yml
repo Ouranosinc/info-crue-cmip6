@@ -358,8 +358,18 @@ clean_up:
       pr: 10
     remove_all_attrs_except:
       global:
-        - '^cat:'
         - history
+        - "cat:id"
+        - "cat:source"
+        - "cat:member"
+        - "cat:experiment"
+        - "cat:institution"
+        - "cat:activity"
+        - "cat:bias_adjust_project"
+        - "cat:bias_adjust_institution"
+        - "cat:domain"
+        - "cat:mip_era"
+        - "cat:type"
       tasmax: &attrs_to_keep
         - bias_adjustment
         - cell_methods
