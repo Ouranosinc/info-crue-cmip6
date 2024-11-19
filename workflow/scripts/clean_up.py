@@ -37,11 +37,15 @@ if __name__ == '__main__':
 
     clean_path=f"{os.environ['SLURM_TMPDIR']}/{snakemake.wildcards.sim_id}_{snakemake.wildcards.region_name}_cleaned.zarr"
     xs.save_to_zarr(ds, clean_path)
-
+    
+    print("path_in",clean_path)
+    print( "path_out",create_tmp_path(snakemake.output[0]))
+    print("temp_store",f"{os.environ['SLURM_TMPDIR']}/tmp_rechunk/{snakemake.wildcards.sim_id}_{snakemake.wildcards.region_name}/")
 
     xs.io.rechunk(path_in=clean_path,
         path_out=create_tmp_path(snakemake.output[0]),
         chunks_over_dim=CONFIG['custom']['final_zarr_chunks'],
+        temp_store=f"{os.environ['SLURM_TMPDIR']}/tmp_rechunk/{snakemake.wildcards.sim_id}_{snakemake.wildcards.region_name}/",
         **CONFIG['rechunk'],
         overwrite=True)
     

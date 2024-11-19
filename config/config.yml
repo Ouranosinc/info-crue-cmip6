@@ -154,11 +154,6 @@ custom:
       time: 365
       lat: -1
       lon: -1
-    ref_chunk:
-      time: -1
-    ref_prop_chunk:
-      lat: 30
-      lon: 30
     ref_period : &ref_period # new-ref
       - '1989'
       - '2018'
@@ -201,14 +196,6 @@ extraction:
           variables_and_units:
             tasmax: K
             tasmin: K
-        # properties_and_measures:
-        #   period: *ref_period
-        #   unstack: False
-        #   to_level_prop: diag-ref-prop
-        #   change_units_arg:
-        #     tasmax: degC
-        #     tasmin: degC
-        #     pr: mm d-1
     simulation:
         search_data_catalogs:
           variables_and_freqs: *var_and_freq
@@ -409,29 +396,15 @@ rechunk:
 
 
 diagnostics:
-  steps:
-    sim:
-      input:
-        processing_level:  regridded
-      dref_for_measure:
-        processing_level: diag-ref-prop
-      properties_and_measures:
-        rechunk: {'lat': 30, 'lon': 30, 'time': -1}
-        period: *ref_period
-        unstack: *stack
-        change_units_arg:
-          tasmax: degC
-          tasmin: degC
-          pr: mm d-1
-    scen:
-      input:
-        processing_level: final
-      dref_for_measure:
-        processing_level: diag-ref-prop
-      properties_and_measures:
-        rechunk: {'lat':30, 'lon':30, 'time':-1}
-        period: *ref_period
-        unstack: False
+  properties_and_measures:
+    rechunk: {'lat': 30, 'lon': 30, 'time': -1}
+    period: *ref_period
+    unstack: False
+    change_units_arg:
+      tasmax: degC
+      tasmin: degC
+      pr: mm d-1
+    properties: config/properties_info-crue-6.yml
   health_checks:
     structure:
       coords:
@@ -526,3 +499,5 @@ logging:
 tdd:
   xarray_open_kwargs:
     decode_timedelta: False
+
+

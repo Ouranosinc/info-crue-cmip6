@@ -35,7 +35,7 @@ if __name__ == '__main__':
         dsC = xr.concat(list_dsR, 'lat')
 
     dsC.attrs['cat:domain'] = 'QC'
-    dsC.attrs.pop('cat:path')
+    dsC.attrs.pop('cat:path', None)
 
     dsC = dsC.chunk(
         xs.utils.translate_time_chunk(

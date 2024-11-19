@@ -20,7 +20,7 @@ if __name__ == '__main__':
     dc_id = cat_sim_id.popitem()[1]
     # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
     # domain will be cut to the right shape during the regrid
-    region_dict=CONFIG['custom']['regions'][snakemake.wildcards.region_name]
+    region_dict=CONFIG['custom']['qc_region']
     region_dict['tile_buffer']=5
     ds_sim = xs.extract_dataset(catalog=dc_id,
                                 region=region_dict,

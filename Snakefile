@@ -7,20 +7,20 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_id=[
-    'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-    'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-    'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',
-    'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1',
-    'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1',
-    'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1',
-    'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r1i1p1f1',
-    'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r1i1p1f1', 
 ]
 
 
@@ -35,6 +35,7 @@ finaldir= Path(config['paths']['finaldir'])
 rule all:
     input: 
         expand(finaldir/"health/{sim_id}_health.zarr.zip",sim_id=sim_id),
+        expand(finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_imp.zarr.zip",sim_id=sim_id)
 
 rule makeref:
     output: 
@@ -97,7 +98,7 @@ rule clean_up:
     params:
         mem="5GB",
         cpus_per_task=1,
-        time="00:10:00",
+        time="00:30:00",
     script:
         "workflow/scripts/clean_up.py"
 
@@ -112,7 +113,7 @@ rule concat_scen:
         n_workers=2,
         mem="60GB", 
         cpus_per_task=4,
-        time="00:10:00",
+        time="00:15:00",
     script:
         "workflow/scripts/concat.py"
 
@@ -130,6 +131,39 @@ rule health:
         time="00:30:00",
     script:
         "workflow/scripts/health.py"
+
+rule diag_ref:
+    output: 
+        ref=finaldir/ "reference/QC_default.zarr.zip",
+        prop=finaldir/"diagnostics/QC/prop_ref.zarr.zip"
+    params:
+        n_workers=2,
+        mem="50GB",
+        cpus_per_task=4,
+        time="00:10:00",
+    script:
+        "workflow/scripts/diag_ref.py"
+
+rule diag:
+    input:
+        ref=finaldir/ "reference/QC_default.zarr.zip",
+        ref_prop=finaldir/"diagnostics/QC/prop_ref.zarr.zip",
+        scen_pr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/pr/pr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+        scen_tasmax=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+        scen_tasmin=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+    output: 
+        sim_prop=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-prop.zarr.zip",
+        sim_meas=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-meas.zarr.zip",
+        scen_prop=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_scen-prop.zarr.zip",
+        scen_meas=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_scen-meas.zarr.zip",
+        imp=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_imp.zarr.zip",
+    params:
+        n_workers=2,
+        mem="50GB",
+        cpus_per_task=4,
+        time="01:00:00",
+    script:
+        "workflow/scripts/diag.py"
 
 
     

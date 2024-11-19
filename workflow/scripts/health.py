@@ -19,10 +19,8 @@ if __name__ == '__main__':
 
     ds_input = xr.open_mfdataset([snakemake.input.pr, snakemake.input.tasmax, snakemake.input.tasmin],
                                   engine='zarr',decode_timedelta=False)
-    hc = xs.diagnostics.health_checks(
-        ds=ds_input,
-        **CONFIG['diagnostics']['health_checks'])
+    
+    hc = xs.diagnostics.health_checks(ds=ds_input,)
 
     hc.attrs.update(ds_input.attrs)
-    hc.attrs['cat:processing_level'] = 'health_checks'
     xs.save_to_zarr(ds=hc, filename=snakemake.output[0])

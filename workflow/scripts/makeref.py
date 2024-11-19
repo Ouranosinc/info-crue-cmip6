@@ -54,52 +54,12 @@ if __name__ == '__main__':
 
     tmp_zarr_and_zip(ds_ref,snakemake.output.default)
 
-
-
-
     # noleap
     ds_refnl = convert_calendar(ds_ref, "noleap")
     ds_refnl.attrs['cat:calendar'] = 'noleap'
     tmp_zarr_and_zip(ds_refnl, snakemake.output.noleap)
 
     # 360_day
-
     ds_ref3 = convert_calendar(ds_ref, "360_day", align_on="year")
     ds_ref3.attrs['cat:calendar'] = '360_day'
     tmp_zarr_and_zip(ds_ref3, snakemake.output.day360)
-
-
-
-
-
-    # # diagnostics
-    # #
-
-    # #extract on QC
-    # ds_ref = xs.extract_dataset(catalog=dc,
-    #                             region=CONFIG['custom']['qc_region'],
-    #                             **CONFIG['extraction']['reference']['extract_dataset']
-    #                             )['D']
-
-    # #standardize units
-    # ds_ref = xs.clean_up(ds_ref, **CONFIG['extraction']['reference']['clean_up'])
-    # ds_ref['pr'] = xc.core.units.convert_units_to(ds_ref['pr'],
-    #                                                 'kg m-2 s-1',
-    #                                                 context='hydro')
-
-    # dref_ref = ds_ref.drop_vars('dtr')
-
-
-    # dref_ref = dref_ref.chunk(CONFIG['custom']['ref_chunk'])
-
-    # # diagnostics
-    # ds_ref_prop, _ = xs.properties_and_measures(
-    #     ds=dref_ref,
-    #     **CONFIG['extraction']['reference'][
-    #         'properties_and_measures']
-    # )
-
-    # ds_ref_prop = ds_ref_prop.chunk(**CONFIG['custom']['ref_prop_chunk'])
-
-    # tmp_zarr_and_zip(ds_ref_prop, snakemake.output.diag_ref_prop)
-
