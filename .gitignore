@@ -136,3 +136,5 @@ slurm_ouputs
 get_ids.ipynb
 s_logs/
 report.html
+dag.dot
+config/paths.yml
