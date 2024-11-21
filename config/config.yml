@@ -292,10 +292,10 @@ biasadjust_mbcn:
   group:
     group: time.dayofyear
     window: 31
-  variable:
+  variables:
     - tasmax
     - pr
-    - dtr
+    - tasmin
   train:
     n_iter: 20
     adj_kws:
@@ -308,9 +308,11 @@ biasadjust_mbcn:
         kind: "*"
         jitter_under_thresh_value: "0.01 mm d-1"
         adapt_freq_thresh: "1 mm d-1"
-      dtr:
-        kind: "*"
-        jitter_under_thresh_value: "1e-4 K"
+      # dtr:
+      #   kind: "*"
+      #   jitter_under_thresh_value: "1e-4 K"
+      tasmin:
+        kind: "+"
       tasmax:
         kind: "+"
     adj_kws:
@@ -330,11 +332,12 @@ clean_up:
       pr: mm d-1
     convert_calendar_kwargs:
       target: standard
-      align_on: random
+      align_on: year
     missing_by_var:
       tasmax: interpolate
       tasmin: interpolate
       pr: [0]
+      dtr: interpolate
     maybe_unstack_dict:
       stack_drop_nans: *stack
       rechunk:
@@ -367,6 +370,7 @@ clean_up:
         - units
       tasmin: *attrs_to_keep
       pr: *attrs_to_keep
+      dtr: *attrs_to_keep
     add_attrs:
       global:
         Notes: |
@@ -390,6 +394,10 @@ clean_up:
           standard_name: precipitation_flux
           long_name: Mean daily precipitation flux
           cell_methods: "time: mean within days"
+      dtr:
+          standard_name: air_temperature
+          long_name: Mean diurnal temperature range
+          cell_methods: "time range within days"
 
 rechunk:
     worker_mem: 2GB
@@ -404,6 +412,7 @@ diagnostics:
       tasmax: degC
       tasmin: degC
       pr: mm d-1
+      dtr: K
     properties: config/properties_info-crue-6.yml
   health_checks:
     structure:
@@ -421,6 +430,7 @@ diagnostics:
       tasmax: "°C"
       tasmin: "°C"
       pr: "mm d-1"
+      dtr: K
     cfchecks:
       tasmax:
         cfcheck_from_name: {}

@@ -15,10 +15,9 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
 
-    #client=dask_cluster(snakemake.params)
-
     
     dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
+    dsim= dsim[CONFIG['biasadjust_mbcn']['variables']]
 
     # because we took regridded from other domain
     region_name = snakemake.wildcards.region_name
@@ -34,7 +33,7 @@ if __name__ == '__main__':
     dref= xr.open_zarr(snakemake.input[f'ref_{refcal}'],decode_timedelta=False).load()
     dref = convert_calendar(dref, refcal,
                             align_on=CONFIG['custom']['align_on'])
-    
+    dref= dref[CONFIG['biasadjust_mbcn']['variables']]
 
 
     # choose right ref period for hist

@@ -7,22 +7,22 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_id=[
-    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', # TODO: PCIC member
+     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r1i1p1f1',# TODO: PCIC member
+     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
      'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',# TODO: PCIC member
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', # TODO: PCIC member
 ]
-
 
 
 
@@ -108,6 +108,7 @@ rule concat_scen:
         pr=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/pr/pr_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
         tasmax=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
         tasmin=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
+        dtr=finaldir/"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{sim_id_slash}/day/dtr/dtr_day_IC6-EM-MBCn_v10_{sim_id}_QC_1951-2100.zarr.zip",
     params:
         sim_id_slash=lambda wildcards: wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/'),
         n_workers=2,
@@ -122,6 +123,7 @@ rule health:
         pr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/pr/pr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
         tasmax=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
         tasmin=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+        dtr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/dtr/dtr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
     output: 
         finaldir/"health/{sim_id}_health.zarr.zip"
     params:
@@ -151,6 +153,7 @@ rule diag:
         scen_pr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/pr/pr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
         scen_tasmax=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmax/tasmax_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
         scen_tasmin=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/tasmin/tasmin_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
+        scen_dtr=lambda wildcards: finaldir/f"staging/simulation/biasadjusted/IC6-EM-MBCn_v10/{wildcards.sim_id.replace('_','/').replace('ScenarioMIP/','ScenarioMIP/QC/')}/day/dtr/dtr_day_IC6-EM-MBCn_v10_{wildcards.sim_id}_QC_1951-2100.zarr.zip",
     output: 
         sim_prop=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-prop.zarr.zip",
         sim_meas=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-meas.zarr.zip",
@@ -161,7 +164,7 @@ rule diag:
         n_workers=2,
         mem="50GB",
         cpus_per_task=4,
-        time="01:00:00",
+        time="02:00:00",
     script:
         "workflow/scripts/diag.py"
 

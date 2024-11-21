@@ -129,9 +129,6 @@ dmypy.json
 .pyre/
 
 
-configuration/paths_narval.yml
-slurm_outputs/
-slurm_ouputs
 .snakemake/
 get_ids.ipynb
 s_logs/

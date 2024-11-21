@@ -16,20 +16,18 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
 
-    #client=dask_cluster(snakemake.params)
-
-
     all_per=[xr.open_zarr(f,decode_timedelta=False) for f in snakemake.input]
 
+
     ds=xr.concat(all_per,dim='time')
+
     ds.attrs['cat:processing_level'] = f'biasadjusted'
 
-    ds = ds.assign(tasmin=conversions.tasmin_from_dtr(dtr=ds.dtr, tasmax=ds.tasmax))
-    ds = ds.drop_vars('dtr')    
 
-    print(ds)
-
-
+    if 'tasmin' not in ds:
+        ds['tasmin']=conversions.tasmin_from_dtr(dtr=ds.dtr, tasmax=ds.tasmax)
+    elif 'dtr' not in ds:
+        ds['dtr']=conversions.dtr_from_minmax(tasmin=ds.tasmin, tasmax=ds.tasmax)
 
 
     ds = xs.clean_up(ds = ds.chunk({'time':-1}),
@@ -38,10 +36,6 @@ if __name__ == '__main__':
     clean_path=f"{os.environ['SLURM_TMPDIR']}/{snakemake.wildcards.sim_id}_{snakemake.wildcards.region_name}_cleaned.zarr"
     xs.save_to_zarr(ds, clean_path)
     
-    print("path_in",clean_path)
-    print( "path_out",create_tmp_path(snakemake.output[0]))
-    print("temp_store",f"{os.environ['SLURM_TMPDIR']}/tmp_rechunk/{snakemake.wildcards.sim_id}_{snakemake.wildcards.region_name}/")
-
     xs.io.rechunk(path_in=clean_path,
         path_out=create_tmp_path(snakemake.output[0]),
         chunks_over_dim=CONFIG['custom']['final_zarr_chunks'],
@@ -49,5 +43,4 @@ if __name__ == '__main__':
         **CONFIG['rechunk'],
         overwrite=True)
     
-
     zip_directory( create_tmp_path(snakemake.output[0]),snakemake.output[0])

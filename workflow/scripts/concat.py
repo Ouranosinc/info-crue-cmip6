@@ -15,7 +15,7 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
     params=snakemake.params
-    print(params)
+
     if 'sim_id_slash' in params:
         params.pop('sim_id_slash')
 
@@ -37,11 +37,14 @@ if __name__ == '__main__':
     dsC.attrs['cat:domain'] = 'QC'
     dsC.attrs.pop('cat:path', None)
 
-    dsC = dsC.chunk(
+    for var in dsC.data_vars:
+        out=dsC[[var]]
+        out[var].encoding={}
+        out = out.chunk(
         xs.utils.translate_time_chunk(
             {'time': '4year'},
-            xc.core.calendar.get_calendar(dsC),
-            dsC.time.size)| CONFIG['custom']['concat_chunks']
+            xc.core.calendar.get_calendar(out),
+            out.time.size)| CONFIG['custom']['concat_chunks']
                                )
-    for var in dsC.data_vars:
-        tmp_zarr_and_zip(dsC[[var]],snakemake.output[var])
+
+        tmp_zarr_and_zip(out, snakemake.output[var])

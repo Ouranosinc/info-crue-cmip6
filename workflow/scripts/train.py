@@ -19,8 +19,7 @@ if __name__ == '__main__':
     
     sh.copytree(snakemake.input.sim,f"{os.environ['SLURM_TMPDIR']}/dsim.zarr" )
     dsim= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dsim.zarr",decode_timedelta=False)
-    print(dsim)
-    print(dsim)
+    dsim= dsim[CONFIG['biasadjust_mbcn']['variables']]
     
     # because we took regridded from other domain
     dsim.attrs['cat:domain'] = snakemake.wildcards.region_name
@@ -36,6 +35,7 @@ if __name__ == '__main__':
     dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
     dref = convert_calendar(dref, refcal,
                             align_on=CONFIG['custom']['align_on'])
+    dref= dref[CONFIG['biasadjust_mbcn']['variables']]
     
 
 
@@ -44,11 +44,7 @@ if __name__ == '__main__':
 
     dref,  dhist = (sdba.stack_variables(da) for da in
                         (dref, dhist))
-    print('dref')
-    print(dref)
-    print('dhist')
-    print(dhist)                   
-
+                 
 
     # create group
     group = CONFIG['biasadjust_mbcn'].get('group')

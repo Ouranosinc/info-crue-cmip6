@@ -15,7 +15,8 @@ if __name__ == '__main__':
 
     ds_scen=xr.open_mfdataset([snakemake.input.scen_pr,
                                snakemake.input.scen_tasmax,
-                               snakemake.input.scen_tasmin],
+                               snakemake.input.scen_tasmin,
+                               snakemake.input.scen_dtr],
                                engine='zarr',
                                decode_timedelta=False)
     ds_target = xr.open_zarr(snakemake.input.ref, decode_timedelta=False)
@@ -46,11 +47,14 @@ if __name__ == '__main__':
         weights_location= f"{os.environ['SLURM_TMPDIR']}/weights/",
         **args
     )
+    #mask nan
+    mask=ds_target['tasmax'].isel(time=130, drop=True).notnull().compute()
+    ds_sim=ds_sim.where(mask)
+
     # chunk time dim
     ds_sim = ds_sim.chunk({d: CONFIG['custom']['working_chunks'][d] for d in ds_sim.dims})
 
 
-    #SIM
     sim_prop, sim_meas = xs.properties_and_measures(
                                 ds=ds_sim,
                                 dref_for_measure=ref_prop,
@@ -64,7 +68,7 @@ if __name__ == '__main__':
                         )
     for out, name in zip([sim_prop, sim_meas, scen_prop, scen_meas],['sim_prop','sim_meas','scen_prop','scen_meas']):
         out = out.chunk(CONFIG['custom']['concat_chunks'])
-        tmp_zarr_and_zip(sim_prop, snakemake.output[name])
+        tmp_zarr_and_zip(out, snakemake.output[name])
 
     imp = xs.diagnostics.measures_improvement([sim_meas,scen_meas])
     tmp_zarr_and_zip(imp, snakemake.output.imp)

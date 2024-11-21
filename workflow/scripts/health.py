@@ -17,7 +17,7 @@ if __name__ == '__main__':
     client=dask_cluster(snakemake.params)
 
 
-    ds_input = xr.open_mfdataset([snakemake.input.pr, snakemake.input.tasmax, snakemake.input.tasmin],
+    ds_input = xr.open_mfdataset([snakemake.input.pr, snakemake.input.tasmax, snakemake.input.tasmin, snakemake.input.dtr],
                                   engine='zarr',decode_timedelta=False)
     
     hc = xs.diagnostics.health_checks(ds=ds_input,)
