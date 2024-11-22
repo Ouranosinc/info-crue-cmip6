@@ -24,6 +24,28 @@ sim_id=[
      'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', # TODO: PCIC member
 ]
 
+# sim_id=[
+#     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1',
+#     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
+#      'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', # TODO: PCIC member
+#      'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# TODO: PCIC member
+#      'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r1i1p1f1', 
+#      'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',# TODO: PCIC member
+#      'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', # TODO: PCIC member
+# ]
+
 
 
 regions= list(config['custom']['regions'].keys())
