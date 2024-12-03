@@ -16,7 +16,7 @@ output=`sacct -j "$jobid" --format State --noheader | head -n 1 | awk '{print $1
 if [[ $output =~ ^(COMPLETED).* ]]
 then
   echo success
-elif [[ $output =~ ^(FAILED|CANCELLED|TIMEOUT|PREEMPTED|NODE_FAIL|REVOKED|SPECIAL_EXIT).* ]]
+elif [[ $output =~ ^(FAILED|CANCELLED|TIMEOUT|PREEMPTED|NODE_FAIL|REVOKED|SPECIAL_EXIT|OUT_OF_ME+).* ]]
 then
   echo failed
 else
