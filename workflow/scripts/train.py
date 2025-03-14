@@ -5,7 +5,7 @@ from xscen import CONFIG
 from workflow.scripts.utils import dask_cluster, zip_directory, unzip_directory, tmp_zarr_and_zip
 import copy
 import xarray as xr
-from xclim.core.calendar import convert_calendar, get_calendar
+from xclim.core.calendar import  get_calendar # convert_calendar
 from xscen.utils import minimum_calendar, stack_drop_nans
 from xclim import sdba
 import shutil as sh
@@ -27,14 +27,14 @@ if __name__ == '__main__':
     # choose right calendar and convert
     refcal = minimum_calendar(get_calendar(dsim),
                             CONFIG['custom']['maximal_calendar'])
-    dsim = convert_calendar(dsim, refcal,
-                            align_on=CONFIG['custom']['align_on'])
+    dsim = dsim.convert_calendar(refcal,align_on=CONFIG['custom']['align_on'])
+    #dsim = convert_calendar(dsim, refcal,align_on=CONFIG['custom']['align_on'])
 
     # load ref ds
     unzip_directory(snakemake.input[f'ref_{refcal}'],f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
     dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
-    dref = convert_calendar(dref, refcal,
-                            align_on=CONFIG['custom']['align_on'])
+    dref= dref.convert_calendar(refcal,align_on=CONFIG['custom']['align_on'])
+    #dref = convert_calendar(dref, refcal,align_on=CONFIG['custom']['align_on'])
     dref= dref[CONFIG['biasadjust_mbcn']['variables']]
     
 

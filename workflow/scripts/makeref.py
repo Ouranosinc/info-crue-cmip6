@@ -5,7 +5,7 @@ from xscen import CONFIG
 from workflow.scripts.utils import dask_cluster, zip_directory, tmp_zarr_and_zip
 import copy
 import xarray as xr
-from xclim.core.calendar import convert_calendar, get_calendar
+#from xclim.core.calendar import convert_calendar, get_calendar
 from xscen.utils import minimum_calendar, stack_drop_nans
 from xclim import sdba
 import shutil as sh
@@ -55,11 +55,13 @@ if __name__ == '__main__':
     tmp_zarr_and_zip(ds_ref,snakemake.output.default)
 
     # noleap
-    ds_refnl = convert_calendar(ds_ref, "noleap")
+    #ds_refnl = convert_calendar(ds_ref, "noleap")
+    ds_refnl =ds_ref.convert_calendar('noleap')
     ds_refnl.attrs['cat:calendar'] = 'noleap'
     tmp_zarr_and_zip(ds_refnl, snakemake.output.noleap)
 
     # 360_day
-    ds_ref3 = convert_calendar(ds_ref, "360_day", align_on="year")
+    #ds_ref3 = convert_calendar(ds_ref, "360_day", align_on="year")
+    ds_ref3 = ds_ref.convert_calendar('360_day', align_on="year")
     ds_ref3.attrs['cat:calendar'] = '360_day'
     tmp_zarr_and_zip(ds_ref3, snakemake.output.day360)

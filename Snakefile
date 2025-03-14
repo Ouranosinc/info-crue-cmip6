@@ -7,39 +7,39 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_id=[
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', # TODO: PCIC member
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# TODO: PCIC member
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',# TODO: PCIC member
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', # TODO: PCIC member
-    'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1', # start 8444
-    'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', # TODO: PCIC member
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# TODO: PCIC member
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',# TODO: PCIC member
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', # TODO: PCIC member
+    'CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', # TODO: PCIC member
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# TODO: PCIC member
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',# TODO: PCIC member
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', # TODO: PCIC member
+    # 'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1', # start 8444
+    # 'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', # TODO: PCIC member
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# TODO: PCIC member
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',# TODO: PCIC member
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', # TODO: PCIC member
 ]
 
 
@@ -52,8 +52,20 @@ finaldir= Path(config['paths']['finaldir'])
 
 rule all:
     input: 
+        #finaldir/"tmp.txt"
         expand(finaldir/"health/{sim_id}_health.zarr.zip",sim_id=sim_id),
-        expand(finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_imp.zarr.zip",sim_id=sim_id)
+        #expand(finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_imp.zarr.zip",sim_id=sim_id) #TODO: put back
+    
+rule test:
+    output: 
+        finaldir/"tmp.txt"
+    params:
+        n_workers=1,
+        mem="10MB",
+        cpus_per_task=1,
+        time="00:10:00",
+    script:
+        "workflow/test.py"
 
 rule makeref:
     output: 
@@ -91,7 +103,8 @@ rule train:
         cpus_per_task=12,
         time="00:50:00",
     script:
-        "workflow/scripts/train.py"
+        "workflow/scripts/train_stacked.py" #TODO: put back
+        #"workflow/scripts/train.py"
 
 
 rule adjust_per_load:
@@ -108,10 +121,25 @@ rule adjust_per_load:
     script:
         "workflow/scripts/adjust_per_load.py"
 
+rule adjust_stacked:
+    input:
+        sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr",
+        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+        train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
+    output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-stacked.zarr.zip"),
+    params:
+        mem="40GB",
+        cpus_per_task=1,
+        time="6:00:00",
+    script:
+        "workflow/scripts/adjust_stacked.py"
+
 
 
 rule clean_up:
-    input: expand(wdir/"{{sim_id}}_{{region_name}}/{{sim_id}}_{{region_name}}_adjusted-load_{period}.zarr",period=['1951-1980','1981-2010','2011-2040','2041-2070','2071-2100'])
+    #input: expand(wdir/"{{sim_id}}_{{region_name}}/{{sim_id}}_{{region_name}}_adjusted-load_{period}.zarr",period=['1951-1980','1981-2010','2011-2040','2041-2070','2071-2100'])
+    input: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted-stacked.zarr.zip" #TODO: put back
     output: temp(finaldir/"final_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
     params:
         mem="5GB",

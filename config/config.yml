@@ -11,126 +11,126 @@ custom:
         method: bbox
         lon_bnds: [ -83, -55 ]
         lat_bnds: [ 42, 43.25 ]
-      b-EMDNA: 
-        name: b-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 43.3, 44.25 ]
-      c-EMDNA:
-        name: c-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 44.3, 45.05 ]
-      d-EMDNA:
-        name: d-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 45.1, 45.75 ]
-      e-EMDNA:
-        name: e-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 45.8, 46.45 ]
-      f-EMDNA:
-        name: f-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 46.5, 47.15 ]
-      g-EMDNA:
-        name: g-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 47.2, 47.85 ]
-      h-EMDNA:
-        name: h-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 47.9, 48.55 ]
-      i-EMDNA:  
-        name: i-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 48.6, 49.25 ]
-      j-EMDNA:
-        name: j-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 49.3, 50.05 ]
-      k-EMDNA:    
-        name: k-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 50.1, 50.65 ]
-      l-EMDNA:  
-        name: l-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 50.7, 51.25 ]
-      m-EMDNA:
-        name: m-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 51.3, 51.85 ]
-      n-EMDNA:
-        name: n-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 51.9, 52.45 ]
-      o-EMDNA:
-        name: o-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 52.5, 53.05 ]
-      p-EMDNA:
-        name: p-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 53.1, 53.65 ]
-      q-EMDNA:
-        name: q-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 53.7, 54.25 ]
-      r-EMDNA:
-        name: r-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 54.3, 54.95 ]
-      s-EMDNA:
-        name: s-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 55.0, 55.65 ]
-      t-EMDNA:
-        name: t-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 55.7, 56.55 ]
-      u-EMDNA:  
-        name: u-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 56.6, 57.45 ]
-      v-EMDNA:    
-        name: v-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 57.5, 58.45 ]
-      w-EMDNA:  
-        name: w-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 58.5, 59.55 ]
-      x-EMDNA:  
-        name: x-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 59.6, 61.05 ]
-      y-EMDNA:  
-        name: y-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 61.1, 62.95 ]
+      # b-EMDNA: 
+      #   name: b-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 43.3, 44.25 ]
+      # c-EMDNA:
+      #   name: c-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 44.3, 45.05 ]
+      # d-EMDNA:
+      #   name: d-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 45.1, 45.75 ]
+      # e-EMDNA:
+      #   name: e-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 45.8, 46.45 ]
+      # f-EMDNA:
+      #   name: f-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 46.5, 47.15 ]
+      # g-EMDNA:
+      #   name: g-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 47.2, 47.85 ]
+      # h-EMDNA:
+      #   name: h-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 47.9, 48.55 ]
+      # i-EMDNA:  
+      #   name: i-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 48.6, 49.25 ]
+      # j-EMDNA:
+      #   name: j-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 49.3, 50.05 ]
+      # k-EMDNA:    
+      #   name: k-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 50.1, 50.65 ]
+      # l-EMDNA:  
+      #   name: l-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 50.7, 51.25 ]
+      # m-EMDNA:
+      #   name: m-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 51.3, 51.85 ]
+      # n-EMDNA:
+      #   name: n-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 51.9, 52.45 ]
+      # o-EMDNA:
+      #   name: o-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 52.5, 53.05 ]
+      # p-EMDNA:
+      #   name: p-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 53.1, 53.65 ]
+      # q-EMDNA:
+      #   name: q-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 53.7, 54.25 ]
+      # r-EMDNA:
+      #   name: r-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 54.3, 54.95 ]
+      # s-EMDNA:
+      #   name: s-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 55.0, 55.65 ]
+      # t-EMDNA:
+      #   name: t-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 55.7, 56.55 ]
+      # u-EMDNA:  
+      #   name: u-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 56.6, 57.45 ]
+      # v-EMDNA:    
+      #   name: v-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 57.5, 58.45 ]
+      # w-EMDNA:  
+      #   name: w-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 58.5, 59.55 ]
+      # x-EMDNA:  
+      #   name: x-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 59.6, 61.05 ]
+      # y-EMDNA:  
+      #   name: y-EMDNA 
+      #   method: bbox
+      #   lon_bnds: [ -83, -55 ]
+      #   lat_bnds: [ 61.1, 62.95 ]
     qc_region:
       name: QC-EMDNA
       method: bbox
@@ -306,8 +306,8 @@ biasadjust_mbcn:
     base_kws_vars:
       pr:
         kind: "*"
-        jitter_under_thresh_value: "0.01 mm d-1"
-        adapt_freq_thresh: "1 mm d-1"
+        jitter_under_thresh_value: "1.1574e-07 kg m^-2 s^-1" #"0.01 mm d-1"
+        adapt_freq_thresh: "1.1574e-05 kg m^-2 s^-1" #"1 mm d-1"
       # dtr:
       #   kind: "*"
       #   jitter_under_thresh_value: "1e-4 K"
@@ -331,12 +331,13 @@ clean_up:
       tasmin: degC
       pr: mm d-1
     convert_calendar_kwargs:
-      target: standard
+      #target: standard #TODO: old xscen
+      calendar: standard
       align_on: year
     missing_by_var:
       tasmax: interpolate
       tasmin: interpolate
-      pr: [0]
+      pr: 0 # [0] #TODO: old xscen
       dtr: interpolate
     maybe_unstack_dict:
       stack_drop_nans: *stack
