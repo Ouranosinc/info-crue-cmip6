@@ -9,43 +9,46 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_ids=[
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',#  PCIC member
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', #PCIC member
-    'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1', # start 8444
-    'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
-     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', #  PCIC member
-     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# PCIC member
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',#  PCIC member
-     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', #  PCIC member
+    "CMIP7_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1"
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',#  PCIC member
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', #PCIC member
+    # 'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1', # start 8444
+    # 'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', #  PCIC member
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# PCIC member
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',#  PCIC member
+    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', #  PCIC member
 ]
 
 
 
 regions= list(config['custom']['regions'].keys())
+# use dom as wildcard so it can be defined in the config
+domain=[config['custom']['full_region']['name']]
 
 wdir= Path(config['paths']['workdir'])
 finaldir= Path(config['paths']['finaldir'])
@@ -55,14 +58,14 @@ finaldir= Path(config['paths']['finaldir'])
 
 rule all:
     input: 
-        expand(finaldir/"health/{sim_id}_health.zarr.zip",sim_id=sim_ids),
-        expand(finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_imp.zarr.zip",sim_id=sim_ids)
+        expand(finaldir/"health/{sim_id}_{dom}_health.zarr.zip",sim_id=sim_ids, dom=domain),
+        expand(finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_imp.zarr.zip",sim_id=sim_ids, dom=domain)
 
 rule makeref:
     output: 
-        default=finaldir/ "reference/{region_name}_default.zarr.zip",
-        noleap=finaldir/ "reference/{region_name}_noleap.zarr.zip",
-        day360=finaldir/ "reference/{region_name}_360_day.zarr.zip",
+        default=finaldir/ "reference/split_regions/{region_name}_default.zarr.zip",
+        noleap=finaldir/ "reference/split_regions/{region_name}_noleap.zarr.zip",
+        day360=finaldir/ "reference/split_regions/{region_name}_360_day.zarr.zip",
     params:
         n_workers=2,
         mem="250GB",
@@ -72,7 +75,7 @@ rule makeref:
 
 rule extractregrid:
     input: 
-        noleap=finaldir/ "reference/{region_name}_noleap.zarr.zip",
+        noleap=finaldir/ "reference/split_regions/{region_name}_noleap.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr.zip")
     params:
         n_workers=2,
@@ -85,8 +88,8 @@ rule extractregrid:
 rule train:
     input:
         sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr.zip",
-        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
-        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+        ref_noleap= finaldir/"reference/split_regions/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/split_regions/{region_name}_360_day.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip"),
     params:
         n_workers=10,
@@ -100,8 +103,8 @@ rule train:
 rule adjust:
     input:
         sim= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr.zip",
-        ref_noleap= finaldir/"reference/{region_name}_noleap.zarr.zip",
-        ref_360_day= finaldir/"reference/{region_name}_360_day.zarr.zip",
+        ref_noleap= finaldir/"reference/split_regions/{region_name}_noleap.zarr.zip",
+        ref_360_day= finaldir/"reference/split_regions/{region_name}_360_day.zarr.zip",
         train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"),
     params:
@@ -114,7 +117,7 @@ rule adjust:
 
 rule clean_up:
     input: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"
-    output: temp(finaldir/"final_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
+    output: temp(finaldir/"split_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
     params:
         mem="5GB",
         cpus_per_task=1,
@@ -146,12 +149,12 @@ def final_path(id):
 
 #sim_id HAS to be in output, so can't use only params
 rule concat_scen:
-    input: expand(finaldir/"final_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
+    input: expand(finaldir/"split_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
     output: 
-        pr=finaldir/"staging/{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip", 
-        tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip",
-        tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip",
-        dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip", 
+        pr=finaldir/"staging/{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
+        tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
+        tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
+        dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
     params:
         path=lambda wildcards: final_path(wildcards.sim_id),
         n_workers=2,
@@ -164,12 +167,12 @@ rule concat_scen:
 
 rule health:
     input:
-        pr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
-        tasmax=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
-        tasmin=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
-        dtr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        pr=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        tasmax=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        tasmin=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        dtr=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
     output: 
-        finaldir/"health/{sim_id}_health.zarr.zip"
+        finaldir/"health/{sim_id}_{dom}_health.zarr.zip"
     params:
         n_workers=2,
         mem="50GB",
@@ -182,8 +185,8 @@ rule health:
 
 rule diag_ref:
     output: 
-        ref=finaldir/ "reference/QC_default.zarr.zip",
-        prop=finaldir/"diagnostics/QC/prop_ref.zarr.zip"
+        ref=finaldir/ "reference/{dom}_default.zarr.zip",
+        prop=finaldir/"diagnostics/{dom}/prop_ref.zarr.zip"
     params:
         n_workers=2,
         mem="50GB",
@@ -194,18 +197,18 @@ rule diag_ref:
 
 rule diag:
     input:
-        ref=finaldir/ "reference/QC_default.zarr.zip",
-        ref_prop=finaldir/"diagnostics/QC/prop_ref.zarr.zip",
-        scen_pr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
-        scen_tasmax=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
-        scen_tasmin=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
-        scen_dtr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        ref=finaldir/ "reference/{dom}_default.zarr.zip",
+        ref_prop=finaldir/"diagnostics/{dom}/prop_ref.zarr.zip",
+        scen_pr=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        scen_tasmax=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        scen_tasmin=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        scen_dtr=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
     output: 
-        sim_prop=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-prop.zarr.zip",
-        sim_meas=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-meas.zarr.zip",
-        scen_prop=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_scen-prop.zarr.zip",
-        scen_meas=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_scen-meas.zarr.zip",
-        imp=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_imp.zarr.zip",
+        sim_prop=finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_sim-prop.zarr.zip",
+        sim_meas=finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_sim-meas.zarr.zip",
+        scen_prop=finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_scen-prop.zarr.zip",
+        scen_meas=finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_scen-meas.zarr.zip",
+        imp=finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_imp.zarr.zip",
     params:
         n_workers=2,
         mem="50GB",
