@@ -22,7 +22,8 @@ if __name__ == '__main__':
     ds_target = xr.open_zarr(snakemake.input.ref, decode_timedelta=False)
     ref_prop=xr.open_zarr(snakemake.input.ref_prop,decode_timedelta=False)
 
-    # Create ds_sim
+    #TODO: think more about why do this instead of concat regridded
+    # Create ds_sim for full region
     args=copy.deepcopy(CONFIG['extraction']['simulation']['search_data_catalogs'])
     args['other_search_criteria'] = {'id': snakemake.wildcards.sim_id +'_global'}
     # search cat
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     dc_id = cat_sim_id.popitem()[1]
     # buffer is need to take a bit larger than actual domain, to avoid weird effect at the edge
     # domain will be cut to the right shape during the regrid
-    region_dict=CONFIG['custom']['qc_region']
+    region_dict=CONFIG['custom']['full_region']
     ds_sim = xs.extract_dataset(catalog=dc_id,
                                 region=region_dict,
                                 **CONFIG['extraction']['simulation']['extract_dataset'],
@@ -54,6 +55,10 @@ if __name__ == '__main__':
     # chunk time dim
     ds_sim = ds_sim.chunk({d: CONFIG['custom']['working_chunks'][d] for d in ds_sim.dims})
 
+    print(ds_scen)
+    print(ref_prop)
+    print(ds_scen.lat.values)
+    print(ref_prop.lat.values)
 
     sim_prop, sim_meas = xs.properties_and_measures(
                                 ds=ds_sim,

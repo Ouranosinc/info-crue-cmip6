@@ -5,8 +5,7 @@ from xscen import CONFIG
 from workflow.scripts.utils import dask_cluster, zip_directory, tmp_zarr_and_zip
 import copy
 import xarray as xr
-#from xclim.core.calendar import convert_calendar, get_calendar
-from xscen.utils import minimum_calendar, stack_drop_nans
+from xscen.utils import stack_drop_nans
 from xclim import sdba
 import shutil as sh
 import xclim as xc
@@ -28,20 +27,18 @@ if __name__ == '__main__':
                                 region=region_dict,
                                 **CONFIG['extraction']['reference']['extract_dataset']
                                 )['D']
+    
 
     #standardize units
     ds_ref = xs.clean_up(ds_ref, **CONFIG['extraction']['reference']['clean_up'])
+    # TODO: eventually we should be able to do this in clean up
     ds_ref['pr'] = xc.core.units.convert_units_to(ds_ref['pr'],
-                                                    'kg m-2 s-1',
-                                                    context='hydro')
+                                                  'kg m-2 s-1',
+                                                  context='hydro')
 
-
-    ds_ref = ds_ref.chunk(
-        {d: CONFIG['custom']['working_chunks'][d] for d in ds_ref.dims})
 
     # stack
     if CONFIG['custom']['stack_drop_nans']:
-
 
         variables = list(CONFIG['extraction']['reference']['search_data_catalogs'][
                                 'variables_and_freqs'].keys())

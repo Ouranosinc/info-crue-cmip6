@@ -5,21 +5,20 @@ from xscen import CONFIG
 from workflow.scripts.utils import dask_cluster, zip_directory, unzip_directory, tmp_zarr_and_zip
 import copy
 import xarray as xr
-from xclim.core.calendar import convert_calendar, get_calendar
-from xscen.utils import minimum_calendar, stack_drop_nans
-from xclim import sdba
 import shutil as sh
 import xclim as xc
 
 xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
-    params=snakemake.params
-
-    if 'sim_id_slash' in params:
-        params.pop('sim_id_slash')
-
-    client=dask_cluster(params)
+    
+    # snakemake trick
+    # doesnt work, try without
+    # params=snakemake.params
+    # print(params)
+    # params.pop('path')
+    # print(params)
+    # client=dask_cluster(params)
 
 
     list_dsR = []
@@ -34,7 +33,7 @@ if __name__ == '__main__':
     else:
         dsC = xr.concat(list_dsR, 'lat')
 
-    dsC.attrs['cat:domain'] = 'QC'
+    dsC.attrs['cat:domain'] = CONFIG['custom']['full_region']['name']
     dsC.attrs.pop('cat:path', None)
 
     for var in dsC.data_vars:

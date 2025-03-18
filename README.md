@@ -14,6 +14,8 @@ $ echo "module load StdEnv/2023 gcc openmpi python/3.11 arrow/16.1.0 openmpi net
 ```
  or just activate it: `pyact ic6-mbcn-sm`
 
+ This version uses mbcn-staked en fait.
+
 2) Specify the `sim_id` wanted in the `Snakefile`. 
 
 3) Create your own `config/paths.yml` based on `paths-template.yml`. #TODO: make template

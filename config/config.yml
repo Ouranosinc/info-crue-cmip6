@@ -5,6 +5,12 @@ project:
     id: ic6
 
 custom:
+    bias_adjust_institution: &bias_adjust_institution
+      Ouranos
+    bias_adjust_project: &bias_adjust_project
+      MBCn-EM
+    version: &version
+      v10
     regions:
       a-EMDNA: 
         name: a-EMDNA 
@@ -131,7 +137,7 @@ custom:
       #   method: bbox
       #   lon_bnds: [ -83, -55 ]
       #   lat_bnds: [ 61.1, 62.95 ]
-    qc_region:
+    full_region:
       name: QC-EMDNA
       method: bbox
       lon_bnds: [ -83, -55 ]
@@ -288,40 +294,51 @@ regrid:
           locstream_out: False
           reuse_weights: False
 
+
+
 biasadjust_mbcn:
-  group:
-    group: time.dayofyear
-    window: 31
-  variables:
-    - tasmax
-    - pr
-    - tasmin
   train:
-    n_iter: 20
-    adj_kws:
-      interp: nearest
-      extrapolation: constant
-      n_escore: -1
+    var: #TODO: think about this more, because we have some temperature inversion
+      - tasmax
+      - tasmin
+      - pr
+    method: MBCn
+    period: *ref_period
+    group:
+      group: time.dayofyear
+      window: 31
+    xsdba_train_args:
+      base_kws:
+        nquantiles: 50
+      n_iter: 20
+      adj_kws:
+        interp: nearest
+        extrapolation: constant
+        n_escore: -1
   adjust:
-    base_kws_vars:
-      pr:
-        kind: "*"
-        jitter_under_thresh_value: "1.1574e-07 kg m^-2 s^-1" #"0.01 mm d-1"
-        adapt_freq_thresh: "1.1574e-05 kg m^-2 s^-1" #"1 mm d-1"
-      # dtr:
-      #   kind: "*"
-      #   jitter_under_thresh_value: "1e-4 K"
-      tasmin:
-        kind: "+"
-      tasmax:
-        kind: "+"
-    adj_kws:
-      interp: nearest
-      extrapolation: constant
+    periods: *sim_period
+    xsdba_adjust_args:
+      period_dim: period # stacking
+      base_kws_vars:
+        pr:
+          kind: "*"
+          jitter_under_thresh_value: "1.1574e-07 kg m^-2 s^-1" #"0.01 mm d-1" #TODO: xscen eventully will be handle to handle mm /d
+          adapt_freq_thresh: "1.1574e-05 kg m^-2 s^-1" #"1 mm d-1"
+        # dtr:
+        #   kind: "*"
+        #   jitter_under_thresh_value: "1e-4 K"
+        tasmin:
+          kind: "+"
+        tasmax:
+          kind: "+"
+      adj_kws:
+        interp: nearest
+        extrapolation: constant
   attrs:
     processing_level: biasadjusted
-    bias_adjust_institution: Ouranos
-    bias_adjust_project: IC6-EM-MBCn
+    bias_adjust_institution: *bias_adjust_institution
+    bias_adjust_project: *bias_adjust_project
+    version: *version
 
 clean_up:
   xscen_clean_up:
@@ -331,16 +348,16 @@ clean_up:
       tasmin: degC
       pr: mm d-1
     convert_calendar_kwargs:
-      #target: standard #TODO: old xscen
       calendar: standard
       align_on: year
     missing_by_var:
       tasmax: interpolate
       tasmin: interpolate
-      pr: 0 # [0] #TODO: old xscen
+      pr: 0
       dtr: interpolate
     maybe_unstack_dict:
       stack_drop_nans: *stack
+      dim: loc
       rechunk:
         lat: 15
         lon: 15
@@ -431,7 +448,7 @@ diagnostics:
       tasmax: "°C"
       tasmin: "°C"
       pr: "mm d-1"
-      dtr: K
+      dtr: K 
     cfchecks:
       tasmax:
         cfcheck_from_name: {}
@@ -465,6 +482,7 @@ diagnostics:
 io:
   save_to_zarr:
     mode: o
+    strip_cat_metadata: False #TODO: until default is changed in xscen
 
 dask:
     client:
