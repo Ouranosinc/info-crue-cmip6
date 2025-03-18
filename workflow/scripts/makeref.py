@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     #standardize units
     ds_ref = xs.clean_up(ds_ref, **CONFIG['extraction']['reference']['clean_up'])
-    # TODO: eventually we should be able to do this in clean up
+    #FIXME: when xscen/xsda can handle units correctly
     ds_ref['pr'] = xc.core.units.convert_units_to(ds_ref['pr'],
                                                   'kg m-2 s-1',
                                                   context='hydro')

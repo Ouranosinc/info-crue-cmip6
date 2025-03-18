@@ -8,42 +8,39 @@ import os
 configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
-
-#TODO: put the right sim, careful with PCIC members vs Ouranos members
 sim_ids=[
-    'CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
-    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',#  PCIC member
-    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', #PCIC member
-    # 'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1', # start 8444
-    # 'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', #  PCIC member
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# PCIC member
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',#  PCIC member
-    #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', #  PCIC member
+     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
+     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
+     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
+     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
+     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',#  PCIC member
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp370_r2i1p1f1', #PCIC member
+    'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp126_r1i1p1f1', # start 8444
+    'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp245_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp370_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CCCma_CanESM5_ssp585_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp126_r1i1p1f1',
+     'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp585_r1i1p1f1',
+     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r4i1p1f1', #  PCIC member
+     'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r4i1p1f1',# PCIC member
+     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp126_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp585_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp126_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp585_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp126_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp585_r1i1p1f1', 
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp126_r2i1p1f1',#  PCIC member
+     'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', #  PCIC member
 ]
 
 
@@ -53,7 +50,7 @@ regions= list(config['custom']['regions'].keys())
 wdir= Path(config['paths']['workdir'])
 finaldir= Path(config['paths']['finaldir'])
 
-#TODO: replace the QC if other region
+
 
 
 rule all:
@@ -151,10 +148,10 @@ def final_path(id):
 rule concat_scen:
     input: expand(finaldir/"final_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
     output: 
-        pr=finaldir/"{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip", 
-        tasmax=finaldir/"{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip",
-        tasmin=finaldir/"{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip",
-        dtr=finaldir/"{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip", 
+        pr=finaldir/"staging/{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip", 
+        tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip",
+        tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip",
+        dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip", 
     params:
         path=lambda wildcards: final_path(wildcards.sim_id),
         n_workers=2,
@@ -167,10 +164,10 @@ rule concat_scen:
 
 rule health:
     input:
-        pr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
-        tasmax=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
-        tasmin=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
-        dtr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
+        pr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        tasmax=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        tasmin=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        dtr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
     output: 
         finaldir/"health/{sim_id}_health.zarr.zip"
     params:
@@ -199,10 +196,10 @@ rule diag:
     input:
         ref=finaldir/ "reference/QC_default.zarr.zip",
         ref_prop=finaldir/"diagnostics/QC/prop_ref.zarr.zip",
-        scen_pr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
-        scen_tasmax=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
-        scen_tasmin=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
-        scen_dtr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC-EMDNA_1951-2100.zarr.zip"),
+        scen_pr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/pr/pr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        scen_tasmax=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        scen_tasmin=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
+        scen_dtr=lambda wildcards: finaldir/(f"{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_QC_1951-2100.zarr.zip"),
     output: 
         sim_prop=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-prop.zarr.zip",
         sim_meas=finaldir/"diagnostics/QC/{sim_id}/{sim_id}_QC_sim-meas.zarr.zip",

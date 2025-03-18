@@ -26,7 +26,7 @@ if __name__ == '__main__':
                         drop_variables=['escores'],
                         ).load()
 
-    #TODO: include this in xscen eventually
+    ##FIXME: when xscen/xsda can handle units correctly
     dref['pr']=xc.units.convert_units_to(dref['pr'], 'kg m^-2 s^-1', context='hydro')
     dsim['pr']=xc.units.convert_units_to(dsim['pr'], 'kg m^-2 s^-1', context='hydro')
 
