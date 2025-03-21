@@ -16,7 +16,8 @@ custom:
         name: a-EMDNA 
         method: bbox
         lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 42, 43.25 ]
+        lat_bnds: [ 42,  46.45 ]
+    NOT-USING: #TODO: remove
       b-EMDNA: 
         name: b-EMDNA 
         method: bbox
@@ -300,13 +301,13 @@ biasadjust_mbcn:
   train:
     var: #TODO: think about this more, because we have some temperature inversion
       - tasmax
-      - tasmin
+      - dtr
       - pr
     method: MBCn
     period: *ref_period
     group:
-      group: time.dayofyear
-      window: 31
+      group: 5D
+      window: 7
     xsdba_train_args:
       base_kws:
         nquantiles: 50
@@ -324,9 +325,9 @@ biasadjust_mbcn:
           kind: "*"
           jitter_under_thresh_value: "1.1574e-07 kg m^-2 s^-1" #"0.01 mm d-1" #FIXME: when xscen/xsda can handle units correctly
           adapt_freq_thresh: "1.1574e-05 kg m^-2 s^-1" #"1 mm d-1"
-        # dtr:
-        #   kind: "*"
-        #   jitter_under_thresh_value: "1e-4 K"
+        dtr:
+          kind: "*"
+          jitter_under_thresh_value: "1e-4 K"
         tasmin:
           kind: "+"
         tasmax:
@@ -395,7 +396,7 @@ clean_up:
           Regridded on the grid of EMDNA, then bias-adjusted with MBCn.
           The reference was EMDNA over the 1989-2018 period.
         version: "v10"
-        code: https://github.com/Ouranosinc/info-crue-cmip6/tree/mbcn-narval
+        code: https://github.com/Ouranosinc/info-crue-cmip6/tree/mbcn-stacked
         contact: lavoie.juliette@ouranos.ca
         organisation: Groupe scénarios et services climatiques, Consortium Ouranos, Montréal, QC; www.ouranos.ca
         avertissement : Ouranos ne donne aucune garantie, expresse ou implicite, y compris, mais sans s'y limiter, les garanties de qualité marchande et d'adéquation à un usage particulier. Toutes les responsabilités découlant de la fourniture des informations (y compris toute responsabilité découlant d'une négligence) sont exclues dans toute la mesure permise par la loi.

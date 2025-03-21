@@ -41,7 +41,6 @@ if __name__ == '__main__':
         weights_location= f"{os.environ['SLURM_TMPDIR']}/weights/",
         **CONFIG['regrid']['regrid_dataset']
     )
-    print(ds_regrid.attrs['cat:domain'])
     # chunk time dim
     ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['working_chunks'][d] for d in ds_regrid.dims})
 

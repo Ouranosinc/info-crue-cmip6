@@ -9,7 +9,7 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_ids=[
-    "CMIP7_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1"
+    "CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1"
     #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
     #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
     #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
@@ -59,7 +59,7 @@ finaldir= Path(config['paths']['finaldir'])
 rule all:
     input: 
         expand(finaldir/"health/{sim_id}_{dom}_health.zarr.zip",sim_id=sim_ids, dom=domain),
-        expand(finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_imp.zarr.zip",sim_id=sim_ids, dom=domain)
+        #expand(finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_imp.zarr.zip",sim_id=sim_ids, dom=domain)
 
 rule makeref:
     output: 
@@ -81,7 +81,8 @@ rule extractregrid:
         n_workers=2,
         mem="10GB",
         cpus_per_task=4,
-        time="00:10:00",
+        #time="00:10:00", 
+        time="00:20:00", #TODO: test big region [42, 46.45]
     script:
         "workflow/scripts/extract-regrid.py"
 
@@ -108,9 +109,9 @@ rule adjust:
         train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"),
     params:
-        mem="40GB",
+        mem="80GB",
         cpus_per_task=1,
-        time="6:00:00",
+        time="12:00:00",
     script:
         "workflow/scripts/adjust.py"
 

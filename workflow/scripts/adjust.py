@@ -16,6 +16,8 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
 
+    #MBCn adjust fonctionne vrm mieux sans dask
+
     dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
 
     refcal = minimum_calendar(get_calendar(dsim),CONFIG['custom']['maximal_calendar'])
