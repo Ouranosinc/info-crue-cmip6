@@ -109,9 +109,11 @@ rule adjust:
         train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"),
     params:
-        mem="80GB",
+        #mem="80GB",
+        mem="100GB",
         cpus_per_task=1,
-        time="12:00:00",
+        #time="12:00:00",
+        time="24:00:00", #TODO: for 50 test
     script:
         "workflow/scripts/adjust.py"
 
