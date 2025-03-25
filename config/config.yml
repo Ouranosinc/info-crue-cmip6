@@ -16,7 +16,27 @@ custom:
         name: a-EMDNA 
         method: bbox
         lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 42,  50.05 ]
+        lat_bnds: [ 42, 46.45  ]
+      b-EMDNA:
+        name: b-EMDNA 
+        method: bbox
+        lon_bnds: [ -83, -55 ]
+        lat_bnds: [ 46.5,  50.05 ]
+      c-EMDNA:
+        name: c-EMDNA 
+        method: bbox
+        lon_bnds: [ -83, -55 ]
+        lat_bnds: [ 50.1,  53.05 ]
+      d-EMDNA:
+        name: d-EMDNA 
+        method: bbox
+        lon_bnds: [ -83, -55 ]
+        lat_bnds: [ 53.1,  56.55 ]
+      e-EMDNA:
+        name: e-EMDNA 
+        method: bbox
+        lon_bnds: [ -83, -55 ]
+        lat_bnds: [ 56.6,  63 ]        
     NOT-USING: #TODO: remove
       b-EMDNA: 
         name: b-EMDNA 

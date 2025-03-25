@@ -9,12 +9,12 @@ configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
 sim_ids=[
-    "CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1"
+    "CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1",
     #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
     #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+      'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
     #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
+      'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
     #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
     #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
@@ -96,7 +96,7 @@ rule train:
         n_workers=10,
         mem="50GB",
         cpus_per_task=12,
-        time="00:50:00",
+        time="01:30:00", #TODO: for test
     script:
         "workflow/scripts/train.py"
 
@@ -109,11 +109,11 @@ rule adjust:
         train= wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"),
     params:
-        #mem="80GB",
-        mem="100GB",
+        mem="80GB",
+        #mem="100GB",
         cpus_per_task=1,
-        #time="12:00:00",
-        time="24:00:00", #TODO: for 50 test
+        time="12:00:00",
+        #time="24:00:00", #TODO: for test
     script:
         "workflow/scripts/adjust.py"
 
@@ -122,9 +122,9 @@ rule clean_up:
     input: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"
     output: temp(finaldir/"split_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
     params:
-        mem="5GB",
+        mem="30GB",
         cpus_per_task=1,
-        time="00:30:00",
+        time="2:00:00", #TODO: for 63 test
     script:
         "workflow/scripts/clean_up.py"
 
