@@ -9,7 +9,7 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
 
-    client=dask_cluster(snakemake.params)
+    #client=dask_cluster(snakemake.params)
 
     args=copy.deepcopy(CONFIG['extraction']['simulation']['search_data_catalogs'])
     args['other_search_criteria'] = {'id': snakemake.wildcards.sim_id +'_global'}
