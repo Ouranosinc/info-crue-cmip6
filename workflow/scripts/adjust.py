@@ -34,19 +34,10 @@ if __name__ == '__main__':
 
     ##FIXME: can be removed when fixed in xscen
      # get right calendar
-    simcal = dsim.time.dt.calendar
-    mincal = minimum_calendar(simcal, 'noleap')
-    if simcal != mincal:
-        dsim = dsim.convert_calendar(mincal, align_on='year')
-
-
-    print(dsim)
-    print(dsim.time.values)
-
-    print(dref)
-    print(dref.time.values)
-
-    print(dtrain.attrs["train_params"])
+    # simcal = dsim.time.dt.calendar
+    # mincal = minimum_calendar(simcal, 'noleap')
+    # if simcal != mincal:
+    #     dsim = dsim.convert_calendar(mincal, align_on='year')
 
     out = xs.adjust(
         dtrain = dtrain, 

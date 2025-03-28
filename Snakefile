@@ -81,8 +81,7 @@ rule extractregrid:
         n_workers=2,
         mem="10GB",
         cpus_per_task=4,
-        #time="00:10:00", 
-        time="00:20:00", #TODO: test big region [42, 46.45]
+        time="00:20:00",
     script:
         "workflow/scripts/extract-regrid.py"
 
@@ -96,7 +95,7 @@ rule train:
         n_workers=10,
         mem="50GB",
         cpus_per_task=12,
-        time="01:30:00", #TODO: for test
+        time="01:30:00",
     script:
         "workflow/scripts/train.py"
 
@@ -110,10 +109,8 @@ rule adjust:
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"),
     params:
         mem="80GB",
-        #mem="100GB",
         cpus_per_task=1,
         time="12:00:00",
-        #time="24:00:00", #TODO: for test
     script:
         "workflow/scripts/adjust.py"
 
@@ -124,7 +121,7 @@ rule clean_up:
     params:
         mem="30GB",
         cpus_per_task=1,
-        time="2:00:00", #TODO: for 63 test
+        time="2:00:00",
     script:
         "workflow/scripts/clean_up.py"
 
