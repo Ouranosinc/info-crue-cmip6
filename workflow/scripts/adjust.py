@@ -16,7 +16,7 @@ xs.load_config("config/config.yml","config/paths.yml")
 
 if __name__ == '__main__':
 
-    #MBCn adjust fonctionne vrm mieux sans dask
+    # MBCn adjust fonctionne vrm mieux sans dask
 
     dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
 
@@ -31,13 +31,6 @@ if __name__ == '__main__':
     ##FIXME: when xscen/xsda can handle units correctly
     dref['pr']=xc.units.convert_units_to(dref['pr'], 'kg m^-2 s^-1', context='hydro')
     dsim['pr']=xc.units.convert_units_to(dsim['pr'], 'kg m^-2 s^-1', context='hydro')
-
-    ##FIXME: can be removed when fixed in xscen
-     # get right calendar
-    # simcal = dsim.time.dt.calendar
-    # mincal = minimum_calendar(simcal, 'noleap')
-    # if simcal != mincal:
-    #     dsim = dsim.convert_calendar(mincal, align_on='year')
 
     out = xs.adjust(
         dtrain = dtrain, 

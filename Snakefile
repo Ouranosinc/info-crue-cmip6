@@ -47,6 +47,7 @@ sim_ids=[
 
 
 regions= list(config['custom']['regions'].keys())
+#regions=[f"{config['subregions']['code']}{i}" for i in range(config['subregions']['num_of_regions'])]
 # use dom as wildcard so it can be defined in the config
 domain=[config['custom']['full_region']['name']]
 
@@ -155,6 +156,8 @@ rule concat_scen:
         tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
         tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
         dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
+        tas=finaldir/"staging/{path}/tas/tas_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", #TODO: test 5 var
+
     params:
         path=lambda wildcards: final_path(wildcards.sim_id),
         n_workers=2,
@@ -171,6 +174,7 @@ rule health:
         tasmax=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
         tasmin=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
         dtr=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"),
+        tas=lambda wildcards: finaldir/(f"staging/{final_path(wildcards.sim_id)}"+"/tas/tas_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip"), #TODO: test 5 var
     output: 
         finaldir/"health/{sim_id}_{dom}_health.zarr.zip"
     params:

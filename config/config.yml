@@ -80,6 +80,11 @@ custom:
     align_on:
       year
 
+subregions:
+  n: 7500 # number of loc in one region
+  code: EM # code name of regions
+  num_of_regions: 6 #TODO: automate this
+
 extraction:
     reference:
         search_data_catalogs:
@@ -88,6 +93,7 @@ extraction:
                 tasmin: D
                 pr: D
                 dtr: D
+                tas: D # for test 5 var
             allow_resampling: False
             allow_conversion: True
             periods : *ref_period
@@ -198,11 +204,12 @@ regrid:
 
 biasadjust_mbcn:
   train:
-    var: #TODO: think about this more, because we have some temperature inversion
+    var:
       - tasmax
       - dtr
       - pr
-      - tasmin # to test 4 variables
+      - tasmin
+      - tas # test 5 var
     method: MBCn
     period: *ref_period
     group:
@@ -256,6 +263,7 @@ clean_up:
       tasmin: interpolate
       pr: 0
       dtr: interpolate
+      tas: interpolate #TODO test 5 var
     maybe_unstack_dict:
       stack_drop_nans: *stack
       dim: loc
@@ -383,7 +391,6 @@ diagnostics:
 io:
   save_to_zarr:
     mode: o
-    #strip_cat_metadata: False #FIXME: when default is changed in xscen
 
 dask:
     client:
