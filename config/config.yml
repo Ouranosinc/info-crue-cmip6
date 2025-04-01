@@ -273,6 +273,7 @@ clean_up:
         time: -1
     round_var:
       pr: 10
+    change_attr_prefix: ''
     remove_all_attrs_except:
       global:
         - history

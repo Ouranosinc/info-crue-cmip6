@@ -46,8 +46,8 @@ sim_ids=[
 
 
 
-regions= list(config['custom']['regions'].keys())
-#regions=[f"{config['subregions']['code']}{i}" for i in range(config['subregions']['num_of_regions'])]
+#regions= list(config['custom']['regions'].keys()) #TODO: test reg
+regions=[f"{config['subregions']['code']}-{i}" for i in range(config['subregions']['num_of_regions'])]
 # use dom as wildcard so it can be defined in the config
 domain=[config['custom']['full_region']['name']]
 
@@ -72,7 +72,7 @@ rule makeref:
         mem="250GB",
         cpus_per_task=4,
         time="00:10:00",
-    script: "workflow/scripts/makeref.py"
+    script: "workflow/scripts/makeref_reg.py" #TODO: test reg
 
 rule extractregrid:
     input: 
@@ -116,15 +116,15 @@ rule adjust:
         "workflow/scripts/adjust.py"
 
 
-rule clean_up:
-    input: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"
-    output: temp(finaldir/"split_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
-    params:
-        mem="30GB",
-        cpus_per_task=1,
-        time="2:00:00",
-    script:
-        "workflow/scripts/clean_up.py"
+# rule clean_up:
+#     input: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"
+#     output: temp(finaldir/"split_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
+#     params:
+#         mem="30GB",
+#         cpus_per_task=1,
+#         time="2:00:00",
+#     script:
+#         "workflow/scripts/clean_up.py"
 
 
 
@@ -148,16 +148,34 @@ def final_path(id):
          date_end=config['custom']['sim_period'][1])))
     return str(os.path.dirname(os.path.dirname(path)))
 
+# #sim_id HAS to be in output, so can't use only params
+# rule concat_scen:
+#     input: expand(finaldir/"split_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
+#     output: 
+#         pr=finaldir/"staging/{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
+#         tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
+#         tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
+#         dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
+#         tas=finaldir/"staging/{path}/tas/tas_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", #TODO: test 5 var
+
+#     params:
+#         path=lambda wildcards: final_path(wildcards.sim_id),
+#         n_workers=2,
+#         mem="60GB", 
+#         cpus_per_task=4,
+#         time="00:15:00",
+#     script:
+#         "workflow/scripts/concat.py"
+
 #sim_id HAS to be in output, so can't use only params
-rule concat_scen:
-    input: expand(finaldir/"split_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
+rule concat_scen_clean:
+    input: expand(wdir/"{{sim_id}}_{region_name}/{{sim_id}}_{region_name}_adjusted.zarr.zip",region_name=regions)
     output: 
         pr=finaldir/"staging/{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
         tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
         tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
         dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
         tas=finaldir/"staging/{path}/tas/tas_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", #TODO: test 5 var
-
     params:
         path=lambda wildcards: final_path(wildcards.sim_id),
         n_workers=2,
@@ -165,7 +183,7 @@ rule concat_scen:
         cpus_per_task=4,
         time="00:15:00",
     script:
-        "workflow/scripts/concat.py"
+        "workflow/scripts/concat_clean.py"
 
 
 rule health:
