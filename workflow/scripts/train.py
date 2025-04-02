@@ -22,7 +22,7 @@ if __name__ == '__main__':
     #dsim.attrs['cat:domain'] = snakemake.wildcards.region_name # should not be needed if rest works
 
     # load ref ds
-    refcal = minimum_calendar(get_calendar(dsim),CONFIG['custom']['maximal_calendar'])
+    refcal = minimum_calendar(get_calendar(dsim),CONFIG['biasadjust_mbcn']['maximal_calendar'])
     unzip_directory(snakemake.input[f'ref_{refcal}'],f"{os.environ['SLURM_TMPDIR']}/dref.zarr")
     dref= xr.open_zarr(f"{os.environ['SLURM_TMPDIR']}/dref.zarr",decode_timedelta=False)
 

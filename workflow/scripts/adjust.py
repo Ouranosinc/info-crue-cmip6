@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     dsim= xr.open_zarr(snakemake.input.sim,decode_timedelta=False).load()
 
-    refcal = minimum_calendar(get_calendar(dsim),CONFIG['custom']['maximal_calendar'])
+    refcal = minimum_calendar(get_calendar(dsim),CONFIG['biasadjust_mbcn']['maximal_calendar'])
     dref= xr.open_zarr(snakemake.input[f'ref_{refcal}'],decode_timedelta=False).load()
    
     dtrain= xr.open_zarr(snakemake.input.train,

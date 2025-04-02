@@ -29,7 +29,7 @@ if __name__ == '__main__':
     ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
 
     # need lat and lon -1 for the regrid
-    ds_sim = ds_sim.chunk(CONFIG['custom']['sim_chunks'])
+    ds_sim = ds_sim.chunk(CONFIG['chunks']['pre-regrid'])
 
     #REGRID
 
@@ -42,6 +42,6 @@ if __name__ == '__main__':
         **CONFIG['regrid']['regrid_dataset']
     )
     # chunk time dim
-    ds_regrid = ds_regrid.chunk({d: CONFIG['custom']['working_chunks'][d] for d in ds_regrid.dims})
+    ds_regrid = ds_regrid.chunk({d: CONFIG['chunks']['working'][d] for d in ds_regrid.dims})
 
     tmp_zarr_and_zip(ds_regrid,snakemake.output[0])

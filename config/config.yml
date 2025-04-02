@@ -1,89 +1,28 @@
 project:
-    name: Info-Crue CMIP6
+    name: MBCn
     version: 1.0.0
-    description: Jeux de données CMIP6 corrigés pour Info-Crue
-    id: ic6
+    description: Ajustement multivarié MBCn
+    id: mbcn
 
 custom:
-    bias_adjust_institution: &bias_adjust_institution
-      Ouranos
-    bias_adjust_project: &bias_adjust_project
-      MBCn-EM
-    version: &version
-      v10
-    regions:
-      a-EMDNA: 
-        name: a-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 42, 46.45  ]
-      b-EMDNA:
-        name: b-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 46.5,  50.05 ]
-      c-EMDNA:
-        name: c-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 50.1,  53.05 ]
-      d-EMDNA:
-        name: d-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 53.1,  56.55 ]
-      e-EMDNA:
-        name: e-EMDNA 
-        method: bbox
-        lon_bnds: [ -83, -55 ]
-        lat_bnds: [ 56.6,  63 ]        
-    full_region: # if this changes, need to change paths with QC in snakefile
+    full_region:
       name: QC-EMDNA
       method: bbox
       lon_bnds: [ -83, -55 ]
       lat_bnds: [ 42, 63 ]
     stack_drop_nans: &stack
         True
-    working_chunks:
-        lat: 15
-        lon: 15
-        loc: 10
-        time: -1
-    final_zarr_chunks: 
-        lat: 5
-        lon: 30
-        time: 4year
-    concat_chunks: 
-        lat: 30
-        lon: 30
-    sim_chunks:
-      time: 365
-      lat: -1
-      lon: -1
     ref_period : &ref_period # new-ref
       - '1989'
       - '2018'
     sim_period: &sim_period
-        - '1951'
-        - '2100'
-    encoding:
-      tasmax:
-        dtype: float32
-      tasmin:
-        dtype: float32
-      dtr:
-        dtype: float32
-      pr:
-        dtype: float32
-    maximal_calendar: &mcal
-      noleap
-    align_on:
-      year
+      - '1951'
+      - '2100'
 
 subregions:
   n: 7500 # number of loc in one region
   code: EM # code name of regions
-  num_of_regions: 6 #TODO: automate this
+  #num_of_regions: 6 #TODO: automate this
 
 extraction:
     reference:
@@ -131,7 +70,6 @@ extraction:
               - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
           other_search_criteria:
             processing_level: raw
-            #member: r1i1p1f1
             experiment:
               - ssp585
               - ssp245
@@ -203,6 +141,7 @@ regrid:
 
 
 biasadjust_mbcn:
+  maximal_calendar: noleap
   train:
     var:
       - tasmax
@@ -244,9 +183,9 @@ biasadjust_mbcn:
         extrapolation: constant
   attrs:
     processing_level: biasadjusted
-    bias_adjust_institution: *bias_adjust_institution
-    bias_adjust_project: *bias_adjust_project
-    version: *version
+    bias_adjust_institution: Ouranos
+    bias_adjust_project: MBCn-EM
+    version: v10
 
 clean_up:
   xscen_clean_up:
@@ -439,3 +378,17 @@ tdd:
     decode_timedelta: False
 
 
+chunks:
+  pre-regrid:
+    time: 365
+    lat: -1
+    lon: -1
+  working:
+      lat: 15
+      lon: 15
+      loc: 10
+      time: -1
+  final: 
+      lat: 30
+      lon: 30
+      time: 4year

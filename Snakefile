@@ -2,21 +2,22 @@ from pathlib import Path
 import xscen as xs
 import pandas as pd
 import os
-
+import numpy as np
 
 # Load configuration
 configfile: "config/config.yml"
 configfile: "config/paths.yml"
 
+# choose the simulations to process
 sim_ids=[
-    "CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1",
+    #"CMIP6_ScenarioMIP_CMCC_CMCC-ESM2_ssp370_r1i1p1f1",
     #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r1i1p1f1', #7442
     #  'CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r1i1p1f1',
-      'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
+    #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp245_r1i1p1f1',
     #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
-      'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
+    #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
     #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
-    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+      'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
@@ -44,23 +45,29 @@ sim_ids=[
     #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp585_r2i1p1f1', #  PCIC member
 ]
 
+# define subregions on which to split the computation based on n (size of each subregion) and the full region
+if 'num_of_regions' not in config['subregions']:
+    cat=xs.DataCatalog(config['extraction']['reference']['search_data_catalogs']['data_catalogs'][0])
+    dref=cat.search(**config['extraction']['reference']['search_data_catalogs']['other_search_criteria']).to_dataset()
+    dref=xs.spatial.subset(dref, **config['custom']['full_region'])
+    dref = xs.utils.stack_drop_nans(dref,dref.pr.isel(time=0, drop=True).notnull().compute(),)
+    num_of_regions= int(np.ceil(dref.sizes['loc']/config['subregions']['n']))
+else:
+    num_of_regions=config['subregions']['num_of_regions']
+regions=[f"{config['subregions']['code']}-{i}" for i in range(num_of_regions)]
 
-
-#regions= list(config['custom']['regions'].keys()) #TODO: test reg
-regions=[f"{config['subregions']['code']}-{i}" for i in range(config['subregions']['num_of_regions'])]
-# use dom as wildcard so it can be defined in the config
+# trick, use dom as wildcard so it can be defined in the config
 domain=[config['custom']['full_region']['name']]
 
+#paths
 wdir= Path(config['paths']['workdir'])
 finaldir= Path(config['paths']['finaldir'])
-
-
 
 
 rule all:
     input: 
         expand(finaldir/"health/{sim_id}_{dom}_health.zarr.zip",sim_id=sim_ids, dom=domain),
-        #expand(finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_imp.zarr.zip",sim_id=sim_ids, dom=domain)
+        expand(finaldir/"diagnostics/{dom}/{sim_id}/{sim_id}_{dom}_imp.zarr.zip",sim_id=sim_ids, dom=domain)
 
 rule makeref:
     output: 
@@ -72,7 +79,7 @@ rule makeref:
         mem="250GB",
         cpus_per_task=4,
         time="00:10:00",
-    script: "workflow/scripts/makeref_reg.py" #TODO: test reg
+    script: "workflow/scripts/makeref.py"
 
 rule extractregrid:
     input: 
@@ -116,18 +123,6 @@ rule adjust:
         "workflow/scripts/adjust.py"
 
 
-# rule clean_up:
-#     input: wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_adjusted.zarr.zip"
-#     output: temp(finaldir/"split_regions/{region_name}/day_{sim_id}_{region_name}.zarr.zip")
-#     params:
-#         mem="30GB",
-#         cpus_per_task=1,
-#         time="2:00:00",
-#     script:
-#         "workflow/scripts/clean_up.py"
-
-
-
 def final_path(id):
     path='test'
     path= xs.build_path(
@@ -139,33 +134,15 @@ def final_path(id):
          variable='foo',
          type='simulation',
          processing_level='biasadjusted',
-         bias_adjust_project=config['custom']['bias_adjust_project'],
-         bias_adjust_institution=config['custom']['bias_adjust_institution'],
-         version=config['custom']['version'],
+         bias_adjust_project=config['biasadjust_mbcn']['attrs']['bias_adjust_project'],
+         bias_adjust_institution=config['biasadjust_mbcn']['attrs']['bias_adjust_institution'],
+         version=config['biasadjust_mbcn']['attrs']['version'],
          frequency='day',
          xrfreq='D',
          date_start=config['custom']['sim_period'][0],
          date_end=config['custom']['sim_period'][1])))
     return str(os.path.dirname(os.path.dirname(path)))
 
-# #sim_id HAS to be in output, so can't use only params
-# rule concat_scen:
-#     input: expand(finaldir/"split_regions/{region_name}/day_{{sim_id}}_{region_name}.zarr.zip",region_name=regions)
-#     output: 
-#         pr=finaldir/"staging/{path}/pr/pr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
-#         tasmax=finaldir/"staging/{path}/tasmax/tasmax_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
-#         tasmin=finaldir/"staging/{path}/tasmin/tasmin_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip",
-#         dtr=finaldir/"staging/{path}/dtr/dtr_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", 
-#         tas=finaldir/"staging/{path}/tas/tas_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", #TODO: test 5 var
-
-#     params:
-#         path=lambda wildcards: final_path(wildcards.sim_id),
-#         n_workers=2,
-#         mem="60GB", 
-#         cpus_per_task=4,
-#         time="00:15:00",
-#     script:
-#         "workflow/scripts/concat.py"
 
 #sim_id HAS to be in output, so can't use only params
 rule concat_scen_clean:
@@ -213,7 +190,7 @@ rule diag_ref:
         n_workers=2,
         mem="50GB",
         cpus_per_task=4,
-        time="00:10:00",
+        time="00:20:00",
     script:
         "workflow/scripts/diag_ref.py"
 

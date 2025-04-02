@@ -16,15 +16,13 @@ if __name__ == '__main__':
 
     client=dask_cluster(snakemake.params)
 
-    region_dict = CONFIG['custom']['regions'][snakemake.wildcards.region_name]
-
     # search
     cat_ref = xs.search_data_catalogs(**CONFIG['extraction']['reference']['search_data_catalogs'])
 
     # extract
     dc = cat_ref.popitem()[1]
     ds_ref = xs.extract_dataset(catalog=dc,
-                                region=region_dict,
+                                region=CONFIG['custom']['full_region'],
                                 **CONFIG['extraction']['reference']['extract_dataset']
                                 )['D']
     
@@ -46,19 +44,23 @@ if __name__ == '__main__':
             ds_ref,
             ds_ref[variables[0]].isel(time=130, drop=True).notnull().compute(),
         )
-    ds_ref = ds_ref.chunk({d: CONFIG['custom']['working_chunks'][d] for d in ds_ref.dims})
+
+    # cut region
+    n=CONFIG['subregions']['n']
+    r=int(snakemake.wildcards.region_name.replace(f"{CONFIG['subregions']['code']}-",''))
+    ds_ref=ds_ref.sel(loc=slice(n*r, n*(r+1)))
+
+    ds_ref = ds_ref.chunk({d: CONFIG['chunks']['working'][d] for d in ds_ref.dims})
     ds_ref.attrs['cat:calendar'] = 'default'
 
     tmp_zarr_and_zip(ds_ref,snakemake.output.default)
 
     # noleap
-    #ds_refnl = convert_calendar(ds_ref, "noleap")
     ds_refnl =ds_ref.convert_calendar('noleap')
     ds_refnl.attrs['cat:calendar'] = 'noleap'
     tmp_zarr_and_zip(ds_refnl, snakemake.output.noleap)
 
     # 360_day
-    #ds_ref3 = convert_calendar(ds_ref, "360_day", align_on="year")
     ds_ref3 = ds_ref.convert_calendar('360_day', align_on="year")
     ds_ref3.attrs['cat:calendar'] = '360_day'
     tmp_zarr_and_zip(ds_ref3, snakemake.output.day360)

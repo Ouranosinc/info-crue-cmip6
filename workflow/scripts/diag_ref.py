@@ -32,5 +32,5 @@ if __name__ == '__main__':
 
     # diagnostics
     ds_ref_prop, _ = xs.properties_and_measures(ds=ds_ref, **CONFIG['diagnostics']['properties_and_measures'])
-    ds_ref_prop = ds_ref_prop.chunk(CONFIG['custom']['concat_chunks'])
+    #ds_ref_prop = ds_ref_prop.chunk(CONFIG['custom']['concat_chunks'])
     tmp_zarr_and_zip(ds_ref_prop, snakemake.output.prop)

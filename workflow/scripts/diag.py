@@ -38,7 +38,7 @@ if __name__ == '__main__':
                                 )['D']
     ds_sim['time'] = ds_sim.time.dt.floor('D') # probably this wont be need when data is cleaned
     # need lat and lon -1 for the regrid
-    ds_sim = ds_sim.chunk(CONFIG['custom']['sim_chunks'])
+    ds_sim = ds_sim.chunk(CONFIG['chunks']['pre-regrid'])
     args=CONFIG['regrid']['regrid_dataset'].copy()
     args['regridder_kwargs']['locstream_out']=False
     ds_sim = xs.regrid_dataset(
@@ -52,12 +52,7 @@ if __name__ == '__main__':
     ds_sim=ds_sim.where(mask)
 
     # chunk time dim
-    ds_sim = ds_sim.chunk({d: CONFIG['custom']['working_chunks'][d] for d in ds_sim.dims})
-
-    print(ds_scen)
-    print(ref_prop)
-    print(ds_scen.lat.values)
-    print(ref_prop.lat.values)
+    ds_sim = ds_sim.chunk({d: CONFIG['chunks']['working'][d] for d in ds_sim.dims})
 
     sim_prop, sim_meas = xs.properties_and_measures(
                                 ds=ds_sim,
@@ -71,7 +66,7 @@ if __name__ == '__main__':
                             **CONFIG['diagnostics']['properties_and_measures']
                         )
     for out, name in zip([sim_prop, sim_meas, scen_prop, scen_meas],['sim_prop','sim_meas','scen_prop','scen_meas']):
-        out = out.chunk(CONFIG['custom']['concat_chunks'])
+        #out = out.chunk(CONFIG['custom']['concat_chunks'])
         tmp_zarr_and_zip(out, snakemake.output[name])
 
     imp = xs.diagnostics.measures_improvement([sim_meas,scen_meas])

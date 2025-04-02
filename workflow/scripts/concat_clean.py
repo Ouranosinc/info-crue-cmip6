@@ -47,7 +47,7 @@ if __name__ == '__main__':
         xs.io.rechunk(
             path_in=clean_path,
             path_out=rechunk_path,
-            chunks_over_dim=CONFIG['custom']['final_zarr_chunks'],
+            chunks_over_dim=CONFIG['chunks']['final'],
             temp_store=f"{os.environ['SLURM_TMPDIR']}/tmp_rechunk/{snakemake.wildcards.sim_id}/",
             **CONFIG['rechunk'],
             overwrite=True)
