@@ -17,10 +17,10 @@ sim_ids=[
     #  'CMIP6_ScenarioMIP_CSIRO_ACCESS-ESM1-5_ssp370_r1i1p1f1',
     #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r4i1p1f1', #  PCIC member
     #  'CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r4i1p1f1',# PCIC member
-      'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
+    #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp245_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_IPSL_IPSL-CM6A-LR_ssp370_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp245_r1i1p1f1', 
-    #  'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
+      'CMIP6_ScenarioMIP_MIROC_MIROC6_ssp370_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp245_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_MRI_MRI-ESM2-0_ssp370_r1i1p1f1', 
     #  'CMIP6_ScenarioMIP_NIMS-KMA_KACE-1-0-G_ssp245_r2i1p1f1',#  PCIC member
@@ -76,7 +76,7 @@ rule makeref:
         day360=finaldir/ "reference/split_regions/{region_name}_360_day.zarr.zip",
     params:
         n_workers=2,
-        mem="250GB",
+        mem="10GB",
         cpus_per_task=4,
         time="00:10:00",
     script: "workflow/scripts/makeref.py"
@@ -86,10 +86,9 @@ rule extractregrid:
         noleap=finaldir/ "reference/split_regions/{region_name}_noleap.zarr.zip",
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_regridded.zarr.zip")
     params:
-        n_workers=2,
         mem="10GB",
-        cpus_per_task=4,
-        time="00:20:00",
+        cpus_per_task=1,
+        time="00:15:00",
     script:
         "workflow/scripts/extract-regrid.py"
 
@@ -101,9 +100,9 @@ rule train:
     output: temp(wdir/"{sim_id}_{region_name}/{sim_id}_{region_name}_training.zarr.zip"),
     params:
         n_workers=10,
-        mem="50GB",
+        mem="30GB",
         cpus_per_task=12,
-        time="01:30:00",
+        time="01:00:00",
     script:
         "workflow/scripts/train.py"
 
@@ -155,10 +154,9 @@ rule concat_scen_clean:
         tas=finaldir/"staging/{path}/tas/tas_day_MBCn-EM_v10_{sim_id}_{dom}_1951-2100.zarr.zip", #TODO: test 5 var
     params:
         path=lambda wildcards: final_path(wildcards.sim_id),
-        n_workers=2,
-        mem="60GB", 
-        cpus_per_task=4,
-        time="00:15:00",
+        mem="45GB", 
+        cpus_per_task=1,
+        time="00:20:00",
     script:
         "workflow/scripts/concat_clean.py"
 
@@ -174,9 +172,9 @@ rule health:
         finaldir/"health/{sim_id}_{dom}_health.zarr.zip"
     params:
         n_workers=2,
-        mem="50GB",
+        mem="20GB",
         cpus_per_task=4,
-        time="00:30:00",
+        time="00:10:00",
     script:
         "workflow/scripts/health.py"
 
@@ -188,9 +186,9 @@ rule diag_ref:
         prop=finaldir/"diagnostics/{dom}/prop_ref.zarr.zip"
     params:
         n_workers=2,
-        mem="50GB",
+        mem="30GB",
         cpus_per_task=4,
-        time="00:20:00",
+        time="00:15:00",
     script:
         "workflow/scripts/diag_ref.py"
 
@@ -212,7 +210,7 @@ rule diag:
         n_workers=2,
         mem="50GB",
         cpus_per_task=4,
-        time="02:00:00",
+        time="01:00:00",
     script:
         "workflow/scripts/diag.py"
 

@@ -22,7 +22,7 @@ custom:
 subregions:
   n: 7500 # number of loc in one region
   code: EM # code name of regions
-  #num_of_regions: 6 #TODO: automate this
+  num_of_regions: 6 # can be calculated if we don't know it
 
 extraction:
     reference:
@@ -54,37 +54,37 @@ extraction:
           allow_conversion: True
           allow_resampling: False
           periods: *sim_period
-          exclusions:
-            id:
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r3i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r3i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r3i1p1f1_global
-              - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r3i1p1f1_global
-              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
-              - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
+          # exclusions:
+          #   id:
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp126_r3i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp245_r3i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp370_r3i1p1f1_global
+          #     - CMIP6_ScenarioMIP_EC-Earth-Consortium_EC-Earth3_ssp585_r3i1p1f1_global
+          #     - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp126_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp245_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp370_r2i1p1f1_global
+          #     - CMIP6_ScenarioMIP_CAS_FGOALS-g3_ssp585_r2i1p1f1_global
           other_search_criteria:
             processing_level: raw
-            experiment:
-              - ssp585
-              - ssp245
-              - ssp370
-              - ssp126
-            source:
-              # chosen
-              - ACCESS-ESM1-5
-              - CanESM5
-              - EC-Earth3
-              - FGOALS-g3
-              - IPSL-CM6A-LR
-              - KACE-1-0-G
-              - MIROC6
-              - MRI-ESM2-0
+            # experiment:
+            #   - ssp585
+            #   - ssp245
+            #   - ssp370
+            #   - ssp126
+            # source:
+            #   # chosen
+            #   - ACCESS-ESM1-5
+            #   - CanESM5
+            #   - EC-Earth3
+            #   - FGOALS-g3
+            #   - IPSL-CM6A-LR
+            #   - KACE-1-0-G
+            #   - MIROC6
+            #   - MRI-ESM2-0
             mip_era: CMIP6
         extract_dataset:
             periods : *sim_period
