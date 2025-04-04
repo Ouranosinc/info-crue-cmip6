@@ -165,7 +165,7 @@ wrapt==1.17.2+computecanada
 xarray==2025.1.2+computecanada
 xclim==0.55.1
 xesmf==0.8.8+computecanada
-xscen @ file:///home/julavoie/code/test-vs/info-crue-cmip6/xscen-0.11.1.dev8-py3-none-any.whl#sha256=bfe8c66401f67e5e8564ef0c59745614245c30d147d6d56c0d266e973e5be705
+xscen @ file:///home/julavoie/code/test-vs/info-crue-cmip6/wheel/xscen-0.12.1.dev2-py3-none-any.whl#sha256=fdb1ad1b17d2306fc569e226bf04522ba2b0da6a555e70d65be73c1250f71acf
 xsdba==0.3.2
 xyzservices==2025.1.0+computecanada
 yamale==6.0.0+computecanada

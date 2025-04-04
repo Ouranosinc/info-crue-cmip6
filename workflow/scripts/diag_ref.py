@@ -1,10 +1,7 @@
-import os
+import xclim as xc
 import xscen as xs
 from xscen import CONFIG
 from workflow.scripts.utils import dask_cluster, tmp_zarr_and_zip
-import xclim as xc
-import copy
-import xarray as xr
 
 xs.load_config("config/config.yml","config/paths.yml")
 

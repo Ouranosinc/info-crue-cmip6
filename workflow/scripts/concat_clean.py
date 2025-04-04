@@ -1,16 +1,9 @@
-
-# pyright: reportUndefinedVariable=false
-snakemake  # Déclare que cette variable est globale
 import os
+import xarray as xr
 import xscen as xs
 from xscen import CONFIG
-from workflow.scripts.utils import dask_cluster, zip_directory, unzip_directory, tmp_zarr_and_zip, create_tmp_path
-import copy
-import xarray as xr
-import shutil as sh
-import xclim as xc
 from xscen.xclim_modules import conversions
- 
+from workflow.scripts.utils import create_tmp_path
 
 xs.load_config("config/config.yml","config/paths.yml")
 
@@ -52,4 +45,4 @@ if __name__ == '__main__':
             **CONFIG['rechunk'],
             overwrite=True)
         
-        zip_directory( rechunk_path,snakemake.output[var])
+        xs.io.zip_directory( rechunk_path,snakemake.output[var])

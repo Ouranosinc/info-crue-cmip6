@@ -1,16 +1,11 @@
 
-import os
-import xscen as xs
-from xscen import CONFIG
-from workflow.scripts.utils import dask_cluster, zip_directory, unzip_directory, tmp_zarr_and_zip
-
-import copy
 import xarray as xr
-from xclim.core.calendar import  get_calendar #convert_calendar,
-from xscen.utils import minimum_calendar, stack_drop_nans
-import shutil as sh
-from pathlib import Path
 import xclim as xc
+from xclim.core.calendar import  get_calendar
+import xscen as xs
+from xscen.utils import minimum_calendar
+from xscen import CONFIG
+from workflow.scripts.utils import tmp_zarr_and_zip
 
 xs.load_config("config/config.yml","config/paths.yml")
 

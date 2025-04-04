@@ -1,10 +1,8 @@
 
-import os
+import xarray as xr
 import xscen as xs
 from xscen import CONFIG
-from workflow.scripts.utils import dask_cluster, zip_directory, unzip_directory, tmp_zarr_and_zip
-import xarray as xr
-import shutil as sh
+from workflow.scripts.utils import dask_cluster
 
 xs.load_config("config/config.yml","config/paths.yml")
 
